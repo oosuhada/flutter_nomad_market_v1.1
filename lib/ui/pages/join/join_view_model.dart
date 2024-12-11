@@ -58,7 +58,7 @@ class JoinViewModel extends AutoDisposeNotifier<FileModel?> {
   }) async {
     final idResult = await userRepository.usernameCk(username);
     if (!idResult) {
-      return "사용할 수 없는 아이디 입니다";
+      return "사용할 수 없는 이메일입니다";
     }
     final nickResult = await userRepository.nicknameCk(nickname);
     if (!nickResult) {

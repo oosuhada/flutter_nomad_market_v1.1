@@ -23,7 +23,7 @@ class AddressSearchPage extends StatelessWidget {
                 print('onSubmitted $value');
               },
               decoration: InputDecoration(
-                  hintText: '동명(읍,면)으로 검색 (ex. 서초동)',
+                  hintText: '도시, 나라로 검색 (ex. 부산, 한국)',
                   contentPadding:
                       EdgeInsets.symmetric(vertical: 4, horizontal: 16)),
             );
@@ -36,7 +36,7 @@ class AddressSearchPage extends StatelessWidget {
               SizedBox(height: 10),
               Consumer(builder: (context, ref, child) {
                 return SizedBox(
-                  height: 40,
+                  height: 48,
                   child: ElevatedButton(
                     onPressed: () async {
                       // 1. GeolocatorHelper에서 위치 받아오기

@@ -1,10 +1,10 @@
 class ValidatorUtil {
   static String? validatorId(String? value) {
     if (value?.trim().isEmpty ?? true) {
-      return "아이디를 입력해주세요";
+      return "이메일을 입력해주세요";
     }
-    if (value!.length < 2) {
-      return '아이디는 2글자 이상이여야합니다';
+    if (!value!.contains('@')) {
+      return '이메일은 유효한 형식이어야합니다';
     }
     return null;
   }

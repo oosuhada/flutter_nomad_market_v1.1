@@ -101,7 +101,7 @@ class _JoinPageState extends ConsumerState<JoinPage> {
             children: [
               //
               Text(
-                '안녕하세요!\n아이디와 비밀본호로 가입해주세요',
+                '안녕하세요!\n이메일과 비밀번호로 가입해주세요',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
