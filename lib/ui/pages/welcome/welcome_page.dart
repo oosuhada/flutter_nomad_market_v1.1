@@ -21,7 +21,7 @@ class WelcomePage extends StatelessWidget {
                 Text(
                   '내 손안의 글로벌 커머스',
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
