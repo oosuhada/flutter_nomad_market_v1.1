@@ -16,8 +16,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange),
-        highlightColor: Colors.orange,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple.shade900),
+        highlightColor: Colors.purple.shade900,
         appBarTheme: AppBarTheme(
           centerTitle: false,
           titleTextStyle: TextStyle(
@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ButtonStyle(
             foregroundColor: WidgetStatePropertyAll(Colors.white),
-            backgroundColor: WidgetStatePropertyAll(Colors.orange),
+            backgroundColor: WidgetStatePropertyAll(Colors.purple.shade900),
             minimumSize: WidgetStatePropertyAll(Size.fromHeight(50)),
             textStyle: WidgetStatePropertyAll(
               TextStyle(
