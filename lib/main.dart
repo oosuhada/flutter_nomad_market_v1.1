@@ -16,12 +16,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple.shade900),
-        highlightColor: Colors.purple.shade900,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple.shade800),
+        highlightColor: Colors.purple.shade800,
         appBarTheme: AppBarTheme(
           centerTitle: false,
           titleTextStyle: TextStyle(
-            fontSize: 18,
+            fontSize: 16,
             color: Colors.black,
             fontWeight: FontWeight.bold,
           ),
@@ -29,11 +29,11 @@ class MyApp extends StatelessWidget {
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ButtonStyle(
             foregroundColor: WidgetStatePropertyAll(Colors.white),
-            backgroundColor: WidgetStatePropertyAll(Colors.purple.shade900),
-            minimumSize: WidgetStatePropertyAll(Size.fromHeight(50)),
+            backgroundColor: WidgetStatePropertyAll(Colors.purple.shade800),
+            minimumSize: WidgetStatePropertyAll(Size.fromHeight(52)),
             textStyle: WidgetStatePropertyAll(
               TextStyle(
-                fontSize: 18,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
               ),
             ),
