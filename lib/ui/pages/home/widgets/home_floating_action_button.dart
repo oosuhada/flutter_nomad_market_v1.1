@@ -14,30 +14,34 @@ class HomeFloatingActionButton extends StatelessWidget {
           return SizedBox();
         }
 
-        return FloatingActionButton.extended(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) {
-                  return ProductWritePage(null);
-                },
+        return SizedBox(
+          height: 52,
+          child: FloatingActionButton.extended(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) {
+                    return ProductWritePage(null);
+                  },
+                ),
+              );
+            },
+            extendedPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+            label: Text(
+              '상품등록',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
               ),
-            );
-          },
-          label: Text(
-            '상품등록',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
             ),
+            icon: Icon(Icons.add),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            backgroundColor: Theme.of(context).highlightColor,
+            foregroundColor: Colors.white,
           ),
-          icon: Icon(Icons.add),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(100),
-          ),
-          backgroundColor: Theme.of(context).highlightColor,
-          foregroundColor: Colors.white,
         );
       },
     );
