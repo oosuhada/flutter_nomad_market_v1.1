@@ -1,15 +1,13 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/core/image_picker_helper.dart';
 import 'package:flutter_market_app/core/snackbar_util.dart';
 import 'package:flutter_market_app/ui/pages/join/join_view_model.dart';
+import 'package:flutter_market_app/ui/pages/join/widgets/profile_image_view_model.dart';
 import 'package:flutter_market_app/ui/pages/welcome/welcome_page.dart';
 import 'package:flutter_market_app/ui/widgets/id_text_form_field.dart';
 import 'package:flutter_market_app/ui/widgets/nickname_text_form_field.dart';
 import 'package:flutter_market_app/ui/widgets/pw_text_form_field.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 
 class JoinPage extends ConsumerStatefulWidget {
   JoinPage(this.address);
@@ -35,16 +33,16 @@ class _JoinPageState extends ConsumerState<JoinPage> {
   }
 
   void onImageUpload() async {
-    // 1. 이미지 픽커 객체 생성
-    ImagePicker imagePicker = ImagePicker();
-
-    // 2. 이미지 픽커 객체의 pickImage라는 메서드 호출
-    XFile? xFile = await imagePicker.pickImage(source: ImageSource.gallery);
-    print('경로 : ${xFile?.path}');
-    final viewModel = ref.read(joinViewModel.notifier);
-
-    if (xFile != null) {
-      await viewModel.uploadImage(xFile);
+    print('onImageUpload');
+    final result = await ImagePickerHelper.pickImage();
+    if (result != null) {
+      final viewModel = ref.read(profileImageViewModel.notifier);
+      viewModel.uploadImage(
+        title: result.title,
+        content: result.content,
+        writer: result.writer,
+        imageUrl: result.imageUrl,
+      );
     }
   }
 
@@ -91,7 +89,7 @@ class _JoinPageState extends ConsumerState<JoinPage> {
   @override
   Widget build(BuildContext context) {
     print(widget.address);
-    final fileModel = ref.watch(joinViewModel);
+    final postModel = ref.read(profileImageViewModel);
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -122,11 +120,11 @@ class _JoinPageState extends ConsumerState<JoinPage> {
                       color: Colors.grey[300],
                       shape: BoxShape.circle,
                     ),
-                    child: fileModel != null
+                    child: postModel != null
                         ? ClipRRect(
                             borderRadius: BorderRadius.circular(100),
                             child: Image.network(
-                              fileModel.url,
+                              postModel.imageUrl,
                               fit: BoxFit.cover,
                             ),
                           )

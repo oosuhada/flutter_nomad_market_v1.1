@@ -39,14 +39,14 @@ class ProductWritePictureArea extends StatelessWidget {
             ...images,
             GestureDetector(
               onTap: () async {
-                final file = await ImagePickerHelper.pickImage();
-                if (file != null) {
-                  vm.uploadImage(
-                    filename: file.filename,
-                    mimeType: file.mimeType,
-                    bytes: file.bytes,
-                  );
-                }
+                // final file = await ImagePickerHelper.pickImage();
+                // if (file != null) {
+                //   vm.uploadImage(
+                //     filename: file.filename,
+                //     mimeType: file.mimeType,
+                //     bytes: file.bytes,
+                //   );
+                // }
               },
               child: AspectRatio(
                 aspectRatio: 1,
