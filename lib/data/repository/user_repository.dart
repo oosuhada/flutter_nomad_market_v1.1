@@ -75,12 +75,14 @@ class UserRepository extends BaseRemoteRepository {
   }
 
   Future<bool> updateProfile({
+    required String username, // Change from int to String
     required String nickname,
     required int profileImageId,
   }) async {
     final response = await client.put(
       '/api/user/update',
       data: {
+        'username': username, // Ensure this is a string
         'nickname': nickname,
         'profileImageId': profileImageId,
       },

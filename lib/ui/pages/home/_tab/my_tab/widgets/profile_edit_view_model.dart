@@ -37,7 +37,7 @@ class ProfileEditViewModel extends StateNotifier<User?> {
     if (state == null) return false;
 
     final result = await userRepository.updateProfile(
-      username: state!.username,
+      username: state!.username, // Ensure this is a string
       nickname: nickname,
       profileImageId: state!.profileImage.id,
     );
