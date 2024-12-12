@@ -31,7 +31,7 @@ class ProductWritePictureArea extends StatelessWidget {
       }).toList();
 
       return SizedBox(
-        height: 60,
+        height: 100,
         width: double.infinity,
         child: ListView(
           scrollDirection: Axis.horizontal,
