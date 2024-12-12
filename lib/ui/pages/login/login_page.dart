@@ -79,12 +79,128 @@ class _LoginPageState extends State<LoginPage> {
                         SnackbarUtil.showSnackBar(context, '이메일과 비밀번호를 확인해주세요');
                       }
                     }
-
-                    ;
                   },
                   child: Text('로그인'),
                 );
               }),
+
+              SizedBox(height: 10),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  "I don't have an account",
+                  style: TextStyle(
+                    color: Color(0xFF98A8EA),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+
+              // 소셜 로그인 구분선
+              SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(child: Divider(thickness: 1)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(
+                      '또는',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ),
+                  Expanded(child: Divider(thickness: 1)),
+                ],
+              ),
+              SizedBox(height: 20),
+
+              // 소셜 로그인 버튼
+              Consumer(
+                builder: (context, ref, child) {
+                  return Column(
+                    children: [
+                      // 구글 로그인 버튼
+                      GestureDetector(
+                        onTap: () => onGoogleSignIn(ref),
+                        child: Container(
+                          width: double.infinity,
+                          height: 52,
+                          margin: EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey.shade300),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.2),
+                                spreadRadius: 2,
+                                blurRadius: 5,
+                                offset: Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                SizedBox(width: 15),
+                                Icon(
+                                  Icons.account_box,
+                                  color: Colors.red,
+                                  size: 40,
+                                ),
+                                SizedBox(width: 10),
+                                Text('구글 아이디로 계속하기',
+                                    style: TextStyle(
+                                        fontSize: 16, color: Colors.black54)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // 페이스북 로그인 버튼
+                      GestureDetector(
+                        onTap: () => onFacebookSignIn(ref),
+                        child: Container(
+                          width: double.infinity,
+                          height: 52,
+                          margin: EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.2),
+                                spreadRadius: 2,
+                                blurRadius: 5,
+                                offset: Offset(0, 3),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                SizedBox(width: 15),
+                                Icon(
+                                  Icons.facebook,
+                                  color: const Color.fromARGB(255, 33, 47, 125),
+                                  size: 40,
+                                ),
+                                SizedBox(width: 10),
+                                Text('페이스북 아이디로 계속하기',
+                                    style: TextStyle(
+                                        fontSize: 16, color: Colors.black54)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
             ],
           ),
         ),
