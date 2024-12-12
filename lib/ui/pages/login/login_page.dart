@@ -127,17 +127,12 @@ class _LoginPageState extends State<LoginPage> {
                           height: 52,
                           margin: EdgeInsets.symmetric(vertical: 10),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.grey[900]
+                                    : Colors.white,
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.grey.shade300),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.2),
-                                spreadRadius: 2,
-                                blurRadius: 5,
-                                offset: Offset(0, 3),
-                              ),
-                            ],
+                            border: Border.all(color: Colors.grey.shade600),
                           ),
                           child: Center(
                             child: Row(
@@ -150,9 +145,17 @@ class _LoginPageState extends State<LoginPage> {
                                   size: 40,
                                 ),
                                 SizedBox(width: 10),
-                                Text('구글 아이디로 계속하기',
-                                    style: TextStyle(
-                                        fontSize: 16, color: Colors.black54)),
+                                Text(
+                                  '구글 아이디로 계속하기',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.grey[400]
+                                        : Colors.grey[600],
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -167,16 +170,12 @@ class _LoginPageState extends State<LoginPage> {
                           height: 52,
                           margin: EdgeInsets.symmetric(vertical: 10),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.grey[900]
+                                    : Colors.white,
                             borderRadius: BorderRadius.circular(8),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.2),
-                                spreadRadius: 2,
-                                blurRadius: 5,
-                                offset: Offset(0, 3),
-                              ),
-                            ],
+                            border: Border.all(color: Colors.grey.shade600),
                           ),
                           child: Center(
                             child: Row(
@@ -189,9 +188,17 @@ class _LoginPageState extends State<LoginPage> {
                                   size: 40,
                                 ),
                                 SizedBox(width: 10),
-                                Text('페이스북 아이디로 계속하기',
-                                    style: TextStyle(
-                                        fontSize: 16, color: Colors.black54)),
+                                Text(
+                                  '페이스북 아이디로 계속하기',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.grey[400]
+                                        : Colors.grey[600],
+                                  ),
+                                ),
                               ],
                             ),
                           ),
