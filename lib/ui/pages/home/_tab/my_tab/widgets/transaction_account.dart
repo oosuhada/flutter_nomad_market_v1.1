@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_market_app/ui/widgets/home_tab_list_view.dart';
 
 class TransactionAccountPage extends StatelessWidget {
   @override
@@ -21,18 +22,38 @@ class TransactionAccountPage extends StatelessWidget {
         title: Text('거래 가계부'),
       ),
       body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          SizedBox(height: 20),
           Container(
-            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.purple.shade900,
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.purpleAccent.withOpacity(0.2),
+                  spreadRadius: 1,
+                  blurRadius: 1,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.all(30),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('우수상님의'),
+                Text(
+                  '우수상님의',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 8),
-                Text('가계부'),
-                const SizedBox(height: 16),
+                Text(
+                  '가계부',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 75),
                 Text('노마드마켓 활동을 통해 만들어낸 가치를 확인해보세요.'),
+                SizedBox(height: 1),
               ],
             ),
           ),

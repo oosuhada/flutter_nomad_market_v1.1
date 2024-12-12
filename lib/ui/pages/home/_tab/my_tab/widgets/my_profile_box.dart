@@ -44,8 +44,16 @@ class MyProfileBox extends StatelessWidget {
               height: 48,
               width: 100,
               decoration: BoxDecoration(
-                color: Colors.purple.shade800,
+                color: Colors.purple.shade900,
                 borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.5),
+                    spreadRadius: 1,
+                    blurRadius: 8,
+                    offset: Offset(0, 3),
+                  ),
+                ],
               ),
               padding: EdgeInsets.symmetric(
                 vertical: 8,

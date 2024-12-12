@@ -14,8 +14,10 @@ class WelcomePage extends StatelessWidget {
               children: [
                 Spacer(),
                 Image.asset(
-                  'assets/welcome_1.png',
-                  height: 120,
+                  Theme.of(context).brightness == Brightness.dark
+                      ? 'assets/welcome_2.png'
+                      : 'assets/welcome_1.png',
+                  height: 100,
                 ),
                 SizedBox(height: 30),
                 Text(
