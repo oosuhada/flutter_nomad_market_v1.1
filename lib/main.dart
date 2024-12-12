@@ -17,8 +17,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       theme: ThemeData(
         brightness: Brightness.light,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple.shade800),
-        highlightColor: Colors.purple.shade800,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple.shade900),
+        highlightColor: Colors.purple.shade900,
         scaffoldBackgroundColor: const Color.fromARGB(255, 254, 248, 245),
         appBarTheme: AppBarTheme(
           centerTitle: false,
@@ -33,7 +33,7 @@ class MyApp extends StatelessWidget {
           style: ButtonStyle(
             foregroundColor:
                 WidgetStatePropertyAll(Color.fromARGB(255, 254, 248, 245)),
-            backgroundColor: WidgetStatePropertyAll(Colors.purple.shade800),
+            backgroundColor: WidgetStatePropertyAll(Colors.purple.shade900),
             minimumSize: WidgetStatePropertyAll(Size.fromHeight(52)),
             textStyle: WidgetStatePropertyAll(
               TextStyle(
@@ -93,7 +93,7 @@ class MyApp extends StatelessWidget {
           seedColor: Colors.purple.shade200,
           brightness: Brightness.dark,
         ),
-        highlightColor: Colors.purple.shade800,
+        highlightColor: Colors.purple.shade900,
         scaffoldBackgroundColor: Colors.grey[900],
         appBarTheme: AppBarTheme(
           centerTitle: false,
@@ -107,7 +107,7 @@ class MyApp extends StatelessWidget {
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ButtonStyle(
             foregroundColor: WidgetStatePropertyAll(Colors.white),
-            backgroundColor: WidgetStatePropertyAll(Colors.purple.shade800),
+            backgroundColor: WidgetStatePropertyAll(Colors.purple.shade900),
             minimumSize: WidgetStatePropertyAll(Size.fromHeight(52)),
             textStyle: WidgetStatePropertyAll(
               TextStyle(
@@ -120,6 +120,8 @@ class MyApp extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
+            shadowColor: WidgetStatePropertyAll(Colors.black.withOpacity(0.5)),
+            elevation: WidgetStatePropertyAll(8),
           ),
         ),
         inputDecorationTheme: InputDecorationTheme(

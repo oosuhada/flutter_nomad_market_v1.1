@@ -130,8 +130,10 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
                     }
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.purple.shade800,
+                    backgroundColor: Colors.purple.shade900,
                     padding: EdgeInsets.symmetric(vertical: 16),
+                    shadowColor: Colors.black.withOpacity(0.5),
+                    elevation: 8,
                   ),
                   child: Text(
                     '변경하기',
