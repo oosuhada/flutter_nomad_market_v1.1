@@ -15,18 +15,19 @@ class WelcomePage extends StatelessWidget {
                 Spacer(),
                 Image.asset(
                   'assets/welcome.png',
-                  height: 250,
+                  height: 100,
                 ),
+                SizedBox(height: 50),
                 Text(
-                  '당신 근처의 마켓',
+                  '내 손안의 글로벌 커머스',
                   style: TextStyle(
-                    fontSize: 24,
+                    fontSize: 22,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 SizedBox(height: 10),
                 Text(
-                  '동네라서 가능한 모든것\n지금 내 동네를 선택하고 시작해보세요!',
+                  '지금 전 세계 도시를 선택하고 시작해보세요!',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,

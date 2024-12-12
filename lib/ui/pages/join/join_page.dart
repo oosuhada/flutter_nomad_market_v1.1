@@ -101,7 +101,7 @@ class _JoinPageState extends ConsumerState<JoinPage> {
             children: [
               //
               Text(
-                '안녕하세요!\n아이디와 비밀본호로 가입해주세요',
+                '안녕하세요!\n이메일과 비밀번호로 가입해주세요',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -112,8 +112,8 @@ class _JoinPageState extends ConsumerState<JoinPage> {
                 onTap: onImageUpload,
                 child: Align(
                   child: Container(
-                    width: 100,
-                    height: 100,
+                    width: 150,
+                    height: 150,
                     decoration: BoxDecoration(
                       color: Colors.grey[300],
                       shape: BoxShape.circle,
@@ -131,13 +131,13 @@ class _JoinPageState extends ConsumerState<JoinPage> {
                             children: [
                               Icon(
                                 Icons.person,
-                                size: 30,
+                                size: 60,
                               ),
-                              SizedBox(height: 2),
+                              SizedBox(height: 4),
                               Text(
                                 '프로필 사진',
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 14,
                                 ),
                               ),
                             ],

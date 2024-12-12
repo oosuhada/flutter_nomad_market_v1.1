@@ -37,7 +37,7 @@ class _LoginPageState extends State<LoginPage> {
             padding: EdgeInsets.symmetric(horizontal: 20),
             children: [
               Text(
-                '안녕하세요!\n아이디와 비밀번호로 로그인해주세요',
+                '안녕하세요!\n이메일과 비밀번호로 로그인해주세요',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -76,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
                         );
                       } else {
                         // 로그인 실패 => 스낵바!
-                        SnackbarUtil.showSnackBar(context, '아이디와 비밀번호를 확인해주세요');
+                        SnackbarUtil.showSnackBar(context, '이메일과 비밀번호를 확인해주세요');
                       }
                     }
 
