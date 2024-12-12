@@ -18,8 +18,10 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple.shade800),
         highlightColor: Colors.purple.shade800,
+        scaffoldBackgroundColor: const Color.fromARGB(255, 254, 248, 245),
         appBarTheme: AppBarTheme(
           centerTitle: false,
+          backgroundColor: const Color.fromARGB(255, 254, 248, 245),
           titleTextStyle: TextStyle(
             fontSize: 18,
             color: Colors.black,
@@ -28,7 +30,8 @@ class MyApp extends StatelessWidget {
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ButtonStyle(
-            foregroundColor: WidgetStatePropertyAll(Colors.white),
+            foregroundColor:
+                WidgetStatePropertyAll(Color.fromARGB(255, 254, 248, 245)),
             backgroundColor: WidgetStatePropertyAll(Colors.purple.shade800),
             minimumSize: WidgetStatePropertyAll(Size.fromHeight(52)),
             textStyle: WidgetStatePropertyAll(
