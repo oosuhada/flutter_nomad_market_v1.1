@@ -14,10 +14,10 @@ class WelcomePage extends StatelessWidget {
               children: [
                 Spacer(),
                 Image.asset(
-                  'assets/welcome.png',
-                  height: 100,
+                  'assets/welcome_1.png',
+                  height: 120,
                 ),
-                SizedBox(height: 50),
+                SizedBox(height: 30),
                 Text(
                   '내 손안의 글로벌 커머스',
                   style: TextStyle(
