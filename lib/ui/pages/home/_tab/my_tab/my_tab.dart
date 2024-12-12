@@ -1,9 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_market_app/ui/pages/home/_tab/my_tab/widgets/city_selection.dart';
+import 'package:flutter_market_app/ui/pages/home/_tab/my_tab/widgets/currency_setting.dart';
+import 'package:flutter_market_app/ui/pages/home/_tab/my_tab/widgets/frequently_asked_questions.dart';
+import 'package:flutter_market_app/ui/pages/home/_tab/my_tab/widgets/language_setting.dart';
 import 'package:flutter_market_app/ui/pages/home/_tab/my_tab/widgets/my_profile_box.dart';
 import 'package:flutter_market_app/ui/pages/home/_tab/my_tab/widgets/my_tab_app_bar.dart';
 import 'package:flutter_market_app/ui/pages/home/_tab/my_tab/widgets/purchase_history.dart';
 import 'package:flutter_market_app/ui/pages/home/_tab/my_tab/widgets/sales_history.dart';
+import 'package:flutter_market_app/ui/pages/home/_tab/my_tab/widgets/terms_and_policies.dart';
 import 'package:flutter_market_app/ui/pages/home/_tab/my_tab/widgets/transaction_account.dart';
 import 'package:flutter_market_app/ui/pages/home/_tab/my_tab/widgets/wishlist.dart';
 
@@ -50,30 +55,36 @@ class MyTab extends StatelessWidget {
                 context: context,
                 text: '관심 도시 변경',
                 icon: Icons.location_on_outlined,
-                nextPage: TransactionAccountPage(),
+                nextPage: CitySelection(
+                  onCitySelect: (String) {},
+                ),
               ),
               item(
                 context: context,
                 text: '언어 변경',
                 icon: Icons.language_outlined,
-                nextPage: WishListPage(),
+                nextPage: LanguageSetting(
+                  onLanguageSelect: (String) {},
+                ),
               ),
               item(
                 context: context,
                 text: '통화 변경',
                 icon: Icons.currency_exchange,
-                nextPage: WishListPage(),
+                nextPage: CurrencySetting(
+                  onCurrencySelect: (String) {},
+                ),
               ),
               Divider(),
               item(
                 context: context,
                 text: '자주 묻는 질문',
-                nextPage: WishListPage(),
+                nextPage: FAQPage(),
               ),
               item(
                 context: context,
                 text: '약관 및 정책',
-                nextPage: WishListPage(),
+                nextPage: TermsAndPoliciesPage(),
               ),
             ],
           ),
