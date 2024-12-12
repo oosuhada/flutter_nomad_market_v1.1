@@ -41,20 +41,24 @@ class MyProfileBox extends StatelessWidget {
               );
             },
             child: Container(
+              height: 48,
+              width: 100,
               decoration: BoxDecoration(
-                color: Colors.purple,
-                borderRadius: BorderRadius.circular(4),
+                color: Colors.purple.shade800,
+                borderRadius: BorderRadius.circular(16),
               ),
               padding: EdgeInsets.symmetric(
                 vertical: 8,
                 horizontal: 12,
               ),
-              child: Text(
-                '프로필 수정',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
+              child: Center(
+                child: Text(
+                  '프로필 수정',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
