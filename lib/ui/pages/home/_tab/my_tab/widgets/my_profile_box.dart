@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/core/snackbar_util.dart';
+import 'package:flutter_market_app/ui/pages/home/_tab/my_tab/widgets/profile_edit.dart';
 import 'package:flutter_market_app/ui/user_global_view_model.dart';
 import 'package:flutter_market_app/ui/widgets/user_profile_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,14 +33,17 @@ class MyProfileBox extends StatelessWidget {
           ),
           GestureDetector(
             onTap: () {
-              SnackbarUtil.showSnackBar(
+              Navigator.push(
                 context,
-                '준비중입니다',
+                MaterialPageRoute(
+                  builder: (context) => ProfileEditPage(),
+                ),
               );
             },
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.grey,
+                color: Colors.purple,
+                borderRadius: BorderRadius.circular(4),
               ),
               padding: EdgeInsets.symmetric(
                 vertical: 8,

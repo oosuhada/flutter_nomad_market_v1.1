@@ -73,4 +73,18 @@ class UserRepository extends BaseRemoteRepository {
 
     return response.statusCode == 201;
   }
+
+  Future<bool> updateProfile({
+    required String nickname,
+    required int profileImageId,
+  }) async {
+    final response = await client.put(
+      '/api/user/update',
+      data: {
+        'nickname': nickname,
+        'profileImageId': profileImageId,
+      },
+    );
+    return response.statusCode == 200;
+  }
 }
