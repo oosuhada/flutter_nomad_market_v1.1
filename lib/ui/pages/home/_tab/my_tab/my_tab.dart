@@ -2,6 +2,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/ui/pages/home/_tab/my_tab/widgets/my_profile_box.dart';
 import 'package:flutter_market_app/ui/pages/home/_tab/my_tab/widgets/my_tab_app_bar.dart';
+import 'package:flutter_market_app/ui/pages/home/_tab/my_tab/widgets/purchase_history.dart';
+import 'package:flutter_market_app/ui/pages/home/_tab/my_tab/widgets/sales_history.dart';
+import 'package:flutter_market_app/ui/pages/home/_tab/my_tab/widgets/wishlist.dart';
 
 class MyTab extends StatelessWidget {
   @override
@@ -17,6 +20,7 @@ class MyTab extends StatelessWidget {
               SizedBox(height: 12),
               label('나의 거래'),
               item(
+ feature/social_login
                   context: context,
                   text: '관심목록',
                   icon: CupertinoIcons.heart,
@@ -62,6 +66,61 @@ class MyTab extends StatelessWidget {
                   context: context,
                   text: '약관 및 정책',
                   route: '/terms_and_policies'),
+
+                context: context,
+                text: '관심목록',
+                icon: CupertinoIcons.heart,
+                nextPage: WishList(),
+              ),
+              item(
+                context: context,
+                text: '판매내역',
+                icon: CupertinoIcons.square_list,
+                nextPage: SalesHistory(),
+              ),
+              item(
+                context: context,
+                text: '구매내역',
+                icon: CupertinoIcons.bag,
+                nextPage: PurchaseHistory(),
+              ),
+              item(
+                context: context,
+                text: '거래 가계부',
+                icon: CupertinoIcons.book,
+                nextPage: WishList(),
+              ),
+              Divider(),
+              label('환경설정'),
+              item(
+                context: context,
+                text: '관심 도시 변경',
+                icon: Icons.location_on_outlined,
+                nextPage: WishList(),
+              ),
+              item(
+                context: context,
+                text: '언어 변경',
+                icon: Icons.language_outlined,
+                nextPage: WishList(),
+              ),
+              item(
+                context: context,
+                text: '통화 변경',
+                icon: Icons.currency_exchange,
+                nextPage: WishList(),
+              ),
+              Divider(),
+              item(
+                context: context,
+                text: '자주 묻는 질문',
+                nextPage: WishList(),
+              ),
+              item(
+                context: context,
+                text: '약관 및 정책',
+                nextPage: WishList(),
+              ),
             ],
           ),
         ),
@@ -83,13 +142,20 @@ class MyTab extends StatelessWidget {
   }
 
   Widget item({
+    required Widget nextPage,
     required BuildContext context,
     required String text,
     IconData? icon,
     required String route,
   }) {
     return GestureDetector(
-      onTap: () => navigateToPage(context, route),
+      onTap: () {
+        Navigator.push(context, MaterialPageRoute(
+          builder: (context) {
+            return nextPage;
+          },
+        ));
+      },
       child: Container(
         height: 40,
         color: Colors.transparent,
