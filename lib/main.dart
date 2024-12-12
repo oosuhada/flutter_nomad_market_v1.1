@@ -14,13 +14,6 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  final repo = PostRepository();
-  await repo.insert(
-    title: '냥냥',
-    content: '냥냥',
-    writer: '냥냥',
-    imageUrl: 'https://picsum.photos/200/300',
-  );
   // ProviderScope 로 앱을 감싸서 RiverPod이 ViewModel 관리할 수 있게 선언
   runApp(ProviderScope(child: MyApp()));
 }

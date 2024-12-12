@@ -44,6 +44,7 @@ dependencies:
   stomp_dart_client: ^2.1.0
   firebase_core: ^3.8.1
   cloud_firestore: ^5.5.1
+  firebase_storage: ^12.3.7
 
 dev_dependencies:
   flutter_test:

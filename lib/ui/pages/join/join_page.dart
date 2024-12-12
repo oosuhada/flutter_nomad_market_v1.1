@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/core/image_picker_helper.dart';
 import 'package:flutter_market_app/core/snackbar_util.dart';
@@ -7,6 +9,7 @@ import 'package:flutter_market_app/ui/widgets/id_text_form_field.dart';
 import 'package:flutter_market_app/ui/widgets/nickname_text_form_field.dart';
 import 'package:flutter_market_app/ui/widgets/pw_text_form_field.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 class JoinPage extends ConsumerStatefulWidget {
   JoinPage(this.address);
@@ -32,21 +35,22 @@ class _JoinPageState extends ConsumerState<JoinPage> {
   }
 
   void onImageUpload() async {
-    print('onImageUpload');
-    final result = await ImagePickerHelper.pickImage();
-    if (result != null) {
-      final viewModel = ref.read(joinViewModel.notifier);
-      viewModel.uploadImage(
-        filename: result.filename,
-        mimeType: result.mimeType,
-        bytes: result.bytes,
-      );
+    // 1. 이미지 픽커 객체 생성
+    ImagePicker imagePicker = ImagePicker();
+
+    // 2. 이미지 픽커 객체의 pickImage라는 메서드 호출
+    XFile? xFile = await imagePicker.pickImage(source: ImageSource.gallery);
+    print('경로 : ${xFile?.path}');
+    final viewModel = ref.read(joinViewModel.notifier);
+
+    if (xFile != null) {
+      await viewModel.uploadImage(xFile);
     }
   }
 
   void onJoin() async {
     if (formKey.currentState?.validate() ?? false) {
-      final viewModel = ref.read(joinViewModel.notifier);
+      final viewModel = ref.watch(joinViewModel.notifier);
 
       final validateResult = await viewModel.validateName(
         username: idController.text,

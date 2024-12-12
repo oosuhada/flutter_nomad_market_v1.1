@@ -17,7 +17,7 @@ class PickImageResult {
 class ImagePickerHelper {
   // ImagePicker로 사진 불러와서
   // mime 패키지로 mimeType 읽은 후 함께 돌려줘야기 때문에
-  
+
   // ImagePickerHelper.pickImage();
   static Future<PickImageResult?> pickImage() async {
     final imagePicker = ImagePicker();
