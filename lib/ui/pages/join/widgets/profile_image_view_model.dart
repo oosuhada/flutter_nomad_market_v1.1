@@ -14,20 +14,32 @@ class ProfileImageViewModel extends AutoDisposeNotifier<Post?> {
 
   final postRepository = const PostRepository();
 
-  // 사진업로드
-  Future<bool> uploadImage({
+  Future<Post?> uploadImage({
     required String title,
     required String content,
     required String writer,
     required String imageUrl,
   }) async {
-    final postModel = await postRepository.insert(
-      title: title,
-      content: content,
-      writer: writer,
-      imageUrl: imageUrl,
-    );
-    return postModel;
+    try {
+      // 데이터 삽입 및 ID 반환
+      final id = await postRepository.insert(
+        title: title,
+        content: content,
+        writer: writer,
+        imageUrl: imageUrl,
+      );
+      if (id == null) {
+        throw Exception("문서 생성 실패");
+      }
+
+      // ID를 기반으로 데이터 가져오기
+      final post = await postRepository.getOne(id);
+      state = post;
+      return post;
+    } catch (e) {
+      print("업로드 실패: $e");
+      return null;
+    }
   }
 }
 

@@ -110,43 +110,49 @@ class _JoinPageState extends ConsumerState<JoinPage> {
                 ),
               ),
               SizedBox(height: 20),
-              GestureDetector(
-                onTap: onImageUpload,
-                child: Align(
-                  child: Container(
-                    width: 150,
-                    height: 150,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      shape: BoxShape.circle,
-                    ),
-                    child: postModel != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(100),
-                            child: Image.network(
-                              postModel.imageUrl,
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                        : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.person,
-                                size: 60,
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                '프로필 사진',
-                                style: TextStyle(
-                                  fontSize: 14,
+              Consumer(
+                builder: (context, watch, child) {
+                  final postModel = ref.watch(profileImageViewModel);
+                  return GestureDetector(
+                    onTap: onImageUpload,
+                    child: Align(
+                      child: Container(
+                        width: 150,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          shape: BoxShape.circle,
+                        ),
+                        child: postModel != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(100),
+                                child: Image.network(
+                                  postModel.imageUrl,
+                                  fit: BoxFit.cover,
                                 ),
+                              )
+                            : Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.person,
+                                    size: 60,
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    '프로필 사진',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                  ),
-                ),
+                      ),
+                    ),
+                  );
+                },
               ),
+
               SizedBox(height: 20),
               IdTextFormField(controller: idController),
               SizedBox(height: 20),

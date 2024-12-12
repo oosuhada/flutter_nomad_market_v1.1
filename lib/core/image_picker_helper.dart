@@ -28,6 +28,7 @@ class ImagePickerHelper {
     FirebaseStorage storage = FirebaseStorage.instance;
     // 스토리지 참조 가지고 오기
     Reference storageRef = storage.ref();
+
     // 스토리지 참조의 child 메서드를 사용하면 파일 참조 만들어짐
     // 파라미터는 파일 이름!!
 

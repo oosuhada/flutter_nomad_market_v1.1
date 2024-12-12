@@ -30,32 +30,33 @@ class PostRepository {
   }
 
   // 1. Create : 데이터 쓰기
-  Future<bool> insert({
+  Future<String?> insert({
     required String title,
     required String content,
     required String writer,
     required String imageUrl,
   }) async {
-    // 통신할 때 인터넷이 끊겨있다거나 파이어베이스 데이터가 에러 났다던가 하는 상황을 위해 try-catch 사용
     try {
-      // 1) 파이어스토어 인스턴스 가지고 오기
+      // 1) Firestore 인스턴스 가져오기
       FirebaseFirestore firestore = FirebaseFirestore.instance;
-      // 2) 컬렉션 참조 만들기
+      // 2) 컬렉션 참조 가져오기
       final collectionRef = firestore.collection('posts');
-      // 3) 문서 참조 만들기,
+      // 3) 새 문서 참조 생성 (자동 ID 할당)
       final docRef = collectionRef.doc();
-      // 4) 값 쓰기
-      docRef.set({
+      // 4) 데이터 저장
+      await docRef.set({
         'title': title,
         'content': content,
         'writer': writer,
         'imageUrl': imageUrl,
         'createdAt': DateTime.now().toIso8601String(),
       });
-      return true;
+
+      // 생성된 문서의 ID 반환
+      return docRef.id;
     } catch (e) {
       print(e);
-      return false;
+      return null;
     }
   }
 
