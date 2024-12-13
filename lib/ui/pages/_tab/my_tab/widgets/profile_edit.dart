@@ -29,17 +29,17 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
     super.dispose();
   }
 
-  void onImageUpload() async {
-    final result = await ImagePickerHelper.pickImage();
-    if (result != null) {
-      final viewModel = ref.read(profileEditViewModel.notifier);
-      viewModel.uploadImage(
-        filename: result.filename,
-        mimeType: result.mimeType,
-        bytes: result.bytes,
-      );
-    }
-  }
+  // void onImageUpload() async {
+  //   final result = await ImagePickerHelper.pickImage();
+  //   if (result != null) {
+  //     final viewModel = ref.read(profileEditViewModel.notifier);
+  //     viewModel.uploadImage(
+  //       filename: result.filename,
+  //       mimeType: result.mimeType,
+  //       bytes: result.bytes,
+  //     );
+  //   }
+  // }
 
   void navigateToMyTab() {
     // Reset to the first route (home)
@@ -68,7 +68,7 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
           children: [
             SizedBox(height: 20),
             GestureDetector(
-              onTap: onImageUpload,
+              onTap: () {},
               child: Center(
                 child: Container(
                   width: 150,

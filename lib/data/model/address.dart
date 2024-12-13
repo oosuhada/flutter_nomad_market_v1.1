@@ -1,12 +1,3 @@
-// [
-//     {
-//       "id": 1,
-//       "fullName": "부산광역시 동래구 온천동",
-//       "displayName": "온천동",
-//       "defaultYn": true
-//     }
-//   ]
-
 class Address {
   int id;
   String fullName;
@@ -17,7 +8,7 @@ class Address {
     required this.id,
     required this.fullName,
     required this.displayName,
-    required this.defaultYn,
+    this.defaultYn,
   });
 
   Address.fromJson(Map<String, dynamic> map)
