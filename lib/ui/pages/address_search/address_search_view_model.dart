@@ -1,31 +1,39 @@
-// 1. 상태클래스 만들기
-// List<String>
-
-// 2. 뷰모델 만들기
 import 'package:flutter_market_app/data/repository/vworld_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_market_app/data/model/address.dart';
 
-class AddressSearchViewModel extends AutoDisposeNotifier<List<String>> {
+class AddressSearchViewModel extends AutoDisposeNotifier<List<Address>> {
   @override
-  List<String> build() {
+  List<Address> build() {
     return [];
   }
 
-  final vworldRepository = VworldRepository();
+  final vworldRepository = MapboxRepository();
 
   void searchByName(String query) async {
     final result = await vworldRepository.findByName(query);
-    state = result;
+    state = result
+        .map((e) => Address(
+              id: 0,
+              fullName: e,
+              displayName: e.split(' ').last,
+            ))
+        .toList();
   }
 
-  void serachByLocation(double lat, double lng) async {
+  void searchByLocation(double lat, double lng) async {
     final result = await vworldRepository.findByLatLng(lat, lng);
-    state = result;
+    state = result
+        .map((e) => Address(
+              id: 0,
+              fullName: e,
+              displayName: e.split(' ').last,
+            ))
+        .toList();
   }
 }
 
-// 3. 뷰모델 관리자 만들기
 final addressSearchViewModel =
-    NotifierProvider.autoDispose<AddressSearchViewModel, List<String>>(() {
+    NotifierProvider.autoDispose<AddressSearchViewModel, List<Address>>(() {
   return AddressSearchViewModel();
 });

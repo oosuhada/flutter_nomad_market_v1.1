@@ -6,15 +6,8 @@ class AddressRepository extends BaseRemoteRepository {
     final response = await client.get('/api/address');
     if (response.statusCode == 200) {
       final content = response.data['content'];
-      // List<Map>
-      // [Map,Map,Map...]
-      return List.from(content).map(
-        (e) {
-          return Address.fromJson(e);
-        },
-      ).toList();
+      return List<Address>.from(content.map((e) => Address.fromJson(e)));
     }
-
     return null;
   }
 }

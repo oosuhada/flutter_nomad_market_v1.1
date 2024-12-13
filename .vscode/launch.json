@@ -3,6 +3,18 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Flutter",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "debug",
+      "args": ["--no-sound-null-safety"]
+    },
+    {
+      "name": "Dart: Attach to Process",
+      "type": "dart",
+      "request": "attach"
+    },
+    {
       "name": "Current Device",
       "request": "launch",
       "type": "dart"
