@@ -44,4 +44,18 @@ class User {
       'profileImage': profileImage.toJson(),
     };
   }
+
+  User copyWith({
+    int? id,
+    String? username,
+    String? nickname,
+    FileModel? profileImage,
+  }) {
+    return User(
+      id: id ?? this.id,
+      username: username ?? this.username,
+      nickname: nickname ?? this.nickname,
+      profileImage: profileImage ?? this.profileImage,
+    );
+  }
 }

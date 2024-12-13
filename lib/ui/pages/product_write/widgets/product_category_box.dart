@@ -18,7 +18,9 @@ class ProductCategoryBox extends StatelessWidget {
         alignment: Alignment.centerLeft,
         child: PopupMenuButton<String>(
           position: PopupMenuPosition.under,
-          color: Colors.white,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.grey[900]
+              : Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -33,7 +35,9 @@ class ProductCategoryBox extends StatelessWidget {
           },
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.grey[200],
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.grey[800]
+                  : Colors.grey[200],
               borderRadius: BorderRadius.circular(8),
             ),
             padding: EdgeInsets.all(10),
@@ -41,7 +45,10 @@ class ProductCategoryBox extends StatelessWidget {
               state.selectedCategory?.category ?? '카테고리 선택',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                fontSize: 12,
+                fontSize: 14,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black,
               ),
             ),
           ),
@@ -57,7 +64,7 @@ class ProductCategoryBox extends StatelessWidget {
         text,
         style: TextStyle(
           fontWeight: isSelected ? FontWeight.bold : null,
-          color: isSelected ? Colors.black : Colors.grey,
+          color: isSelected ? Colors.white : Colors.grey,
         ),
       ),
     );

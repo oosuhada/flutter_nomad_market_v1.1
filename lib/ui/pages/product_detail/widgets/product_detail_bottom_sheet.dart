@@ -15,6 +15,7 @@ class ProductDetailBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
     return Consumer(builder: (context, ref, child) {
       final state = ref.watch(productDetailViewModel(productId));
       final vm = ref.read(productDetailViewModel(productId).notifier);
@@ -23,10 +24,13 @@ class ProductDetailBottomSheet extends StatelessWidget {
       }
       return Container(
         height: 50 + bottomPadding,
-        color: Colors.white,
+        color:
+            isDarkTheme ? Colors.grey[900] : Color.fromARGB(255, 254, 248, 245),
         child: Column(
           children: [
-            Divider(height: 0),
+            Divider(
+                height: 0,
+                color: isDarkTheme ? Colors.grey[900] : Colors.grey[900]),
             Expanded(
               child: Row(
                 children: [
@@ -36,24 +40,24 @@ class ProductDetailBottomSheet extends StatelessWidget {
                       if (result) {
                         ref.read(homeTabViewModel.notifier).fetchProducts();
                       }
-                      // 1. HomeTabViewModel 상태객체 업데이트
-                      // 2. HomeTabViewModel의 fetchProducts 호출
-                      // 3. HomeTab => pull to refresh => 지금 X
                     },
                     child: Container(
                       width: 50,
                       height: 50,
                       color: Colors.transparent,
-                      child: Icon(state.myLike
-                          ? CupertinoIcons.heart_fill
-                          : CupertinoIcons.heart),
+                      child: Icon(
+                        state.myLike
+                            ? CupertinoIcons.heart_fill
+                            : CupertinoIcons.heart,
+                        color: isDarkTheme ? Colors.white : Colors.black,
+                      ),
                     ),
                   ),
                   VerticalDivider(
                     width: 20,
                     indent: 10,
                     endIndent: 10,
-                    color: Colors.grey,
+                    color: isDarkTheme ? Colors.white : Colors.grey,
                   ),
                   Expanded(
                     child: Text(
@@ -61,6 +65,7 @@ class ProductDetailBottomSheet extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        color: isDarkTheme ? Colors.white : Colors.black,
                       ),
                     ),
                   ),
@@ -69,7 +74,6 @@ class ProductDetailBottomSheet extends StatelessWidget {
                     height: 40,
                     child: ElevatedButton(
                       onPressed: () async {
-                        // TODO 구현
                         final chatVm = ref.read(chatGlobalViewModel.notifier);
 
                         var roomId = chatVm.findChatRoomByProductId(productId);

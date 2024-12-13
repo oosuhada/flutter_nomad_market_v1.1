@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/core/snackbar_util.dart';
+import 'package:flutter_market_app/ui/pages/home/_tab/my_tab/widgets/profile_edit.dart';
 import 'package:flutter_market_app/ui/user_global_view_model.dart';
 import 'package:flutter_market_app/ui/widgets/user_profile_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,25 +33,40 @@ class MyProfileBox extends StatelessWidget {
           ),
           GestureDetector(
             onTap: () {
-              SnackbarUtil.showSnackBar(
+              Navigator.push(
                 context,
-                '준비중입니다',
+                MaterialPageRoute(
+                  builder: (context) => ProfileEditPage(),
+                ),
               );
             },
             child: Container(
+              height: 48,
+              width: 100,
               decoration: BoxDecoration(
-                color: Colors.grey,
+                color: Colors.purple.shade900,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.5),
+                    spreadRadius: 1,
+                    blurRadius: 8,
+                    offset: Offset(0, 3),
+                  ),
+                ],
               ),
               padding: EdgeInsets.symmetric(
                 vertical: 8,
                 horizontal: 12,
               ),
-              child: Text(
-                '프로필 수정',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
+              child: Center(
+                child: Text(
+                  '프로필 수정',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),

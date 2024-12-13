@@ -97,6 +97,7 @@ class _ProductWritePageState extends State<ProductWritePage> {
               SizedBox(height: 20),
               TextFormField(
                 controller: contentController,
+                maxLines: 5,
                 decoration: InputDecoration(
                   hintText: '내용을 입력해주세요',
                 ),
