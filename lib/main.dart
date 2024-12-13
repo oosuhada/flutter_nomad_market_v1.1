@@ -1,11 +1,20 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_market_app/data/repository/post_repository.dart';
+import 'package:flutter_market_app/firebase_options.dart';
 import 'package:flutter_market_app/ui/pages/chat_detail/chat_detail_page.dart';
 import 'package:flutter_market_app/ui/pages/home/home_page.dart';
 import 'package:flutter_market_app/ui/pages/join/join_page.dart';
 import 'package:flutter_market_app/ui/pages/welcome/welcome_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // ProviderScope 로 앱을 감싸서 RiverPod이 ViewModel 관리할 수 있게 선언
   runApp(ProviderScope(child: MyApp()));
 }
 

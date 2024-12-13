@@ -1,44 +1,51 @@
-import 'dart:typed_data';
+import 'dart:core';
+import 'dart:io';
 
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:mime/mime.dart';
 
 class PickImageResult {
-  final String filename;
-  final String mimeType;
-  final Uint8List bytes;
+  String title;
+  String content;
+  String writer;
+  String imageUrl;
+
   PickImageResult({
-    required this.filename,
-    required this.mimeType,
-    required this.bytes,
+    required this.title,
+    required this.content,
+    required this.writer,
+    required this.imageUrl,
   });
 }
 
 class ImagePickerHelper {
-  // ImagePicker로 사진 불러와서
-  // mime 패키지로 mimeType 읽은 후 함께 돌려줘야기 때문에
-  
   // ImagePickerHelper.pickImage();
   static Future<PickImageResult?> pickImage() async {
     final imagePicker = ImagePicker();
-    final xFile = await imagePicker.pickImage(source: ImageSource.gallery);
-    if (xFile != null) {
-      final bytes = await xFile.readAsBytes();
-      final fileName = xFile.name;
-      // 마임타입
-      // 파일 바이트 데이터 구조를 파싱해서 마임타입을 리턴해줌
-      final mimeType = lookupMimeType(xFile.path, headerBytes: bytes);
-      if (mimeType == null) {
-        return null;
-      }
+    XFile? xFile = await imagePicker.pickImage(source: ImageSource.gallery);
 
-      return PickImageResult(
-        filename: fileName,
-        mimeType: mimeType,
-        bytes: bytes,
-      );
-    }
+    // FirebaseStorage 객체 가지고오기
+    FirebaseStorage storage = FirebaseStorage.instance;
+    // 스토리지 참조 가지고 오기
+    Reference storageRef = storage.ref();
 
-    return null;
+    // 스토리지 참조의 child 메서드를 사용하면 파일 참조 만들어짐
+    // 파라미터는 파일 이름!!
+
+    final imageRef = storageRef
+        .child('${DateTime.now().microsecondsSinceEpoch}_${xFile?.name}');
+    // 참조가 만들어졌으니 파일 업로드!!
+    await imageRef.putFile(File(xFile!.path));
+    print('파일 업로드됨');
+    // 만들어진 파일의 url 가져오기
+    final imageUrl = await imageRef.getDownloadURL();
+    print(imageUrl);
+
+    return PickImageResult(
+      title: 'profile image',
+      content: '',
+      writer: '',
+      imageUrl: imageUrl,
+    );
   }
 }

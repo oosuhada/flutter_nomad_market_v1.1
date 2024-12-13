@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_market_app/core/image_picker_helper.dart';
 import 'package:flutter_market_app/core/snackbar_util.dart';
 import 'package:flutter_market_app/ui/pages/join/join_view_model.dart';
+import 'package:flutter_market_app/ui/pages/join/widgets/profile_image_view_model.dart';
 import 'package:flutter_market_app/ui/pages/welcome/welcome_page.dart';
 import 'package:flutter_market_app/ui/widgets/id_text_form_field.dart';
 import 'package:flutter_market_app/ui/widgets/nickname_text_form_field.dart';
@@ -35,18 +36,19 @@ class _JoinPageState extends ConsumerState<JoinPage> {
     print('onImageUpload');
     final result = await ImagePickerHelper.pickImage();
     if (result != null) {
-      final viewModel = ref.read(joinViewModel.notifier);
+      final viewModel = ref.read(profileImageViewModel.notifier);
       viewModel.uploadImage(
-        filename: result.filename,
-        mimeType: result.mimeType,
-        bytes: result.bytes,
+        title: result.title,
+        content: result.content,
+        writer: result.writer,
+        imageUrl: result.imageUrl,
       );
     }
   }
 
   void onJoin() async {
     if (formKey.currentState?.validate() ?? false) {
-      final viewModel = ref.read(joinViewModel.notifier);
+      final viewModel = ref.watch(joinViewModel.notifier);
 
       final validateResult = await viewModel.validateName(
         username: idController.text,
@@ -87,7 +89,7 @@ class _JoinPageState extends ConsumerState<JoinPage> {
   @override
   Widget build(BuildContext context) {
     print(widget.address);
-    final fileModel = ref.watch(joinViewModel);
+    final postModel = ref.read(profileImageViewModel);
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -108,43 +110,49 @@ class _JoinPageState extends ConsumerState<JoinPage> {
                 ),
               ),
               SizedBox(height: 20),
-              GestureDetector(
-                onTap: onImageUpload,
-                child: Align(
-                  child: Container(
-                    width: 150,
-                    height: 150,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      shape: BoxShape.circle,
-                    ),
-                    child: fileModel != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(100),
-                            child: Image.network(
-                              fileModel.url,
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                        : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.person,
-                                size: 60,
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                '프로필 사진',
-                                style: TextStyle(
-                                  fontSize: 14,
+              Consumer(
+                builder: (context, watch, child) {
+                  final postModel = ref.watch(profileImageViewModel);
+                  return GestureDetector(
+                    onTap: onImageUpload,
+                    child: Align(
+                      child: Container(
+                        width: 150,
+                        height: 150,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          shape: BoxShape.circle,
+                        ),
+                        child: postModel != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(100),
+                                child: Image.network(
+                                  postModel.imageUrl,
+                                  fit: BoxFit.cover,
                                 ),
+                              )
+                            : Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.person,
+                                    size: 60,
+                                  ),
+                                  SizedBox(height: 4),
+                                  Text(
+                                    '프로필 사진',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                  ),
-                ),
+                      ),
+                    ),
+                  );
+                },
               ),
+
               SizedBox(height: 20),
               IdTextFormField(controller: idController),
               SizedBox(height: 20),

@@ -1,7 +1,6 @@
 // 1. 상태만들기 FileModel 클래스를 상태클래스로 사용
 
 // 2. 뷰모델만들기
-import 'dart:typed_data';
 
 import 'package:flutter_market_app/data/model/file_model.dart';
 import 'package:flutter_market_app/data/repository/file_repository.dart';
@@ -16,20 +15,6 @@ class JoinViewModel extends AutoDisposeNotifier<FileModel?> {
 
   final fileRepository = FileRepository();
   final userRepository = UserRepository();
-
-  // 사진업로드
-  void uploadImage({
-    required String filename,
-    required String mimeType,
-    required Uint8List bytes,
-  }) async {
-    final fileModel = await fileRepository.upload(
-      bytes: bytes,
-      filename: filename,
-      mimeType: mimeType,
-    );
-    state = fileModel;
-  }
 
   // 회원가입
   Future<bool> join({
