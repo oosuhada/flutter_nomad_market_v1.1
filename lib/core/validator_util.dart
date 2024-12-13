@@ -1,10 +1,21 @@
+import 'package:flutter_market_app/data/repository/user_info_repository.dart';
+
 class ValidatorUtil {
-  static String? validatorId(String? value) {
+  final userInfoRepository = UserInfoRepository();
+
+  String? validatorId(String? value) {
     if (value?.trim().isEmpty ?? true) {
       return "이메일을 입력해주세요";
     }
     if (!value!.contains('@')) {
       return '이메일은 유효한 형식이어야합니다';
+    }
+    if (value.contains(' ')) {
+      // 공백 포함 여부 검사
+      return '닉네임에 공백이 포함되어있습니다';
+    }
+    if (userInfoRepository.isEmailInUse(value) == true) {
+      return '회원가입 실패: 이메일이 이미 사용 중입니다.';
     }
     return null;
   }
@@ -15,6 +26,10 @@ class ValidatorUtil {
     }
     if (value!.length < 2) {
       return '닉네임은 2글자 이상이여야합니다';
+    }
+    if (value.contains(' ')) {
+      // 공백 포함 여부 검사
+      return '닉네임에 공백이 포함되어있습니다';
     }
     return null;
   }
