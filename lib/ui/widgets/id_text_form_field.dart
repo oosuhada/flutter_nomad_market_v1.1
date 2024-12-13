@@ -12,7 +12,7 @@ class IdTextFormField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(hintText: '이메일을 입력해 주세요'),
-      validator: ValidatorUtil.validatorId,
+      validator: ValidatorUtil().validatorId,
     );
   }
 }
