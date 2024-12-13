@@ -20,7 +20,6 @@ class AddressSearchPage extends StatelessWidget {
                   final viewModel = ref.read(addressSearchViewModel.notifier);
                   viewModel.searchByName(value);
                 }
-                print('onSubmitted $value');
               },
               decoration: InputDecoration(
                   hintText: '도시, 나라로 검색 (ex. 부산, 한국)',
@@ -39,13 +38,11 @@ class AddressSearchPage extends StatelessWidget {
                   height: 48,
                   child: ElevatedButton(
                     onPressed: () async {
-                      // 1. GeolocatorHelper에서 위치 받아오기
                       final position = await GeolocatorHelper.getPosition();
                       if (position != null) {
-                        // 2. 뷰모델에 요청하기
                         final viewModel =
                             ref.read(addressSearchViewModel.notifier);
-                        viewModel.serachByLocation(
+                        viewModel.searchByLocation(
                           position.latitude,
                           position.longitude,
                         );
@@ -67,7 +64,7 @@ class AddressSearchPage extends StatelessWidget {
                           onTap: () {
                             Navigator.push(context,
                                 MaterialPageRoute(builder: (context) {
-                              return JoinPage(item);
+                              return JoinPage(item.fullName);
                             }));
                           },
                           child: Container(
@@ -76,7 +73,7 @@ class AddressSearchPage extends StatelessWidget {
                             color: Colors.transparent,
                             alignment: Alignment.centerLeft,
                             child: Text(
-                              item,
+                              item.fullName,
                               style: TextStyle(fontSize: 16),
                             ),
                           ),

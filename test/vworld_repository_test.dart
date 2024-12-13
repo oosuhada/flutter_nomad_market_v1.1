@@ -2,7 +2,7 @@ import 'package:flutter_market_app/data/repository/vworld_repository.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  final vwolrdRepo = VworldRepository();
+  final vwolrdRepo = MapboxRepository();
 
   test('VworldRepository : findByName test', () async {
     final result = await vwolrdRepo.findByName('온천동');

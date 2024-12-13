@@ -1,86 +1,114 @@
 import 'package:dio/dio.dart';
 
-class VworldRepository {
+class MapboxRepository {
   final Dio _client = Dio(BaseOptions(
-    // 설정안할 시 실패 응답오면 throw 던져서 에러남
+    baseUrl: 'https://api.mapbox.com/geocoding/v5/mapbox.places',
     validateStatus: (status) => true,
+    headers: {
+      'Content-Type': 'application/json',
+    },
   ));
 
-  // 1. 이름으로 검색하는 기능
+  // 공개 액세스 토큰 사용 (sk. 로 시작하는 비밀 토큰 대신)
+  final String _accessToken =
+      'pk.eyJ1Ijoibm9tYWRtYXJrZXQiLCJhIjoiY200bWptcndxMDBiOTJrcHJ0Nm41c3hlNSJ9.mGmhE83zkJuDsX0yaALg5w';
+
   Future<List<String>> findByName(String query) async {
-    // https://api.vworld.kr/req/search
-    // request=search
-    // key=F8535CD0-9ACB-38AE-9D71-48E363366BD0
-    // query=온천동
-    // type=DISTRICT
-    // category=L4
+    print('Starting findByName with query: $query');
+
     try {
       final response = await _client.get(
-        'https://api.vworld.kr/req/search',
+        '/$query.json',
         queryParameters: {
-          'request': 'search',
-          'key': 'F8535CD0-9ACB-38AE-9D71-48E363366BD0',
-          'query': query,
-          'type': 'DISTRICT',
-          'category': 'L4',
+          'access_token': _accessToken,
+          'types': 'place',
+          'limit': 10,
+          'language': 'ko',
         },
       );
-      if (response.statusCode == 200 &&
-          response.data['response']['status'] == 'OK') {
-        // Response > result > items >> title
-        final items = response.data['response']['result']['items'];
-        final itemList = List.from(items);
-        final iterable = itemList.map((item) {
-          return '${item['title']}';
-        });
-        return iterable.toList();
+
+      print('Response status code: ${response.statusCode}');
+      print('Response data: ${response.data}');
+
+      if (response.statusCode == 200 && response.data != null) {
+        final features = response.data['features'] as List?;
+        print('Features length: ${features?.length}');
+
+        if (features != null && features.isNotEmpty) {
+          final results = features
+              .map((feature) {
+                final context = feature['context'] as List?;
+                if (context != null) {
+                  final place = context.firstWhere(
+                    (item) => (item['id'] as String).startsWith('place'),
+                    orElse: () => {'text': feature['place_name']},
+                  );
+                  return place['text'].toString();
+                }
+                return feature['place_name'].toString();
+              })
+              .where((name) => name.isNotEmpty)
+              .toList();
+
+          print('Final results: $results');
+          return results;
+        }
       }
 
       return [];
     } catch (e) {
-      print(e);
+      print('Error in findByName: $e');
       return [];
     }
   }
 
-  // 2. 위도경도로 검색하는 기능
-  // Response > result > features >> properties > full_nm
   Future<List<String>> findByLatLng(double lat, double lng) async {
-// https://api.vworld.kr/req/data
-// request=GetFeature
-// key=F8535CD0-9ACB-38AE-9D71-48E363366BD0
-// data=LT_C_ADEMD_INFO
-// geomFilter=POINT(129.0826365 35.2210076)
-// geometry=false
-// size=100
+    print('Starting findByLatLng with lat: $lat, lng: $lng');
+
     try {
+      print('Attempting API call to: /$lng,$lat.json');
       final response = await _client.get(
-        'https://api.vworld.kr/req/data',
+        '/$lng,$lat.json',
         queryParameters: {
-          'request': 'GetFeature',
-          'key': 'F8535CD0-9ACB-38AE-9D71-48E363366BD0',
-          'data': 'LT_C_ADEMD_INFO',
-          'geomFilter': 'POINT($lng $lat)',
-          'geometry': false,
-          'size': 100,
+          'access_token': _accessToken,
+          'types': 'place', // 단일 타입으로 변경
+          'limit': 1, // limit를 1로 설정
+          'language': 'ko', // 한국어 결과
         },
       );
 
-      if (response.statusCode == 200 &&
-          response.data['response']['status'] == 'OK') {
-        // Response > result > featureCollection > features >> properties > full_nm
-        final features = response.data['response']['result']
-            ['featureCollection']['features'];
-        final featureList = List.from(features);
-        final iterable = featureList.map((feat) {
-          return '${feat['properties']['full_nm']}';
-        });
-        return iterable.toList();
+      print('Response status code: ${response.statusCode}');
+      print('Response data: ${response.data}');
+
+      if (response.statusCode == 200 && response.data != null) {
+        final features = response.data['features'] as List?;
+        print('Features length: ${features?.length}');
+
+        if (features != null && features.isNotEmpty) {
+          final results = features
+              .map((feature) {
+                final context = feature['context'] as List?;
+                if (context != null) {
+                  // context에서 place 타입의 데이터 찾기
+                  final place = context.firstWhere(
+                    (item) => (item['id'] as String).startsWith('place'),
+                    orElse: () => {'text': feature['place_name']},
+                  );
+                  return place['text'].toString();
+                }
+                return feature['place_name'].toString();
+              })
+              .where((name) => name.isNotEmpty)
+              .toList();
+
+          print('Final results: $results');
+          return results;
+        }
       }
 
       return [];
     } catch (e) {
-      print(e);
+      print('Error in findByLatLng: $e');
       return [];
     }
   }
