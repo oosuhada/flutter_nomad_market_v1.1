@@ -5,7 +5,7 @@ class TermsAndPoliciesPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('린캔버스 노마드 마켓 약관 및 정책'),
+        title: Text('노마드 마켓 약관 및 정책'),
       ),
       body: ListView(
         padding: EdgeInsets.all(16),
