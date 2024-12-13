@@ -33,11 +33,11 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
     final result = await ImagePickerHelper.pickImage();
     if (result != null) {
       final viewModel = ref.read(profileEditViewModel.notifier);
-      viewModel.uploadImage(
-        filename: result.filename,
-        mimeType: result.mimeType,
-        bytes: result.bytes,
-      );
+      // viewModel.uploadImage(
+      // filename: result.filename,
+      // mimeType: result.mimeType,
+      // bytes: result.bytes,
+      // );
     }
   }
 

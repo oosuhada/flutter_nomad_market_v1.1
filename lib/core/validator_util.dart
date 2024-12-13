@@ -6,6 +6,10 @@ class ValidatorUtil {
     if (!value!.contains('@')) {
       return '이메일은 유효한 형식이어야합니다';
     }
+    if (value.contains(' ')) {
+      // 공백 포함 여부 검사
+      return '닉네임에 공백이 포함되어있습니다';
+    }
     return null;
   }
 
@@ -15,6 +19,10 @@ class ValidatorUtil {
     }
     if (value!.length < 2) {
       return '닉네임은 2글자 이상이여야합니다';
+    }
+    if (value.contains(' ')) {
+      // 공백 포함 여부 검사
+      return '닉네임에 공백이 포함되어있습니다';
     }
     return null;
   }
