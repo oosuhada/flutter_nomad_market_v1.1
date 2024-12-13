@@ -1,61 +1,96 @@
-// 1. 상태만들기 FileModel 클래스를 상태클래스로 사용
+// // 1. 상태만들기 Post 클래스를 상태클래스로 사용
 
-// 2. 뷰모델만들기
+// // 2. 뷰모델만들기
 
-import 'package:flutter_market_app/data/model/file_model.dart';
-import 'package:flutter_market_app/data/repository/file_repository.dart';
-import 'package:flutter_market_app/data/repository/user_repository.dart';
+// import 'package:flutter_market_app/data/model/file_model.dart';
+// import 'package:flutter_market_app/data/model/post.dart';
+// import 'package:flutter_market_app/data/repository/file_repository.dart';
+// import 'package:flutter_market_app/data/repository/post_repository.dart';
+// import 'package:flutter_market_app/data/repository/user_info_repository.dart';
+// import 'package:flutter_market_app/data/repository/user_repository.dart';
+// import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// class JoinViewModel extends AutoDisposeNotifier<Post?> {
+//   @override
+//   Post? build() {
+//     return null;
+//   }
+
+//   final userInfoRepository = UserInfoRepository();
+
+//   // 회원가입
+
+//   Future<String?> join({
+//     required String nickname,
+//     required String email,
+//     required String password,
+//     required String addressFullName,
+//     required int profileImageUrl,
+//   }) async {
+//     return await userInfoRepository.join(
+//       nickname: nickname,
+//       email: email,
+//       password: password,
+//       addressFullName: addressFullName,
+//       profileImageUrl: profileImageUrl,
+//     );
+//   }
+
+//   Future<String?> validateName({
+//     required String username,
+//     required String nickname,
+//   }) async {
+//     final idResult = await userRepository.usernameCk(username);
+//     if (!idResult) {
+//       return "사용할 수 없는 이메일입니다";
+//     }
+//     final nickResult = await userRepository.nicknameCk(nickname);
+//     if (!nickResult) {
+//       return "사용할 수 없는 닉네임입니다";
+//     }
+
+//     return null;
+//   }
+// }
+
+// // 3. 뷰모델 관리자 만들기
+// final joinViewModel =
+//     NotifierProvider.autoDispose<JoinViewModel, FileModel?>(() {
+//   return JoinViewModel();
+// });
+
+// 1. 상태클래스 만들기 => X
+
+// 2. 뷰모델 만들기
+import 'package:flutter_market_app/data/repository/user_info_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class JoinViewModel extends AutoDisposeNotifier<FileModel?> {
-  @override
-  FileModel? build() {
-    return null;
-  }
+class JoinViewModel {
+  final userInfoRepository = UserInfoRepository();
 
-  final fileRepository = FileRepository();
-  final userRepository = UserRepository();
-
-  // 회원가입
-  Future<bool> join({
-    required String username,
-    required String password,
+  Future<bool?> join({
     required String nickname,
+    required String email,
+    required String password,
     required String addressFullName,
+    required String profileImageUrl,
   }) async {
-    // 파일이 업로드 되어있지 않으면 리턴 false
-    if (state == null) {
-      return false;
-    }
-
-    return await userRepository.join(
-      username: username,
+    return await userInfoRepository.join(
       nickname: nickname,
+      email: email,
       password: password,
       addressFullName: addressFullName,
-      profileImageId: state!.id,
+      profileImageUrl: profileImageUrl,
     );
   }
 
-  Future<String?> validateName({
-    required String username,
-    required String nickname,
-  }) async {
-    final idResult = await userRepository.usernameCk(username);
-    if (!idResult) {
-      return "사용할 수 없는 이메일입니다";
-    }
-    final nickResult = await userRepository.nicknameCk(nickname);
-    if (!nickResult) {
-      return "사용할 수 없는 닉네임입니다";
-    }
+  // void uploadImage({
+  // }) async {
 
-    return null;
-  }
+  // }
 }
 
 // 3. 뷰모델 관리자 만들기
-final joinViewModel =
-    NotifierProvider.autoDispose<JoinViewModel, FileModel?>(() {
+final joinViewModel = Provider.autoDispose((ref) {
   return JoinViewModel();
 });

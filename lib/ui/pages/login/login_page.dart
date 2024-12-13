@@ -55,10 +55,10 @@ class _LoginPageState extends State<LoginPage> {
                     if (formKey.currentState?.validate() ?? false) {
                       final viewModel = ref.read(loginViewmodel);
                       final loginResult = await viewModel.login(
-                        username: idController.text,
+                        email: idController.text,
                         password: pwController.text,
                       );
-                      if (loginResult) {
+                      if (loginResult == true) {
                         // 로그인 성공 => HomePage로 이동.(모든페이지를 제거한뒤 가야함)
                         Navigator.pushAndRemoveUntil(
                           context,

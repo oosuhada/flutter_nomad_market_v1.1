@@ -1,13 +1,15 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/core/image_picker_helper.dart';
 import 'package:flutter_market_app/core/snackbar_util.dart';
 import 'package:flutter_market_app/ui/pages/join/join_view_model.dart';
-import 'package:flutter_market_app/ui/pages/join/widgets/profile_image_view_model.dart';
 import 'package:flutter_market_app/ui/pages/welcome/welcome_page.dart';
 import 'package:flutter_market_app/ui/widgets/id_text_form_field.dart';
 import 'package:flutter_market_app/ui/widgets/nickname_text_form_field.dart';
 import 'package:flutter_market_app/ui/widgets/pw_text_form_field.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 
 class JoinPage extends ConsumerStatefulWidget {
   JoinPage(this.address);
@@ -23,6 +25,8 @@ class _JoinPageState extends ConsumerState<JoinPage> {
   final pwController = TextEditingController();
   final nicknameController = TextEditingController();
   final formKey = GlobalKey<FormState>();
+  File? imageFile;
+  String? imageUrl;
 
   @override
   void dispose() {
@@ -34,39 +38,41 @@ class _JoinPageState extends ConsumerState<JoinPage> {
 
   void onImageUpload() async {
     print('onImageUpload');
-    final result = await ImagePickerHelper.pickImage();
-    if (result != null) {
-      final viewModel = ref.read(profileImageViewModel.notifier);
-      viewModel.uploadImage(
-        title: result.title,
-        content: result.content,
-        writer: result.writer,
-        imageUrl: result.imageUrl,
-      );
+    final ImagePicker _picker = ImagePicker();
+    final XFile? pickedImage = await _picker.pickImage(
+      source: ImageSource.gallery, // 갤러리에서 선택
+      imageQuality: 50, // 이미지 품질 (0~100)
+    );
+    if (pickedImage != null) {
+      setState(() {
+        imageFile = File(pickedImage.path); // 선택한 이미지 파일 저장
+        imageUrl = pickedImage.path; // 선택한 이미지 파일 경로 저장
+      });
     }
   }
 
   void onJoin() async {
     if (formKey.currentState?.validate() ?? false) {
-      final viewModel = ref.watch(joinViewModel.notifier);
+      final viewModel = ref.watch(joinViewModel);
 
-      final validateResult = await viewModel.validateName(
-        username: idController.text,
-        nickname: nicknameController.text,
-      );
+      // final validateResult = await viewModel.validateName(
+      //   username: idController.text,
+      //   nickname: nicknameController.text,
+      // );
 
-      if (validateResult != null) {
-        SnackbarUtil.showSnackBar(context, validateResult);
-        return;
-      }
+      // if (validateResult != null) {
+      //   SnackbarUtil.showSnackBar(context, validateResult);
+      //   return;
+      // }
 
       final result = await viewModel.join(
-        username: idController.text,
-        password: pwController.text,
         nickname: nicknameController.text,
+        email: idController.text,
+        password: pwController.text,
         addressFullName: widget.address,
+        profileImageUrl: imageUrl ?? '',
       );
-      if (result) {
+      if (result == true) {
         // WelcomePage 이동
         Navigator.pushAndRemoveUntil(
           context,
@@ -89,7 +95,7 @@ class _JoinPageState extends ConsumerState<JoinPage> {
   @override
   Widget build(BuildContext context) {
     print(widget.address);
-    final postModel = ref.read(profileImageViewModel);
+    // final postModel = ref.read(profileImageViewModel);
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -110,47 +116,42 @@ class _JoinPageState extends ConsumerState<JoinPage> {
                 ),
               ),
               SizedBox(height: 20),
-              Consumer(
-                builder: (context, watch, child) {
-                  final postModel = ref.watch(profileImageViewModel);
-                  return GestureDetector(
-                    onTap: onImageUpload,
-                    child: Align(
-                      child: Container(
-                        width: 150,
-                        height: 150,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          shape: BoxShape.circle,
-                        ),
-                        child: postModel != null
-                            ? ClipRRect(
-                                borderRadius: BorderRadius.circular(100),
-                                child: Image.network(
-                                  postModel.imageUrl,
-                                  fit: BoxFit.cover,
-                                ),
-                              )
-                            : Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.person,
-                                    size: 60,
-                                  ),
-                                  SizedBox(height: 4),
-                                  Text(
-                                    '프로필 사진',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                      ),
+              GestureDetector(
+                onTap: onImageUpload,
+                child: Align(
+                  child: Container(
+                    width: 150,
+                    height: 150,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      shape: BoxShape.circle,
                     ),
-                  );
-                },
+                    child: imageFile != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(100),
+                            child: Image.file(
+                              imageFile!,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.person,
+                                size: 60,
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                '프로필 사진',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
+                ),
               ),
 
               SizedBox(height: 20),
