@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/core/snackbar_util.dart';
-import 'package:flutter_market_app/ui/pages/home/_tab/my_tab/widgets/profile_edit.dart';
+import 'package:flutter_market_app/ui/pages/_tab/my_tab/widgets/profile_edit.dart';
 import 'package:flutter_market_app/ui/user_global_view_model.dart';
 import 'package:flutter_market_app/ui/widgets/user_profile_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

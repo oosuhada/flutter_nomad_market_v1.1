@@ -99,7 +99,7 @@ class MyApp extends StatelessWidget {
       darkTheme: ThemeData(
         brightness: Brightness.dark,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.purple.shade200,
+          seedColor: Colors.purple.shade900,
           brightness: Brightness.dark,
         ),
         highlightColor: Colors.purple.shade900,

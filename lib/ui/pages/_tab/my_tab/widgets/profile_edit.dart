@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/core/image_picker_helper.dart';
-import 'package:flutter_market_app/ui/pages/home/_tab/my_tab/widgets/profile_edit_view_model.dart';
+import 'package:flutter_market_app/ui/pages/_tab/my_tab/widgets/profile_edit_view_model.dart';
 import 'package:flutter_market_app/ui/pages/home/home_view_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 

@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/ui/chat_global_view_model.dart';
 import 'package:flutter_market_app/ui/pages/chat_detail/chat_detail_page.dart';
-import 'package:flutter_market_app/ui/pages/home/_tab/home_tab/home_tab_view_model.dart';
+import 'package:flutter_market_app/ui/pages/_tab/home_tab/home_tab_view_model.dart';
 import 'package:flutter_market_app/ui/pages/product_detail/product_detail_view_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
