@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/core/snackbar_util.dart';
-import 'package:flutter_market_app/ui/pages/home/_tab/home_tab/home_tab_view_model.dart';
+import 'package:flutter_market_app/ui/pages/_tab/home_tab/home_tab_view_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class HomeTabAppBar extends StatelessWidget {

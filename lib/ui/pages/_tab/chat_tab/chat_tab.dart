@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_market_app/ui/pages/home/_tab/chat_tab/widgets/chat_tab_app_bar.dart';
-import 'package:flutter_market_app/ui/pages/home/_tab/chat_tab/widgets/chat_tab_list_view.dart';
+import 'package:flutter_market_app/ui/pages/_tab/chat_tab/%08widgets/chat_tab_app_bar.dart';
+import 'package:flutter_market_app/ui/pages/_tab/chat_tab/%08widgets/chat_tab_list_view.dart';
 
 class ChatTab extends StatelessWidget {
   @override

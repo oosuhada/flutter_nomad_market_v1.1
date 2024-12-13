@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_market_app/ui/pages/home/_tab/home_tab/home_tab_view_model.dart';
+import 'package:flutter_market_app/ui/pages/_tab/home_tab/home_tab_view_model.dart';
 import 'package:flutter_market_app/ui/pages/product_detail/product_detail_view_model.dart';
 import 'package:flutter_market_app/ui/pages/product_write/product_write_page.dart';
 import 'package:flutter_market_app/ui/user_global_view_model.dart';
