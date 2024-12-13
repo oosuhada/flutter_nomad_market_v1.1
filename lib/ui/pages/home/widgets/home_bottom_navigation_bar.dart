@@ -8,7 +8,7 @@ class HomeBottomNavigationBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final selectedItemColor =
-        isDarkMode ? Colors.white : Colors.purple.shade800;
+        isDarkMode ? Colors.white : Colors.purple.shade900;
     final activeIconColor = isDarkMode ? Colors.white : Colors.purple.shade900;
 
     return Consumer(
