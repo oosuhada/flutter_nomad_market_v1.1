@@ -1,0 +1,96 @@
+/Users/gabriel/workspace/flutter_nomad_market_v1.1/lib/core
+├── date_time_utils.dart
+├── geolocator_helper.dart
+├── image_picker_helper.dart
+├── snackbar_util.dart
+└── validator_util.dart
+
+/Users/gabriel/workspace/flutter_nomad_market_v1.1/lib/data
+├── model
+│   ├── address.dart
+│   ├── chat_message.dart
+│   ├── chat_product.dart
+│   ├── chat_room.dart
+│   ├── file_model.dart
+│   ├── product.dart
+│   ├── product_category.dart
+│   ├── product_summary.dart
+│   └── user.dart
+└── repository
+    ├── address_repository.dart
+    ├── base_remote_repository.dart
+    ├── chat_repository.dart
+    ├── file_repository.dart
+    ├── product_category_repository.dart
+    ├── product_repository.dart
+    ├── user_repository.dart
+    └── vworld_repository.dart
+
+/Users/gabriel/workspace/flutter_nomad_market_v1.1/lib/ui
+├── chat_global_view_model.dart
+├── pages
+│   ├── address_search
+│   │   ├── address_search_page.dart
+│   │   └── address_search_view_model.dart
+│   ├── chat_detail
+│   │   ├── chat_detail_page.dart
+│   │   └── widgets
+│   │       ├── chat_detail_bottom_sheet.dart
+│   │       ├── chat_detail_list_view.dart
+│   │       ├── chat_detail_product_area.dart
+│   │       ├── chat_detail_receive_item.dart
+│   │       └── chat_detail_send_item.dart
+│   ├── home
+│   │   ├── _tab
+│   │   │   ├── chat_tab
+│   │   │   │   ├── \010widgets
+│   │   │   │   │   ├── chat_tab_app_bar.dart
+│   │   │   │   │   └── chat_tab_list_view.dart
+│   │   │   │   └── chat_tab.dart
+│   │   │   ├── home_tab
+│   │   │   │   ├── home_tab.dart
+│   │   │   │   ├── home_tab_view_model.dart
+│   │   │   │   └── widgets
+│   │   │   │       ├── home_tab_app_bar.dart
+│   │   │   │       ├── home_tab_list_view.dart
+│   │   │   │       └── product_list_item.dart
+│   │   │   └── my_tab
+│   │   │       ├── my_tab.dart
+│   │   │       └── widgets
+│   │   │           └── my_profile_box.dart
+│   │   ├── home_page.dart
+│   │   ├── home_view_model.dart
+│   │   └── widgets
+│   │       ├── home_bottom_navigation_bar.dart
+│   │       ├── home_floating_action_button.dart
+│   │       └── home_indexed_stack.dart
+│   ├── join
+│   │   ├── join_page.dart
+│   │   └── join_view_model.dart
+│   ├── login
+│   │   ├── login_page.dart
+│   │   └── login_view_model.dart
+│   ├── product_detail
+│   │   ├── product_detail_page.dart
+│   │   ├── product_detail_view_model.dart
+│   │   └── widgets
+│   │       ├── product_detail_actions.dart
+│   │       ├── product_detail_body.dart
+│   │       ├── product_detail_bottom_sheet.dart
+│   │       └── product_detail_picture.dart
+│   ├── product_write
+│   │   ├── product_write_page.dart
+│   │   ├── product_write_view_model.dart
+│   │   └── widgets
+│   │       ├── product_category_box.dart
+│   │       └── product_write_picture_area.dart
+│   └── welcome
+│       └── welcome_page.dart
+├── user_global_view_model.dart
+└── widgets
+    ├── id_text_form_field.dart
+    ├── nickname_text_form_field.dart
+    ├── pw_text_form_field.dart
+    └── user_profile_image.dart
+
+
