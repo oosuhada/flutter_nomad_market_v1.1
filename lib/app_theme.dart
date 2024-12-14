@@ -18,17 +18,17 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ButtonStyle(
-          foregroundColor:
-              WidgetStateProperty.all(const Color.fromARGB(255, 254, 248, 245)),
-          backgroundColor: WidgetStateProperty.all(Colors.purple.shade900),
-          minimumSize: WidgetStateProperty.all(const Size.fromHeight(52)),
-          textStyle: WidgetStateProperty.all(
+          foregroundColor: MaterialStateProperty.all(
+              const Color.fromARGB(255, 254, 248, 245)),
+          backgroundColor: MaterialStateProperty.all(Colors.purple.shade900),
+          minimumSize: MaterialStateProperty.all(const Size.fromHeight(52)),
+          textStyle: MaterialStateProperty.all(
             const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
           ),
-          shape: WidgetStateProperty.all(
+          shape: MaterialStateProperty.all(
             RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
@@ -46,7 +46,7 @@ class AppTheme {
           horizontal: 20,
         ),
         border: MaterialStateOutlineInputBorder.resolveWith((states) {
-          if (states.contains(WidgetState.focused)) {
+          if (states.contains(MaterialState.focused)) {
             return OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: const BorderSide(
@@ -55,7 +55,7 @@ class AppTheme {
               ),
             );
           }
-          if (states.contains(WidgetState.error)) {
+          if (states.contains(MaterialState.error)) {
             return OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(
@@ -96,22 +96,22 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ButtonStyle(
-          foregroundColor: WidgetStateProperty.all(Colors.white),
-          backgroundColor: WidgetStateProperty.all(Colors.purple.shade900),
-          minimumSize: WidgetStateProperty.all(const Size.fromHeight(52)),
-          textStyle: WidgetStateProperty.all(
+          foregroundColor: MaterialStateProperty.all(Colors.white),
+          backgroundColor: MaterialStateProperty.all(Colors.purple.shade900),
+          minimumSize: MaterialStateProperty.all(const Size.fromHeight(52)),
+          textStyle: MaterialStateProperty.all(
             const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
           ),
-          shape: WidgetStateProperty.all(
+          shape: MaterialStateProperty.all(
             RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
           ),
-          shadowColor: WidgetStateProperty.all(Colors.black.withOpacity(0.5)),
-          elevation: WidgetStateProperty.all(8),
+          shadowColor: MaterialStateProperty.all(Colors.black.withOpacity(0.5)),
+          elevation: MaterialStateProperty.all(8),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -125,7 +125,7 @@ class AppTheme {
           horizontal: 20,
         ),
         border: MaterialStateOutlineInputBorder.resolveWith((states) {
-          if (states.contains(WidgetState.focused)) {
+          if (states.contains(MaterialState.focused)) {
             return OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(
@@ -134,7 +134,7 @@ class AppTheme {
               ),
             );
           }
-          if (states.contains(WidgetState.error)) {
+          if (states.contains(MaterialState.error)) {
             return OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: BorderSide(
@@ -153,5 +153,24 @@ class AppTheme {
         }),
       ),
     );
+  }
+
+  // 추가된 공통 메서드
+  static Color getBackgroundColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF1A1A1A) // 다크 모드 배경
+        : const Color(0xFFF5F5F5); // 라이트 모드 배경
+  }
+
+  static Color getTextColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? Colors.white // 다크 모드 텍스트
+        : Colors.black; // 라이트 모드 텍스트
+  }
+
+  static Color getSearchBarColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF333333) // 다크 모드 검색창
+        : Colors.white; // 라이트 모드 검색창
   }
 }

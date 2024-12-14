@@ -42,7 +42,7 @@ class _JoinPageState extends ConsumerState<JoinPage> {
     super.dispose();
   }
 
-  void onImageUpload() async {
+  Future<void> onImageUpload() async {
     print('onImageUpload');
     final ImagePicker _picker = ImagePicker();
     final XFile? pickedImage = await _picker.pickImage(
