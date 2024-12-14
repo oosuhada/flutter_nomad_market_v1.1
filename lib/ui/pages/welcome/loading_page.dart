@@ -15,7 +15,7 @@ class _LoadingPageState extends State<LoadingPage> {
   }
 
   void _startSecondAnimation() {
-    Future.delayed(Duration(seconds: 1), () {
+    Future.delayed(Duration(seconds: 0), () {
       setState(() {
         _showSecondAnimation = true;
       });
@@ -34,7 +34,7 @@ class _LoadingPageState extends State<LoadingPage> {
               right: 0,
               child: TweenAnimationBuilder(
                 tween: Tween<double>(begin: 0, end: 1),
-                duration: Duration(seconds: 1),
+                duration: Duration(seconds: 3),
                 builder: (context, double opacity, child) {
                   return Opacity(
                     opacity: opacity,
@@ -56,7 +56,7 @@ class _LoadingPageState extends State<LoadingPage> {
               child: _showSecondAnimation
                   ? TweenAnimationBuilder(
                       tween: Tween<double>(begin: 0, end: 1),
-                      duration: Duration(seconds: 2),
+                      duration: Duration(seconds: 3),
                       builder: (context, double opacity, child) {
                         return Opacity(
                           opacity: opacity,
