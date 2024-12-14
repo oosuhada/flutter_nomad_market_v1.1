@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_market_app/core/image_picker_helper.dart';
 import 'package:flutter_market_app/core/snackbar_util.dart';
 import 'package:flutter_market_app/ui/pages/join/join_view_model.dart';
 import 'package:flutter_market_app/ui/pages/welcome/welcome_page.dart';
