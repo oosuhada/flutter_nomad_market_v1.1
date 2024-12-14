@@ -6,11 +6,11 @@ class HomeTabPopupButton extends StatelessWidget {
   final ValueChanged<String?> onChanged;
 
   const HomeTabPopupButton({
-    Key? key,
+    super.key,
     required this.selectedValue,
     required this.items,
     required this.onChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -40,12 +40,12 @@ class HomeTabPopupButton extends StatelessWidget {
               BoxShadow(
                 color: Colors.black.withOpacity(0.1),
                 blurRadius: 4,
-                offset: Offset(0, 2),
+                offset: const Offset(0, 2),
               ),
             ],
           ),
-          padding: EdgeInsets.symmetric(
-              vertical: 10, horizontal: 20), // Adjusted padding
+          padding: const EdgeInsets.symmetric(
+              vertical: 10, horizontal: 18), // Adjusted padding
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -59,7 +59,7 @@ class HomeTabPopupButton extends StatelessWidget {
                       : Colors.black,
                 ),
               ),
-              SizedBox(width: 2), // Adjusted SizedBox width
+              const SizedBox(width: 1), // Adjusted SizedBox width
               Icon(
                 Icons.arrow_drop_down,
                 size: 20, // Adjusted icon size
@@ -78,11 +78,14 @@ class HomeTabPopupButton extends StatelessWidget {
       BuildContext context, String text, bool isSelected) {
     return PopupMenuItem<String>(
       value: text,
-      child: Text(
-        text,
-        style: TextStyle(
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          color: isSelected ? Theme.of(context).primaryColor : Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+        child: Text(
+          text,
+          style: TextStyle(
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            color: isSelected ? Theme.of(context).primaryColor : Colors.white,
+          ),
         ),
       ),
     );
