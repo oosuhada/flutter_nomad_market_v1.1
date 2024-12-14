@@ -27,6 +27,13 @@ class _JoinPageState extends ConsumerState<JoinPage> {
   final formKey = GlobalKey<FormState>();
   File? imageFile;
   String? imageUrl;
+  void onGoogleSignIn(WidgetRef ref) {
+    // Google 로그인 로직 구현
+  }
+
+  void onFacebookSignIn(WidgetRef ref) {
+    // Facebook 로그인 로직 구현
+  }
 
   @override
   void dispose() {
@@ -116,40 +123,55 @@ class _JoinPageState extends ConsumerState<JoinPage> {
                 ),
               ),
               SizedBox(height: 20),
-              GestureDetector(
-                onTap: onImageUpload,
-                child: Align(
-                  child: Container(
-                    width: 150,
-                    height: 150,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      shape: BoxShape.circle,
-                    ),
-                    child: imageFile != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(100),
-                            child: Image.file(
-                              imageFile!,
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                        : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.person,
-                                size: 60,
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                '프로필 사진',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ],
+              Center(
+                child: GestureDetector(
+                  onTap: onImageUpload,
+                  child: Stack(
+                    children: [
+                      Container(
+                        width: 130,
+                        height: 130,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.grey[300]!,
+                            width: 1,
                           ),
+                        ),
+                        child: imageFile != null
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(65),
+                                child: Image.file(
+                                  imageFile!,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : Icon(
+                                Icons.person_outline,
+                                size: 50,
+                                color: Colors.grey[400],
+                              ),
+                      ),
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          padding: EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: imageFile != null
+                                ? Colors.purple.shade900
+                                : Colors.grey.shade600,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.camera_alt,
+                            color: Colors.white,
+                            size: 22,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -164,6 +186,115 @@ class _JoinPageState extends ConsumerState<JoinPage> {
               ElevatedButton(
                 onPressed: onJoin,
                 child: Text('회원가입'),
+              ),
+              SizedBox(height: 20),
+              // 소셜 로그인 구분선
+              Row(
+                children: [
+                  Expanded(child: Divider(thickness: 1)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(
+                      '또는',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ),
+                  Expanded(child: Divider(thickness: 1)),
+                ],
+              ),
+              SizedBox(height: 16),
+              // 소셜 로그인 버튼
+              Consumer(
+                builder: (context, ref, child) {
+                  return Column(
+                    children: [
+                      // 구글 로그인 버튼
+                      GestureDetector(
+                        onTap: () => onGoogleSignIn(ref),
+                        child: Container(
+                          width: double.infinity,
+                          height: 52,
+                          margin: EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.grey[900]
+                                    : Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey.shade600),
+                          ),
+                          child: Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                SizedBox(width: 15),
+                                Icon(
+                                  Icons.account_box,
+                                  color: Colors.red,
+                                  size: 40,
+                                ),
+                                SizedBox(width: 10),
+                                Text(
+                                  '구글 아이디로 계속하기',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.grey[400]
+                                        : Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      // 페이스북 로그인 버튼
+                      GestureDetector(
+                        onTap: () => onFacebookSignIn(ref),
+                        child: Container(
+                          width: double.infinity,
+                          height: 52,
+                          margin: EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.grey[900]
+                                    : Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey.shade600),
+                          ),
+                          child: Center(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                SizedBox(width: 15),
+                                Icon(
+                                  Icons.facebook,
+                                  color: const Color.fromARGB(255, 33, 47, 125),
+                                  size: 40,
+                                ),
+                                SizedBox(width: 10),
+                                Text(
+                                  '페이스북 아이디로 계속하기',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                        ? Colors.grey[400]
+                                        : Colors.grey[600],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ],
           ),
