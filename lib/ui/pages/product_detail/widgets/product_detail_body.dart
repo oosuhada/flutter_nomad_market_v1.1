@@ -76,7 +76,7 @@ class ProductDetailBody extends StatelessWidget {
               ),
             ),
             Text(
-              product.address.displayName,
+              product.address.displayNameKR,
               style: TextStyle(
                 fontSize: 13,
                 color: Colors.grey,

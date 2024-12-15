@@ -1,19 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_market_app/ui/pages/product_write/product_write_view_model.dart';
+import 'package:flutter_market_app/data/model/product_category.dart';
 
-class HomeTabPopupButton extends StatelessWidget {
+class HomeTabPopupButton extends ConsumerWidget {
   final String selectedValue;
-  final List<String> items;
-  final ValueChanged<String?> onChanged;
+  final ValueChanged<String> onChanged;
 
   const HomeTabPopupButton({
     Key? key,
     required this.selectedValue,
-    required this.items,
     required this.onChanged,
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(productWriteViewModel(null));
+    final vm = ref.read(productWriteViewModel(null).notifier);
+
     return Align(
       alignment: Alignment.centerLeft,
       child: PopupMenuButton<String>(
@@ -24,10 +28,17 @@ class HomeTabPopupButton extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        onSelected: onChanged,
+        onSelected: (String value) {
+          onChanged(value);
+          vm.onCategorySelected(value);
+        },
         itemBuilder: (context) {
-          return items.map((e) {
-            return categoryItem(context, e, e == selectedValue);
+          return state.categories.map((ProductCategory category) {
+            return categoryItem(
+              context,
+              category.category,
+              category.id == state.selectedCategory?.id,
+            );
           }).toList();
         },
         child: Container(
@@ -40,12 +51,11 @@ class HomeTabPopupButton extends StatelessWidget {
               BoxShadow(
                 color: Colors.black.withOpacity(0.1),
                 blurRadius: 4,
-                offset: Offset(0, 2),
+                offset: const Offset(0, 2),
               ),
             ],
           ),
-          padding: EdgeInsets.symmetric(
-              vertical: 10, horizontal: 20), // Adjusted padding
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 18),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -53,16 +63,16 @@ class HomeTabPopupButton extends StatelessWidget {
                 selectedValue.isNotEmpty ? selectedValue : '카테고리 선택',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  fontSize: 12, // Adjusted font size
+                  fontSize: 12,
                   color: Theme.of(context).brightness == Brightness.dark
                       ? Colors.white
                       : Colors.black,
                 ),
               ),
-              SizedBox(width: 2), // Adjusted SizedBox width
+              const SizedBox(width: 1),
               Icon(
                 Icons.arrow_drop_down,
-                size: 20, // Adjusted icon size
+                size: 20,
                 color: Theme.of(context).brightness == Brightness.dark
                     ? Colors.white
                     : Colors.black,
@@ -75,14 +85,24 @@ class HomeTabPopupButton extends StatelessWidget {
   }
 
   PopupMenuItem<String> categoryItem(
-      BuildContext context, String text, bool isSelected) {
+    BuildContext context,
+    String text,
+    bool isSelected,
+  ) {
     return PopupMenuItem<String>(
       value: text,
-      child: Text(
-        text,
-        style: TextStyle(
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          color: isSelected ? Theme.of(context).primaryColor : Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+        child: Text(
+          text,
+          style: TextStyle(
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            color: isSelected
+                ? Theme.of(context).primaryColor
+                : Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white
+                    : Colors.black,
+          ),
         ),
       ),
     );
