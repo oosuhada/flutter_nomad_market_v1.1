@@ -3,6 +3,8 @@ import 'package:flutter_market_app/ui/pages/address_search/address_search_page.d
 import 'package:flutter_market_app/ui/pages/login/login_page.dart';
 
 class WelcomePage extends StatefulWidget {
+  const WelcomePage({Key? key}) : super(key: key);
+
   @override
   _WelcomePageState createState() => _WelcomePageState();
 }
@@ -101,27 +103,24 @@ class _WelcomePageState extends State<WelcomePage> {
               children: [
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(
-                      builder: (context) {
-                        return AddressSearchPage();
-                      },
-                    ));
+                    Navigator.pushNamed(context, '/language-search');
                   },
-                  child: Text('시작하기'),
+                  child: const Text('시작하기'),
                 ),
                 GestureDetector(
                   onTap: () {
-                    Navigator.push(context, MaterialPageRoute(
-                      builder: (context) {
-                        return LoginPage();
-                      },
-                    ));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LoginPage(),
+                      ),
+                    );
                   },
                   child: Container(
                     height: 50,
                     color: Colors.transparent,
                     alignment: Alignment.center,
-                    child: Text(
+                    child: const Text(
                       '이미 계정이 있나요? 로그인',
                       style: TextStyle(color: Colors.grey),
                     ),

@@ -18,17 +18,17 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ButtonStyle(
-          foregroundColor: MaterialStateProperty.all(
-              const Color.fromARGB(255, 254, 248, 245)),
-          backgroundColor: MaterialStateProperty.all(Colors.purple.shade900),
-          minimumSize: MaterialStateProperty.all(const Size.fromHeight(52)),
-          textStyle: MaterialStateProperty.all(
+          foregroundColor:
+              WidgetStateProperty.all(const Color.fromARGB(255, 254, 248, 245)),
+          backgroundColor: WidgetStateProperty.all(Colors.purple.shade900),
+          minimumSize: WidgetStateProperty.all(const Size.fromHeight(52)),
+          textStyle: WidgetStateProperty.all(
             const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
           ),
-          shape: MaterialStateProperty.all(
+          shape: WidgetStateProperty.all(
             RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
@@ -45,34 +45,16 @@ class AppTheme {
           vertical: 16,
           horizontal: 20,
         ),
-        border: MaterialStateOutlineInputBorder.resolveWith((states) {
-          if (states.contains(MaterialState.focused)) {
-            return OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(
-                color: Colors.grey,
-                width: 2,
-              ),
-            );
-          }
-          if (states.contains(MaterialState.error)) {
-            return OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: Colors.red[100]!,
-                width: 2,
-              ),
-            );
-          }
-          return OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(
-              color: Colors.grey[300]!,
-              width: 1,
-            ),
-          );
-        }),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(
+            color: Colors.grey,
+            width: 1,
+          ),
+        ),
       ),
+      pageTransitionsTheme:
+          pageTransitionsTheme(), // CustomPageTransitionBuilder 추가
     );
   }
 
@@ -96,22 +78,20 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ButtonStyle(
-          foregroundColor: MaterialStateProperty.all(Colors.white),
-          backgroundColor: MaterialStateProperty.all(Colors.purple.shade900),
-          minimumSize: MaterialStateProperty.all(const Size.fromHeight(52)),
-          textStyle: MaterialStateProperty.all(
+          foregroundColor: WidgetStateProperty.all(Colors.white),
+          backgroundColor: WidgetStateProperty.all(Colors.purple.shade900),
+          minimumSize: WidgetStateProperty.all(const Size.fromHeight(52)),
+          textStyle: WidgetStateProperty.all(
             const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
           ),
-          shape: MaterialStateProperty.all(
+          shape: WidgetStateProperty.all(
             RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
           ),
-          shadowColor: MaterialStateProperty.all(Colors.black.withOpacity(0.5)),
-          elevation: MaterialStateProperty.all(8),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -124,53 +104,42 @@ class AppTheme {
           vertical: 16,
           horizontal: 20,
         ),
-        border: MaterialStateOutlineInputBorder.resolveWith((states) {
-          if (states.contains(MaterialState.focused)) {
-            return OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: Colors.grey[400]!,
-                width: 2,
-              ),
-            );
-          }
-          if (states.contains(MaterialState.error)) {
-            return OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: Colors.red[300]!,
-                width: 2,
-              ),
-            );
-          }
-          return OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(
-              color: Colors.grey[600]!,
-              width: 1,
-            ),
-          );
-        }),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(
+            color: Colors.grey,
+            width: 1,
+          ),
+        ),
       ),
+      pageTransitionsTheme:
+          pageTransitionsTheme(), // CustomPageTransitionBuilder 추가
     );
   }
 
-  // 추가된 공통 메서드
-  static Color getBackgroundColor(BuildContext context) {
-    return Theme.of(context).brightness == Brightness.dark
-        ? const Color(0xFF1A1A1A) // 다크 모드 배경
-        : const Color(0xFFF5F5F5); // 라이트 모드 배경
+  static PageTransitionsTheme pageTransitionsTheme() {
+    return PageTransitionsTheme(
+      builders: {
+        TargetPlatform.android: CustomPageTransitionBuilder(),
+        TargetPlatform.iOS: CustomPageTransitionBuilder(),
+      },
+    );
   }
+}
 
-  static Color getTextColor(BuildContext context) {
-    return Theme.of(context).brightness == Brightness.dark
-        ? Colors.white // 다크 모드 텍스트
-        : Colors.black; // 라이트 모드 텍스트
-  }
-
-  static Color getSearchBarColor(BuildContext context) {
-    return Theme.of(context).brightness == Brightness.dark
-        ? const Color(0xFF333333) // 다크 모드 검색창
-        : Colors.white; // 라이트 모드 검색창
+// 페이지 전환 애니메이션 커스터마이징
+class CustomPageTransitionBuilder extends PageTransitionsBuilder {
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    return FadeTransition(
+      opacity: animation,
+      child: child,
+    );
   }
 }
