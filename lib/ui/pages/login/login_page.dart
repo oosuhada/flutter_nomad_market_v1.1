@@ -45,6 +45,28 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               SizedBox(height: 20),
+              Align(
+                alignment: Alignment.topRight,
+                child: RichText(
+                  text: TextSpan(
+                    children: [
+                      WidgetSpan(child: SizedBox(width: 20)),
+                      WidgetSpan(child: SizedBox(width: 20)),
+                      TextSpan(
+                        text: "계정찾기",
+                        style: TextStyle(
+                          color: Color(0xFF98A8EA),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                      WidgetSpan(child: SizedBox(width: 10)),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 10),
               LoginTextFormField(controller: idController),
               SizedBox(height: 20),
               PwTextFormField(controller: pwController),
@@ -86,17 +108,6 @@ class _LoginPageState extends State<LoginPage> {
               }),
 
               SizedBox(height: 10),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  "I don't have an account",
-                  style: TextStyle(
-                    color: Color(0xFF98A8EA),
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
 
               // 소셜 로그인 구분선
               SizedBox(height: 20),
@@ -122,89 +133,94 @@ class _LoginPageState extends State<LoginPage> {
                     children: [
                       // 구글 로그인 버튼
                       GestureDetector(
-                        onTap: () => onGoogleSignIn(ref),
-                        child: Container(
-                          width: double.infinity,
-                          height: 52,
-                          margin: EdgeInsets.symmetric(vertical: 10),
-                          decoration: BoxDecoration(
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.grey[900]
+                          onTap: () => onGoogleSignIn(ref),
+                          child: Container(
+                            width: double.infinity,
+                            height: 52,
+                            margin: EdgeInsets.symmetric(vertical: 10),
+                            child: ElevatedButton(
+                              onPressed: () => onGoogleSignIn(ref),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Colors.grey[800]
                                     : Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.grey.shade600),
-                          ),
-                          child: Center(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                SizedBox(width: 15),
-                                Icon(
-                                  Icons.account_box,
-                                  color: Colors.red,
-                                  size: 40,
+                                foregroundColor: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Colors.grey[100]
+                                    : Colors.grey[600],
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
-                                SizedBox(width: 10),
-                                Text(
-                                  '구글 아이디로 계속하기',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).brightness ==
-                                            Brightness.dark
-                                        ? Colors.grey[400]
-                                        : Colors.grey[600],
-                                  ),
+                                elevation: 4,
+                                shadowColor: Colors.black.withOpacity(0.25),
+                              ),
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Image.asset(
+                                      'assets/google_logo.png',
+                                      height: 24,
+                                    ),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      '구글 아이디로 계속하기',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ],
+                              ),
                             ),
-                          ),
-                        ),
-                      ),
+                          )),
 
                       // 페이스북 로그인 버튼
-                      GestureDetector(
-                        onTap: () => onFacebookSignIn(ref),
-                        child: Container(
-                          width: double.infinity,
-                          height: 52,
-                          margin: EdgeInsets.symmetric(vertical: 10),
-                          decoration: BoxDecoration(
-                            color:
-                                Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.grey[900]
-                                    : Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.grey.shade600),
-                          ),
-                          child: Center(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                SizedBox(width: 15),
-                                Icon(
-                                  Icons.facebook,
-                                  color: const Color.fromARGB(255, 33, 47, 125),
-                                  size: 40,
-                                ),
-                                SizedBox(width: 10),
-                                Text(
-                                  '페이스북 아이디로 계속하기',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(context).brightness ==
-                                            Brightness.dark
-                                        ? Colors.grey[400]
-                                        : Colors.grey[600],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
+                      // GestureDetector(
+                      //   onTap: () => onFacebookSignIn(ref),
+                      //   child: Container(
+                      //     width: double.infinity,
+                      //     height: 52,
+                      //     margin: EdgeInsets.symmetric(vertical: 10),
+                      //     decoration: BoxDecoration(
+                      //       color:
+                      //           Theme.of(context).brightness == Brightness.dark
+                      //               ? Colors.grey[900]
+                      //               : Colors.white,
+                      //       borderRadius: BorderRadius.circular(8),
+                      //       border: Border.all(color: Colors.grey.shade600),
+                      //     ),
+                      //     child: Center(
+                      //       child: Row(
+                      //         mainAxisAlignment: MainAxisAlignment.start,
+                      //         children: [
+                      //           SizedBox(width: 15),
+                      //           Icon(
+                      //             Icons.facebook,
+                      //             color: const Color.fromARGB(255, 33, 47, 125),
+                      //             size: 40,
+                      //           ),
+                      //           SizedBox(width: 10),
+                      //           Text(
+                      //             '페이스북 아이디로 계속하기',
+                      //             style: TextStyle(
+                      //               fontSize: 16,
+                      //               fontWeight: FontWeight.bold,
+                      //               color: Theme.of(context).brightness ==
+                      //                       Brightness.dark
+                      //                   ? Colors.grey[400]
+                      //                   : Colors.grey[600],
+                      //             ),
+                      //           ),
+                      //         ],
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
                     ],
                   );
                 },
