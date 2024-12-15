@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_market_app/data/model/user.dart';
@@ -33,6 +34,7 @@ class ProfileEditViewModel extends StateNotifier<User?> {
 
   Future<bool> updateProfile({
     required String nickname,
+    File? imageFile,
   }) async {
     if (state == null) return false;
 

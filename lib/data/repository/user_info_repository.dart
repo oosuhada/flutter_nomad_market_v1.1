@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class UserInfoRepository {
   // Firestore 인스턴스 생성
   final firestore = FirebaseFirestore.instance;
-
   // 이메일 중복 확인
   Future<bool> isEmailInUse(String email) async {
     try {
@@ -11,10 +10,23 @@ class UserInfoRepository {
           .collection('posts')
           .where('email', isEqualTo: email)
           .get();
-
       return emailQuery.docs.isNotEmpty; // true: 중복, false: 사용 가능
     } catch (e) {
       print('이메일 중복 확인 오류: $e');
+      return true; // 오류 시 중복으로 간주
+    }
+  }
+
+  // 닉네임 중복 확인
+  Future<bool> isNicknameInUse(String nickname) async {
+    try {
+      final nicknameQuery = await firestore
+          .collection('posts')
+          .where('nickname', isEqualTo: nickname)
+          .get();
+      return nicknameQuery.docs.isNotEmpty; // true: 중복, false: 사용 가능
+    } catch (e) {
+      print('닉네임 중복 확인 오류: $e');
       return true; // 오류 시 중복으로 간주
     }
   }
@@ -30,7 +42,6 @@ class UserInfoRepository {
           .where('email', isEqualTo: email)
           .where('password', isEqualTo: password)
           .get();
-
       if (querySnapshot.docs.isNotEmpty) {
         print('로그인 성공: ${querySnapshot.docs[0].data()}');
         return true;
@@ -58,14 +69,8 @@ class UserInfoRepository {
         print('회원가입 실패: 이메일이 이미 사용 중입니다.');
         return false;
       }
-
       // 닉네임 중복 확인
-      final nicknameQuery = await firestore
-          .collection('posts')
-          .where('nickname', isEqualTo: nickname)
-          .get();
-
-      if (nicknameQuery.docs.isNotEmpty) {
+      if (await isNicknameInUse(nickname)) {
         print('회원가입 실패: 닉네임이 이미 사용 중입니다.');
         return false;
       }
@@ -80,7 +85,6 @@ class UserInfoRepository {
         'addressFullName': addressFullName,
         'profileImageUrl': profileImageUrl,
       });
-
       print('회원가입 성공!');
       return true;
     } catch (e) {
