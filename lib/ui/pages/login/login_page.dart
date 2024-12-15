@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_market_app/core/snackbar_util.dart';
 import 'package:flutter_market_app/ui/pages/home/home_page.dart';
 import 'package:flutter_market_app/ui/pages/login/login_view_model.dart';
-import 'package:flutter_market_app/ui/widgets/id_text_form_field.dart';
+import 'package:flutter_market_app/ui/widgets/join_text_form_field.dart';
+import 'package:flutter_market_app/ui/widgets/login_text_form_field.dart';
 import 'package:flutter_market_app/ui/widgets/pw_text_form_field.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -44,7 +45,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               SizedBox(height: 20),
-              IdTextFormField(controller: idController),
+              LoginTextFormField(controller: idController),
               SizedBox(height: 20),
               PwTextFormField(controller: pwController),
               SizedBox(height: 20),

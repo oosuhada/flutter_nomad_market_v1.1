@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/core/validator_util.dart';
 
-class NicknameTextFormField extends StatefulWidget {
-  NicknameTextFormField({
+class JoinTextFormField extends StatefulWidget {
+  JoinTextFormField({
     required this.controller,
   });
   final TextEditingController controller;
 
   @override
-  _NicknameTextFormFieldState createState() => _NicknameTextFormFieldState();
+  _EmailTextFormFieldState createState() => _EmailTextFormFieldState();
 }
 
-class _NicknameTextFormFieldState extends State<NicknameTextFormField> {
+class _EmailTextFormFieldState extends State<JoinTextFormField> {
   String? _errorText;
 
   @override
@@ -19,11 +19,11 @@ class _NicknameTextFormFieldState extends State<NicknameTextFormField> {
     return TextFormField(
       controller: widget.controller,
       decoration: InputDecoration(
-        hintText: '닉네임을 입력해 주세요',
+        hintText: '이메일을 입력해 주세요',
         errorText: _errorText,
       ),
       onChanged: (value) async {
-        final result = await ValidatorUtil().validatorNickname(value);
+        final result = await ValidatorUtil().validatorJoinEmail(value);
         setState(() {
           _errorText = result;
         });

@@ -5,7 +5,7 @@ import 'package:flutter_market_app/core/image_picker_helper.dart';
 import 'package:flutter_market_app/core/snackbar_util.dart';
 import 'package:flutter_market_app/ui/pages/join/join_view_model.dart';
 import 'package:flutter_market_app/ui/pages/welcome/welcome_page.dart';
-import 'package:flutter_market_app/ui/widgets/id_text_form_field.dart';
+import 'package:flutter_market_app/ui/widgets/join_text_form_field.dart';
 import 'package:flutter_market_app/ui/widgets/nickname_text_form_field.dart';
 import 'package:flutter_market_app/ui/widgets/pw_text_form_field.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,7 +21,7 @@ class JoinPage extends ConsumerStatefulWidget {
 }
 
 class _JoinPageState extends ConsumerState<JoinPage> {
-  final idController = TextEditingController();
+  final emailController = TextEditingController();
   final pwController = TextEditingController();
   final nicknameController = TextEditingController();
   final formKey = GlobalKey<FormState>();
@@ -30,7 +30,7 @@ class _JoinPageState extends ConsumerState<JoinPage> {
 
   @override
   void dispose() {
-    idController.dispose();
+    emailController.dispose();
     pwController.dispose();
     nicknameController.dispose();
     super.dispose();
@@ -50,44 +50,77 @@ class _JoinPageState extends ConsumerState<JoinPage> {
       });
     }
   }
+  // final validateResult = await viewModel.validateName(
+  //   username: idController.text,
+  //   nickname: nicknameController.text,
+  // );
 
+  // if (validateResult != null) {
+  //   SnackbarUtil.showSnackBar(context, validateResult);
+  //   return;
+  // }
+  // void onJoin() async {
+  //   if (formKey.currentState?.validate() ?? false) {
+  //     final viewModel = ref.watch(joinViewModel);
+
+  //     final result = await viewModel.join(
+  //       nickname: nicknameController.text,
+  //       email: emailController.text,
+  //       password: pwController.text,
+  //       addressFullName: widget.address,
+  //       profileImageUrl: imageUrl ?? '',
+  //     );
+  //     if (result == true) {
+  //       // WelcomePage 이동
+  //       Navigator.pushAndRemoveUntil(
+  //         context,
+  //         MaterialPageRoute(
+  //           builder: (context) {
+  //             return WelcomePage();
+  //           },
+  //         ),
+  //         (route) {
+  //           return false;
+  //         },
+  //       );
+  //     } else {
+  //       SnackbarUtil.showSnackBar(context, '회원가입에 실패하였습니다');
+  //     }
+  //   }
+  //   print('onJoin');
+  // }
   void onJoin() async {
     if (formKey.currentState?.validate() ?? false) {
-      final viewModel = ref.watch(joinViewModel);
+      final email = emailController.text.trim();
+      final password = pwController.text.trim();
+      final nickname = nicknameController.text.trim();
 
-      // final validateResult = await viewModel.validateName(
-      //   username: idController.text,
-      //   nickname: nicknameController.text,
-      // );
+      if (email.isEmpty || password.isEmpty || nickname.isEmpty) {
+        SnackbarUtil.showSnackBar(context, '회원가입에 실패하였습니다');
+        return;
+      }
 
-      // if (validateResult != null) {
-      //   SnackbarUtil.showSnackBar(context, validateResult);
-      //   return;
-      // }
-
+      final viewModel = ref.read(joinViewModel);
       final result = await viewModel.join(
-        nickname: nicknameController.text,
-        email: idController.text,
-        password: pwController.text,
+        nickname: nickname,
+        email: email,
+        password: password,
         addressFullName: widget.address,
         profileImageUrl: imageUrl ?? '',
       );
+
       if (result == true) {
         // WelcomePage 이동
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(
-            builder: (context) {
-              return WelcomePage();
-            },
-          ),
-          (route) {
-            return false;
-          },
+          MaterialPageRoute(builder: (context) => WelcomePage()),
+          (route) => false,
         );
       } else {
         SnackbarUtil.showSnackBar(context, '회원가입에 실패하였습니다');
       }
+    } else {
+      SnackbarUtil.showSnackBar(context, '회원가입에 실패하였습니다');
     }
     print('onJoin');
   }
@@ -155,7 +188,7 @@ class _JoinPageState extends ConsumerState<JoinPage> {
               ),
 
               SizedBox(height: 20),
-              IdTextFormField(controller: idController),
+              JoinTextFormField(controller: emailController),
               SizedBox(height: 20),
               PwTextFormField(controller: pwController),
               SizedBox(height: 20),
