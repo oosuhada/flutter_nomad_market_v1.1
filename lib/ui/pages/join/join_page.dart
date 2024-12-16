@@ -11,6 +11,7 @@ import 'package:flutter_market_app/ui/widgets/nickname_text_form_field.dart';
 import 'package:flutter_market_app/ui/widgets/pw_text_form_field.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter_market_app/ui/pages/login/login_page.dart';
 
 class JoinPage extends ConsumerStatefulWidget {
   final String language;
@@ -163,10 +164,11 @@ class _JoinPageState extends ConsumerState<JoinPage> {
       );
 
       if (result == true) {
+        SnackbarUtil.showSnackBar(context, '회원가입이 성공적으로 완료되었습니다');
         // WelcomePage 이동
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => WelcomePage()),
+          MaterialPageRoute(builder: (context) => LoginPage()),
           (route) => false,
         );
       } else {
