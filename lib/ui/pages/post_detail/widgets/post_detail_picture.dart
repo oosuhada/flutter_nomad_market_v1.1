@@ -1,23 +1,24 @@
+// post_detail_picture.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_market_app/ui/pages/product_detail/product_detail_view_model.dart';
+import 'package:flutter_market_app/ui/pages/post_detail/post_detail_view_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ProductDetailPicture extends StatelessWidget {
-  ProductDetailPicture(this.productId);
-  final int productId;
+class PostDetailPicture extends StatelessWidget {
+  PostDetailPicture(this.postId);
+  final String postId;
 
   @override
   Widget build(BuildContext context) {
     return Consumer(builder: (context, ref, child) {
-      final state = ref.watch(productDetailViewModel(productId));
-      final imageFiles = state?.imageFiles ?? [];
+      final state = ref.watch(postDetailViewModel(postId));
+      final images = state?.images ?? [];
       return SizedBox(
         height: 500,
         child: PageView.builder(
-          itemCount: imageFiles.length,
+          itemCount: images.length,
           itemBuilder: (context, index) {
             return Image.network(
-              imageFiles[index].url,
+              images[index],
               fit: BoxFit.cover,
             );
           },

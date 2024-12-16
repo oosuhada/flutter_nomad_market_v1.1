@@ -1,85 +1,120 @@
 import 'package:flutter_market_app/data/model/address.dart';
-import 'package:flutter_market_app/data/model/product_summary.dart';
+import 'package:flutter_market_app/data/model/post_summary.dart';
+import 'package:flutter_market_app/data/model/product_category.dart';
 import 'package:flutter_market_app/data/repository/address_repository.dart';
-import 'package:flutter_market_app/data/repository/product_repository.dart';
+import 'package:flutter_market_app/data/repository/post_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class HomeTabState {
-  List<Address> addresses;
-  List<ProductSummary> products;
+  final List<Address> addresses;
+  final List<PostSummary> posts;
+  final List<String> categories;
+  final Map<String, String>? selectedCategory;
 
-  HomeTabState({
+  const HomeTabState({
     required this.addresses,
-    required this.products,
+    required this.posts,
+    required this.categories,
+    this.selectedCategory,
   });
+
+  HomeTabState copyWith({
+    List<Address>? addresses,
+    List<PostSummary>? posts,
+    List<String>? categories,
+    Map<String, String>? selectedCategory,
+  }) {
+    return HomeTabState(
+      addresses: addresses ?? this.addresses,
+      posts: posts ?? this.posts,
+      categories: categories ?? this.categories,
+      selectedCategory: selectedCategory ?? this.selectedCategory,
+    );
+  }
 }
 
 class HomeTabViewModel extends AutoDisposeNotifier<HomeTabState> {
+  final addressRepository = AddressRepository();
+  final postRepository = PostRepository();
+
   @override
   HomeTabState build() {
+    print("===== HomeTabViewModel 초기화 =====");
+
     fetchAddresses().then((_) {
-      fetchProducts();
+      fetchPosts();
     });
 
     return HomeTabState(
       addresses: [],
-      products: [],
+      posts: [],
+      categories: CategoryConstants.categories
+          .map((category) => category['category']!)
+          .toList(),
+      selectedCategory: null,
     );
   }
 
-  final addressRepository = AddressRepository();
-  final productRepository = ProductRepository();
-
-  // 내 동네 리스트 가져오기
   Future<void> fetchAddresses() async {
-    final addresses = await addressRepository.getMyAddressList();
-    state = HomeTabState(
-      addresses: addresses ?? [],
-      products: [],
-    );
+    print("주소 목록 가져오기 시작");
+    final userId = 'currentUserId'; // 현재 로그인한 사용자의 ID를 가져오는 로직 추가
+    final addresses = await addressRepository.getMyAddressList(userId);
+    state = state.copyWith(addresses: addresses ?? []);
+    print("주소 목록 업데이트 완료: ${addresses?.length ?? 0}개");
   }
 
-  // updateDefaultAddress: city 값으로 기본 주소 업데이트
   Future<void> updateDefaultAddress(String cityName) async {
-    // 모든 주소의 defaultYn을 false로 초기화
+    print("기본 주소 업데이트 시작: $cityName");
     final updatedAddresses = state.addresses.map((address) {
       return address.copyWith(defaultYn: false);
     }).toList();
 
-    // city 값을 기반으로 새로운 기본 주소 찾기
     final index =
         updatedAddresses.indexWhere((address) => address.city == cityName);
 
     if (index != -1) {
       updatedAddresses[index] =
           updatedAddresses[index].copyWith(defaultYn: true);
+      state = state.copyWith(addresses: updatedAddresses);
+      await fetchPosts();
+      print("기본 주소 업데이트 완료");
     } else {
       print('해당 도시를 찾을 수 없습니다: $cityName');
     }
-
-    // 상태 업데이트
-    state = HomeTabState(
-      addresses: updatedAddresses,
-      products: state.products,
-    );
-
-    // 새 기본 주소에 따른 상품 목록 업데이트
-    await fetchProducts();
   }
 
-  // 상품 목록 불러오기
-  Future<void> fetchProducts() async {
-    final addresses = state.addresses;
-    final target = addresses.where((e) => e.defaultYn ?? false).toList();
-    if (target.isEmpty) {
+  Future<void> fetchPosts() async {
+    print("게시글 목록 가져오기 시작");
+    if (state.addresses.isEmpty) {
+      print("주소 목록이 비어있음");
       return;
     }
-    final products =
-        await productRepository.getProductSummaryList(target.first.id);
-    state = HomeTabState(
-      addresses: addresses,
-      products: products ?? [],
+
+    final defaultAddress = state.addresses.firstWhere(
+      (e) => e.defaultYn ?? false,
+      orElse: () => state.addresses.first,
     );
+
+    final summaries =
+        await postRepository.getPostSummaryList(defaultAddress.city);
+    if (summaries != null) {
+      state = state.copyWith(posts: summaries);
+      print("게시글 목록 업데이트 완료: ${summaries.length}개");
+    }
+  }
+
+  void onCategorySelected(String category) {
+    print("===== 홈탭 카테고리 선택 =====");
+    try {
+      final selectedCategory = CategoryConstants.categories.firstWhere(
+        (cat) => cat['category'] == category,
+        orElse: () => CategoryConstants.categories.first,
+      );
+      state = state.copyWith(selectedCategory: selectedCategory);
+      print("홈탭 카테고리 업데이트 완료: $category");
+    } catch (e) {
+      print("홈탭 카테고리 선택 에러: $e");
+    }
   }
 }
 

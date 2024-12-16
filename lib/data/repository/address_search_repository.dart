@@ -13,9 +13,9 @@ class AddressSearchRepository {
   Future<Address?> findByCountrySelection(BuildContext context) async {
     String? selectedCountry = '';
 
-    if (selectedCountry != null) {
+    if (selectedCountry != null && selectedCountry.isNotEmpty) {
       return Address(
-        id: 0,
+        id: '',
         fullName: '',
         displayNameEN: '',
         displayNameKR: '',

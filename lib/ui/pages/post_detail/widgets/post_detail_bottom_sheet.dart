@@ -1,25 +1,26 @@
+// post_detail_bottom_sheet.dart
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/ui/chat_global_view_model.dart';
 import 'package:flutter_market_app/ui/pages/chat_detail/chat_detail_page.dart';
 import 'package:flutter_market_app/ui/pages/_tab/home_tab/home_tab_view_model.dart';
-import 'package:flutter_market_app/ui/pages/product_detail/product_detail_view_model.dart';
+import 'package:flutter_market_app/ui/pages/post_detail/post_detail_view_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-class ProductDetailBottomSheet extends StatelessWidget {
-  ProductDetailBottomSheet(this.bottomPadding, this.productId);
+class PostDetailBottomSheet extends StatelessWidget {
+  PostDetailBottomSheet(this.bottomPadding, this.postId);
 
   final double bottomPadding;
-  final int productId;
+  final String postId;
 
   @override
   Widget build(BuildContext context) {
     final isDarkTheme = Theme.of(context).brightness == Brightness.dark;
     return Consumer(builder: (context, ref, child) {
-      final state = ref.watch(productDetailViewModel(productId));
-      final vm = ref.read(productDetailViewModel(productId).notifier);
-      if (state == null) {
+      final post = ref.watch(postDetailViewModel(postId));
+      final vm = ref.read(postDetailViewModel(postId).notifier);
+      if (post == null) {
         return SizedBox();
       }
       return Container(
@@ -38,7 +39,7 @@ class ProductDetailBottomSheet extends StatelessWidget {
                     onTap: () async {
                       final result = await vm.like();
                       if (result) {
-                        ref.read(homeTabViewModel.notifier).fetchProducts();
+                        ref.read(homeTabViewModel.notifier).fetchPosts();
                       }
                     },
                     child: Container(
@@ -46,7 +47,7 @@ class ProductDetailBottomSheet extends StatelessWidget {
                       height: 50,
                       color: Colors.transparent,
                       child: Icon(
-                        state.myLike
+                        post.likes > 0
                             ? CupertinoIcons.heart_fill
                             : CupertinoIcons.heart,
                         color: isDarkTheme ? Colors.white : Colors.black,
@@ -61,7 +62,8 @@ class ProductDetailBottomSheet extends StatelessWidget {
                   ),
                   Expanded(
                     child: Text(
-                      NumberFormat('#,###원').format(state.price),
+                      NumberFormat('#,###${post.price.currency}')
+                          .format(post.price.amount),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -75,27 +77,26 @@ class ProductDetailBottomSheet extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: () async {
                         final chatVm = ref.read(chatGlobalViewModel.notifier);
-
-                        var roomId = chatVm.findChatRoomByProductId(productId);
+                        var roomId = chatVm.findChatRoomByPostId(postId);
 
                         if (roomId == null) {
-                          final result = await chatVm.createChat(productId);
+                          final result = await chatVm.createChat(
+                            postId,
+                            post.userId, // 판매자 ID 추가
+                            post.userNickname,
+                          );
                           if (result != null) {
                             roomId = result;
                           }
                         }
 
-                        if (roomId == null) {
-                          return;
-                        }
+                        if (roomId == null) return;
 
                         chatVm.fetchChatDetail(roomId);
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) {
-                              return ChatDetailPage();
-                            },
+                            builder: (context) => ChatDetailPage(),
                           ),
                         );
                       },

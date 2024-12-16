@@ -12,7 +12,7 @@ class ProfileImageViewModel extends AutoDisposeNotifier<Post?> {
     return null;
   }
 
-  final postRepository = const PostRepository();
+  final postRepository = PostRepository();
 
   Future<Post?> uploadImage({
     required String title,

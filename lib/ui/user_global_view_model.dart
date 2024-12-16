@@ -1,27 +1,23 @@
-// 1. 상태 => User 클래스 사용
-
-// 2. 뷰모델만들기
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_market_app/data/model/user.dart';
 import 'package:flutter_market_app/data/repository/user_repository.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class UserGlobalViewModel extends Notifier<User?> {
-  @override
-  User? build() {
-    fetchUserInfo();
-    return null;
+class UserGlobalViewModel extends StateNotifier<User?> {
+  final UserRepository userRepository;
+
+  UserGlobalViewModel(this.userRepository) : super(null);
+
+  Future<void> initUserData() async {
+    final userData = await userRepository.myInfo();
+    state = userData;
   }
 
-  final userRepository = UserRepository();
-
-  Future<void> fetchUserInfo() async {
-    final user = await userRepository.myInfo();
-    state = user;
+  Future<User?> getUserById(String userId) async {
+    return await userRepository.getUserById(userId);
   }
 }
 
-// 3. 뷰모델 관리자 만들기
-final userGlobalViewModel = NotifierProvider<UserGlobalViewModel, User?>(() {
-  return UserGlobalViewModel();
+final userGlobalViewModel =
+    StateNotifierProvider<UserGlobalViewModel, User?>((ref) {
+  return UserGlobalViewModel(UserRepository());
 });

@@ -1,20 +1,21 @@
+// post_detail_body.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/core/date_time_utils.dart';
-import 'package:flutter_market_app/data/model/product.dart';
-import 'package:flutter_market_app/ui/pages/product_detail/product_detail_view_model.dart';
+import 'package:flutter_market_app/data/model/post.dart';
+import 'package:flutter_market_app/ui/pages/post_detail/post_detail_view_model.dart';
 import 'package:flutter_market_app/ui/widgets/user_profile_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ProductDetailBody extends StatelessWidget {
-  ProductDetailBody(this.productId);
+class PostDetailBody extends StatelessWidget {
+  PostDetailBody(this.postId);
 
-  final int productId;
+  final String postId; // int에서 String으로 변경
 
   @override
   Widget build(BuildContext context) {
     return Consumer(builder: (context, ref, child) {
-      final state = ref.watch(productDetailViewModel(productId));
-      if (state == null) {
+      final post = ref.watch(postDetailViewModel(postId));
+      if (post == null) {
         return SizedBox();
       }
 
@@ -28,10 +29,10 @@ class ProductDetailBody extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            profileArea(state),
+            profileArea(post),
             Divider(height: 30),
             Text(
-              state.title,
+              post.translatedTitle ?? post.originalTitle,
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -39,7 +40,7 @@ class ProductDetailBody extends StatelessWidget {
             ),
             SizedBox(height: 10),
             Text(
-              '${state.category.category} - ${DateTimeUtils.formatString(state.updatedAt)}',
+              '${post.category} - ${DateTimeUtils.formatString(post.updatedAt)}',
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey,
@@ -47,7 +48,7 @@ class ProductDetailBody extends StatelessWidget {
             ),
             SizedBox(height: 10),
             Text(
-              state.content,
+              post.translatedDescription ?? post.originalDescription,
               style: TextStyle(fontSize: 16),
             ),
           ],
@@ -56,34 +57,35 @@ class ProductDetailBody extends StatelessWidget {
     });
   }
 
-  Row profileArea(Product product) {
+  Row profileArea(Post post) {
     return Row(
       children: [
         UserProfileImage(
           dimension: 50,
-          imgUrl: product.user.profileImage.url,
+          imgUrl: post.userProfileImageUrl,
         ),
         SizedBox(width: 10),
         Expanded(
-            child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              product.user.nickname,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                post.userNickname,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            Text(
-              product.address.displayNameKR,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey,
+              Text(
+                post.userHomeAddress,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey,
+                ),
               ),
-            ),
-          ],
-        )),
+            ],
+          ),
+        ),
       ],
     );
   }

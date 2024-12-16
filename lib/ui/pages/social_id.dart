@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_market_app/data/repository/user_repository.dart';
 import 'package:flutter_market_app/ui/pages/home/home_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -14,15 +16,99 @@ class AuthService {
     ],
   );
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final UserRepository _userInfoRepository = UserRepository();
 
-  Future<void> onGoogleSignIn(BuildContext context) async {
+  // 소셜 회원가입
+  Future<bool> onGoogleSignUp(
+    BuildContext context, {
+    required String language,
+    required String currency,
+    required String addressFullName,
+  }) async {
     try {
-      // 구글 로그인 프로세스 시작
+      print("구글 회원가입 시작");
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+      if (googleUser == null) {
+        print("회원가입 취소됨");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('구글 회원가입이 취소되었습니다.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+        return false;
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      final UserCredential authResult =
+          await _auth.signInWithCredential(credential);
+      final User? user = authResult.user;
+
+      if (user != null) {
+        // 이미 가입된 사용자인지 확인
+        final userDoc =
+            await _firestore.collection('users').doc(user.uid).get();
+
+        if (userDoc.exists) {
+          print("이미 가입된 사용자입니다.");
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('이미 가입된 계정입니다. 로그인을 진행해주세요.'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return false;
+        }
+
+        // 신규 사용자 정보 저장
+        await _firestore.collection('users').doc(user.uid).set({
+          'userId': user.uid,
+          'email': user.email,
+          'password': null,
+          'nickname': user.displayName ?? 'User${user.uid.substring(0, 5)}',
+          'profileImageUrl': user.photoURL ?? '',
+          'preferences': {
+            'language': language.split(' ')[0].toLowerCase(),
+            'currency': currency.split(' ')[0],
+            'homeAddress': addressFullName,
+          },
+          'signInMethod': 'google',
+          'createdAt': FieldValue.serverTimestamp(),
+          'lastLoginAt': FieldValue.serverTimestamp(),
+          'status': 'active',
+        });
+
+        print('새로운 Google 사용자 정보가 저장되었습니다.');
+        return true;
+      }
+      return false;
+    } catch (error) {
+      print('구글 회원가입 중 오류 발생: $error');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('회원가입 중 오류가 발생했습니다.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return false;
+    }
+  }
+
+  // 소셜 로그인
+  Future<bool> onGoogleSignIn(BuildContext context) async {
+    try {
       print("구글 로그인 시작");
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
-        // 사용자가 로그인을 취소한 경우
         print("로그인 취소됨");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -30,82 +116,60 @@ class AuthService {
             behavior: SnackBarBehavior.floating,
           ),
         );
-        return;
+        return false;
       }
 
-      // 구글 인증 자격 증명 가져오기
-      print("구글 계정 선택 완료: ${googleUser.email}");
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
-
-      // Firebase 인증 자격 증명 생성
-      print("구글 인증 완료");
-      final AuthCredential credential = GoogleAuthProvider.credential(
+      final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      // Firebase에 로그인
-      print("Firebase 로그인 시도");
-      final UserCredential userCredential =
+      final UserCredential authResult =
           await _auth.signInWithCredential(credential);
+      final User? user = authResult.user;
 
-      // 로그인 성공 시 홈페이지로 이동
-      if (userCredential.user != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${userCredential.user!.displayName}님, 환영합니다!'),
-            behavior: SnackBarBehavior.floating,
-          ),
+      if (user != null) {
+        // UserInfoRepository를 통해 로그인 처리
+        final loginResult = await _userInfoRepository.login(
+          email: user.email!,
+          signInMethod: 'google',
+          password: 'null',
         );
 
-        // 스낵바 표시 후 잠시 대기
-        print("스낵바 표시 후 2초 대기 시작"); // 디버깅 로그 추가
-        await Future.delayed(Duration(seconds: 2));
-        print("대기 완료, HomePage 이동 시도");
+        if (loginResult != null) {
+          print("로그인 성공: ${user.email}");
 
-        // MaterialApp이 있는지 확인
-        if (context.mounted) {
-          // context가 여전히 유효한지 확인
-          try {
-            // 홈페이지로 이동하고 이전 스택 모두 제거
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                builder: (context) {
-                  print("HomePage 빌드 시도"); // 디버깅 로그 추가
-                  return HomePage();
-                },
-              ),
-              (route) => false,
-            );
-            print("HomePage 이동 완료"); // 디버깅 로그 추가
-          } catch (e) {
-            print("네비게이션 오류 발생: $e"); // 네비게이션 오류 캐치
-          }
-        } else {
-          print("context가 더 이상 유효하지 않음"); // 디버깅 로그 추가
+          // 마지막 로그인 시간 업데이트
+          await _firestore.collection('users').doc(user.uid).update({
+            'lastLoginAt': FieldValue.serverTimestamp(),
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${user.displayName ?? "사용자"}님, 환영합니다!'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return true;
         }
-      } else {
-        print("Firebase 로그인 실패: user가 null"); // 디버깅 로그 추가
       }
+      return false;
     } catch (error) {
-      print('구글 로그인 중 오류 발생: $error'); // 더 자세한 에러 로그
-      print('에러 스택트레이스: ${StackTrace.current}'); // 스택트레이스 추가
-
+      print('구글 로그인 중 오류 발생: $error');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('로그인 중 오류가 발생했습니다. 다시 시도해주세요.'),
-          backgroundColor: Colors.red,
+          content: Text('로그인 중 오류가 발생했습니다.'),
           behavior: SnackBarBehavior.floating,
         ),
       );
+      return false;
     }
   }
 }
 
-// Riverpod Provider로 AuthService 제공
-final authServiceProvider = Provider<AuthService>((ref) => AuthService());
+final authServiceProvider = Provider((ref) => AuthService());
 
 // 페이스북 로그인 핸들러
 void onFacebookSignIn(WidgetRef ref) {

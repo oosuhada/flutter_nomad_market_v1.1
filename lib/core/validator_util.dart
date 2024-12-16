@@ -1,7 +1,7 @@
-import 'package:flutter_market_app/data/repository/user_info_repository.dart';
+import 'package:flutter_market_app/data/repository/user_repository.dart';
 
 class ValidatorUtil {
-  final UserInfoRepository userInfoRepository = UserInfoRepository();
+  final UserRepository userInfoRepository = UserRepository();
 
   Future<String?> validatorJoinEmail(String? value) async {
     if (value?.trim().isEmpty ?? true) {
@@ -14,7 +14,7 @@ class ValidatorUtil {
       // 공백 포함 여부 검사
       return '이메일에 공백이 포함되어있습니다';
     }
-    if (await userInfoRepository.isEmailInUse(value)) {
+    if (!await userInfoRepository.isEmailAvailable(value)) {
       return '이메일이 이미 사용 중입니다.';
     }
     return null;
@@ -48,7 +48,7 @@ class ValidatorUtil {
       // 공백 포함 여부 검사
       return '닉네임에 공백이 포함되어있습니다';
     }
-    if (await userInfoRepository.isNicknameInUse(value)) {
+    if (!await userInfoRepository.isNicknameAvailable(value)) {
       return '닉네임이 이미 사용 중입니다.';
     }
     return null;
@@ -67,8 +67,8 @@ class ValidatorUtil {
     if (value?.trim().isEmpty ?? true) {
       return "비밀번호를 입력해주세요";
     }
-    if (value!.length < 2) {
-      return '비밀번호는 2글자 이상이여야합니다';
+    if (value!.length < 6) {
+      return '비밀번호는 6글자 이상이여야합니다';
     }
     return null;
   }

@@ -17,7 +17,7 @@ class MyProfileBox extends StatelessWidget {
               ? SizedBox()
               : UserProfileImage(
                   dimension: 50,
-                  imgUrl: user.profileImage.url,
+                  imgUrl: user.profileImageUrl,
                 ),
           SizedBox(width: 10),
           Expanded(

@@ -1,14 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/core/date_time_utils.dart';
-import 'package:flutter_market_app/data/model/product_summary.dart';
-import 'package:flutter_market_app/ui/pages/product_detail/product_detail_page.dart';
+import 'package:flutter_market_app/data/model/post_summary.dart';
+import 'package:flutter_market_app/ui/pages/post_detail/post_detail_page.dart';
 import 'package:intl/intl.dart';
 
 class ProductListItem extends StatelessWidget {
   ProductListItem(this.productSummary);
 
-  final ProductSummary productSummary;
+  final PostSummary productSummary;
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +18,7 @@ class ProductListItem extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) {
-            return ProductDetailPage(productSummary.id);
+            return PostDetailPage(productSummary.id);
           }),
         );
       },

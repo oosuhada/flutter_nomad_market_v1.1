@@ -1,14 +1,14 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/core/date_time_utils.dart';
-import 'package:flutter_market_app/data/model/product_summary.dart';
-import 'package:flutter_market_app/ui/pages/product_detail/product_detail_page.dart';
+import 'package:flutter_market_app/data/model/post_summary.dart';
+import 'package:flutter_market_app/ui/pages/post_detail/post_detail_page.dart';
 import 'package:intl/intl.dart';
 
 class ProductListItem extends StatelessWidget {
-  ProductListItem(this.productSummary);
+  ProductListItem(this.postSummary);
 
-  final ProductSummary productSummary;
+  final PostSummary postSummary;
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +18,7 @@ class ProductListItem extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) {
-            return ProductDetailPage(productSummary.id);
+            return PostDetailPage(postSummary.id);
           }),
         );
       },
@@ -34,7 +34,7 @@ class ProductListItem extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: Image.network(
-                  productSummary.thumbnail.url,
+                  postSummary.thumbnail.url,
                   fit: BoxFit.cover,
                 ),
               ),
@@ -45,13 +45,13 @@ class ProductListItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    productSummary.title,
+                    postSummary.title,
                     style: TextStyle(
                       fontSize: 15,
                     ),
                   ),
                   Text(
-                    '${productSummary.address.displayNameKR} ${DateTimeUtils.formatString(productSummary.updatedAt)}',
+                    '${postSummary.address.displayNameKR} ${DateTimeUtils.formatString(postSummary.updatedAt)}',
                     style: TextStyle(
                       fontSize: 13,
                       color: Colors.grey[700],
@@ -62,7 +62,7 @@ class ProductListItem extends StatelessWidget {
                   // ### => 1
                   // ###,###
                   Text(
-                    NumberFormat('#,###원').format(productSummary.price),
+                    NumberFormat('#,###원').format(postSummary.price),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -78,7 +78,7 @@ class ProductListItem extends StatelessWidget {
                       ),
                       SizedBox(width: 4),
                       Text(
-                        '${productSummary.likeCnt}',
+                        '${postSummary.likeCnt}',
                         style: TextStyle(
                           fontSize: 12,
                           height: 1,

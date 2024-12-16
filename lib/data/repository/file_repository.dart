@@ -1,8 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_market_app/data/model/file_model.dart';
-import 'package:flutter_market_app/data/repository/base_remote_repository.dart';
+import 'package:flutter_market_app/data/repository/firebase_repository.dart';
 
-class FileRepository extends BaseRemoteRepository {
+class FileRepository extends FirebaseRepository {
+  final Dio client;
+
+  FileRepository(this.client);
   //
   Future<FileModel?> upload({
     required List<int> bytes,

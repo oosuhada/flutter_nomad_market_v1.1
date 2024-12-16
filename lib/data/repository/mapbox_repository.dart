@@ -72,7 +72,7 @@ class MapboxRepository {
 
     return [
       Address(
-        id: 0,
+        id: '',
         fullName: fullNameKR,
         displayNameEN: fullNameEN,
         displayNameKR: fullNameKR,

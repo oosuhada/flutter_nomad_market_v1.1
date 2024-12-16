@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/ui/pages/home/home_view_model.dart';
-import 'package:flutter_market_app/ui/pages/product_write/product_write_page.dart';
+import 'package:flutter_market_app/ui/pages/post_write/post_write_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class HomeFloatingActionButton extends ConsumerStatefulWidget {
@@ -81,7 +81,7 @@ class _HomeFloatingActionButtonState
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ProductWritePage(isRequesting: isRequesting),
+        builder: (context) => PostWritePage(isRequesting: isRequesting),
       ),
     );
   }

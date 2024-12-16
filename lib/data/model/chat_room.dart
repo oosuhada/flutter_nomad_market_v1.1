@@ -1,48 +1,57 @@
-//  {
-//     "roomId": 1,
-//     "product":
-//     "sender": User
-//     "messages": [ ChatMessage
-//     ],
-//     "createdAt": "2024-11-13T16:48:35.131Z"
-//   }
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_market_app/data/model/chat_message.dart';
-import 'package:flutter_market_app/data/model/chat_product.dart';
-import 'package:flutter_market_app/data/model/user.dart';
 
 class ChatRoom {
-  int roomId;
-  ChatProduct product;
-  User sender;
+  String chatId;
+  String postId;
+  String sellerId;
+  String buyerId;
+  ChatMessage? lastMessage;
   List<ChatMessage> messages;
+  String status;
   DateTime createdAt;
+  DateTime updatedAt;
+
   ChatRoom({
-    required this.roomId,
-    required this.product,
-    required this.sender,
+    required this.chatId,
+    required this.postId,
+    required this.sellerId,
+    required this.buyerId,
+    this.lastMessage,
     required this.messages,
+    required this.status,
     required this.createdAt,
+    required this.updatedAt,
   });
 
   ChatRoom.fromJson(Map<String, dynamic> map)
       : this(
-          roomId: map['roomId'],
-          product: ChatProduct.fromJson(map['product']),
-          sender: User.fromJson(map['sender']),
+          chatId: map['chatId'],
+          postId: map['postId'],
+          sellerId: map['sellerId'],
+          buyerId: map['buyerId'],
+          lastMessage: map['lastMessage'] != null
+              ? ChatMessage.fromJson(map['lastMessage'])
+              : null,
           messages: List.from(map['messages'])
               .map((e) => ChatMessage.fromJson(e))
               .toList(),
-          createdAt: DateTime.parse(map['createdAt']),
+          status: map['status'],
+          createdAt: (map['createdAt'] as Timestamp).toDate(),
+          updatedAt: (map['updatedAt'] as Timestamp).toDate(),
         );
 
   Map<String, dynamic> toJson() {
     return {
-      'roomId': roomId,
-      'product': product.toJson(),
-      'sender': sender.toJson(),
+      'chatId': chatId,
+      'postId': postId,
+      'sellerId': sellerId,
+      'buyerId': buyerId,
+      'lastMessage': lastMessage?.toJson(),
       'messages': messages.map((e) => e.toJson()).toList(),
-      'createdAt': createdAt.toIso8601String(),
+      'status': status,
+      'createdAt': Timestamp.fromDate(createdAt),
+      'updatedAt': Timestamp.fromDate(updatedAt),
     };
   }
 }

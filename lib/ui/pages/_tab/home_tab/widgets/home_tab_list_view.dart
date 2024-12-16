@@ -9,7 +9,7 @@ class HomeTabListView extends StatelessWidget {
     return Expanded(
       child: Consumer(builder: (context, ref, child) {
         final homeTabState = ref.watch(homeTabViewModel);
-        final products = homeTabState.products;
+        final products = homeTabState.posts;
         return ListView.separated(
           itemCount: products.length,
           padding: EdgeInsets.symmetric(

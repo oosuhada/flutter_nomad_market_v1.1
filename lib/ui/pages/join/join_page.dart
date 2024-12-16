@@ -144,6 +144,7 @@ class _JoinPageState extends ConsumerState<JoinPage> {
     );
   }
 
+  //onJoin 메서드 수정
   void onJoin() async {
     if (formKey.currentState?.validate() ?? false) {
       final email = emailController.text.trim();
@@ -155,17 +156,19 @@ class _JoinPageState extends ConsumerState<JoinPage> {
         return;
       }
 
-      final viewModel = ref.read(joinViewModel);
+      // viewModel을 직접 참조하도록 수정
+      final viewModel = ref.read(joinViewModel.notifier);
       final result = await viewModel.join(
         nickname: nickname,
         email: email,
         password: password,
-        addressFullName: widget.address,
+        addressFullName: selectedAddress,
         profileImageUrl: imageUrl ?? '',
+        language: selectedLanguage.split(' ')[0].toLowerCase(), // 형식 변환
+        currency: selectedCurrency.split(' ')[0], // 형식 변환
       );
 
       if (result == true) {
-        // 회원가입 성공 시 스낵바 표시
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('회원가입이 성공적으로 완료되었습니다'),
@@ -173,24 +176,17 @@ class _JoinPageState extends ConsumerState<JoinPage> {
           ),
         );
 
-        // 스낵바가 표시되는 동안 대기
         await Future.delayed(Duration(seconds: 2));
 
-        // WelcomePage 이동
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => LoginPage()),
           (route) => false,
         );
       } else {
-        // 회원가입 실패 시 스낵바 표시
         SnackbarUtil.showSnackBar(context, '회원가입에 실패하였습니다');
       }
-    } else {
-      // 폼 유효성 검사 실패 시 스낵바 표시
-      SnackbarUtil.showSnackBar(context, '회원가입에 실패하였습니다');
     }
-    print('onJoin');
   }
 
   @override
@@ -294,57 +290,64 @@ class _JoinPageState extends ConsumerState<JoinPage> {
               Consumer(
                 builder: (context, ref, child) {
                   final authService = ref.read(authServiceProvider);
-                  return Column(
-                    children: [
-                      GestureDetector(
-                        onTap: () => authService.onGoogleSignIn(context),
-                        child: Container(
-                          width: double.infinity,
-                          height: 52,
-                          margin: EdgeInsets.symmetric(vertical: 10),
-                          child: ElevatedButton(
-                            onPressed: () =>
-                                authService.onGoogleSignIn(context),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Theme.of(context).brightness ==
-                                      Brightness.dark
+                  return GestureDetector(
+                    onTap: () async {
+                      final success = await authService.onGoogleSignIn(context);
+                      if (success) {
+                        // 로그인 성공 시 처리
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Google 계정으로 가입되었습니다'),
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+
+                        await Future.delayed(Duration(seconds: 2));
+
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (context) => LoginPage()),
+                          (route) => false,
+                        );
+                      }
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      height: 52,
+                      margin: EdgeInsets.symmetric(vertical: 10),
+                      child: ElevatedButton(
+                        onPressed: () => authService.onGoogleSignIn(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                              Theme.of(context).brightness == Brightness.dark
                                   ? Colors.grey[800]
                                   : Colors.white,
-                              foregroundColor: Theme.of(context).brightness ==
-                                      Brightness.dark
+                          foregroundColor:
+                              Theme.of(context).brightness == Brightness.dark
                                   ? Colors.grey[100]
                                   : Colors.grey[600],
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              elevation: 4,
-                              shadowColor: Colors.black.withOpacity(0.25),
-                            ),
-                            child: Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 8.0),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Image.asset(
-                                    'assets/google_logo.png',
-                                    height: 24,
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    '구글 아이디로 계속하기',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
+                          elevation: 4,
+                          shadowColor: Colors.black.withOpacity(0.25),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset('assets/google_logo.png', height: 24),
+                            SizedBox(width: 8),
+                            Text(
+                              '구글 아이디로 계속하기',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
+                    ),
                   );
                 },
               ),
@@ -353,5 +356,24 @@ class _JoinPageState extends ConsumerState<JoinPage> {
         ),
       ),
     );
+  }
+}
+
+class UserDataFormatter {
+  static String formatLanguage(String language) {
+    // "한국어" -> "ko"
+    // "English" -> "en" 등으로 변환
+    final languageMap = {
+      "한국어": "ko",
+      "English": "en",
+      // 필요한 언어 매핑 추가
+    };
+    return languageMap[language] ?? "ko";
+  }
+
+  static String formatCurrency(String currency) {
+    // "KRW (₩)" -> "KRW"
+    // "USD ($)" -> "USD" 등으로 변환
+    return currency.split(' ')[0];
   }
 }

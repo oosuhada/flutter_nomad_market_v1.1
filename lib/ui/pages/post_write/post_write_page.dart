@@ -1,31 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_market_app/core/validator_util.dart';
-import 'package:flutter_market_app/data/model/product.dart';
+import 'package:flutter_market_app/data/model/post.dart';
 import 'package:flutter_market_app/ui/pages/_tab/home_tab/home_tab_view_model.dart';
-import 'package:flutter_market_app/ui/pages/product_detail/product_detail_view_model.dart';
-import 'package:flutter_market_app/ui/pages/product_write/product_write_view_model.dart';
-import 'package:flutter_market_app/ui/pages/product_write/widgets/product_category_box.dart';
-import 'package:flutter_market_app/ui/pages/product_write/widgets/product_write_picture_area.dart';
+import 'package:flutter_market_app/ui/pages/post_write/%08post_write_view_model.dart';
+import 'package:flutter_market_app/ui/pages/post_write/widgets/product_category_box.dart';
+import 'package:flutter_market_app/ui/pages/post_write/widgets/post_write_picture_area.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class ProductWritePage extends StatefulWidget {
+class PostWritePage extends StatefulWidget {
   final bool isRequesting;
-  final Product? product;
+  final Post? post;
 
-  ProductWritePage({required this.isRequesting, this.product});
+  PostWritePage({required this.isRequesting, this.post});
 
   @override
-  State<ProductWritePage> createState() => _ProductWritePageState();
+  State<PostWritePage> createState() => _PostWritePageState();
 }
 
-class _ProductWritePageState extends State<ProductWritePage> {
+class _PostWritePageState extends State<PostWritePage> {
   late final titleController =
-      TextEditingController(text: widget.product?.title ?? '');
+      TextEditingController(text: widget.post?.originalTitle ?? '');
   late final priceController =
-      TextEditingController(text: widget.product?.price.toString() ?? '');
+      TextEditingController(text: widget.post?.price.amount.toString() ?? '');
   late final contentController =
-      TextEditingController(text: widget.product?.content ?? '');
+      TextEditingController(text: widget.post?.originalDescription ?? '');
   final formKey = GlobalKey<FormState>();
 
   String _tradeMethod = '';
@@ -58,9 +57,9 @@ class _ProductWritePageState extends State<ProductWritePage> {
           child: ListView(
             padding: EdgeInsets.all(20),
             children: [
-              ProductWritePictureArea(widget.product),
+              PostWritePictureArea(widget.post),
               SizedBox(height: 20),
-              ProductCategoryBox(widget.product),
+              ProductCategoryBox(widget.post),
               SizedBox(height: 20),
               Text('거래 방식', style: TextStyle(fontWeight: FontWeight.bold)),
               SizedBox(height: 8),
@@ -128,7 +127,54 @@ class _ProductWritePageState extends State<ProductWritePage> {
               SizedBox(height: 20),
               Consumer(builder: (context, ref, child) {
                 return ElevatedButton(
-                  onPressed: () {},
+                  // PostWritePage의 onPressed 부분
+                  onPressed: () async {
+                    print("===== 작성 완료 버튼 클릭 =====");
+                    if (formKey.currentState?.validate() ?? false) {
+                      print("폼 검증 통과");
+                      final vm =
+                          ref.read(postWriteViewModel(widget.post).notifier);
+                      final price = Price(
+                        amount: num.parse(priceController.text),
+                        currency: 'KRW',
+                      );
+                      print("가격 설정: ${price.amount} ${price.currency}");
+
+                      try {
+                        print("게시글 업로드 시작");
+                        final result = await vm.upload(
+                          originalTitle: titleController.text,
+                          translatedTitle: titleController.text,
+                          price: price,
+                          originalDescription: contentController.text,
+                          translatedDescription: contentController.text,
+                          location: 'Seoul',
+                          userNickname: 'User',
+                          userProfileImageUrl: '',
+                          userHomeAddress: '',
+                        );
+                        print("업로드 결과: $result");
+
+                        if (result != null && mounted) {
+                          print("홈탭 게시글 새로고침 시작");
+                          await ref
+                              .read(homeTabViewModel.notifier)
+                              .fetchPosts();
+                          print("홈탭 새로고침 완료");
+                          print("이전 페이지로 이동 시도");
+                          Navigator.pop(context);
+                        } else {
+                          print("업로드 실패 또는 위젯이 unmounted됨");
+                        }
+                      } catch (e, stackTrace) {
+                        print("===== 에러 발생 =====");
+                        print("에러 내용: $e");
+                        print("스택트레이스: $stackTrace");
+                      }
+                    } else {
+                      print("폼 검증 실패");
+                    }
+                  },
                   child: Text('작성 완료'),
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(

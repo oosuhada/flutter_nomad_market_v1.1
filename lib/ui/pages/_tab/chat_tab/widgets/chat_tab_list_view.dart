@@ -21,82 +21,92 @@ class ChatTabListView extends StatelessWidget {
       }
 
       return Expanded(
-          child: ListView.separated(
-        padding: EdgeInsets.symmetric(horizontal: 20),
-        itemCount: chatRooms.length,
-        itemBuilder: (context, index) {
-          final chatRoom = chatRooms[index];
-          return item(chatRoom, user);
-        },
-        separatorBuilder: (context, index) {
-          return Divider(height: 1);
-        },
-      ));
-    });
-  }
-
-  Widget item(ChatRoom room, User user) {
-    final displayUser =
-        user.id == room.product.user.id ? room.sender : room.product.user;
-    final displayDateTime = room.messages.isEmpty
-        ? ''
-        : DateTimeUtils.formatString(room.messages.last.createdAt);
-    final message = room.messages.isEmpty ? '' : room.messages.last.content;
-
-    return Consumer(builder: (context, ref, child) {
-      return GestureDetector(
-        onTap: () {
-          ref.read(chatGlobalViewModel.notifier).fetchChatDetail(room.roomId);
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) {
-                return ChatDetailPage();
-              },
-            ),
-          );
-        },
-        child: Container(
-          height: 80,
-          color: Colors.transparent,
-          child: Row(
-            children: [
-              UserProfileImage(
-                dimension: 50,
-                imgUrl: displayUser.profileImage.url,
-              ),
-              SizedBox(width: 16),
-              Expanded(
-                  child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        '${displayUser.nickname}님',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(width: 4),
-                      Text(
-                        displayDateTime,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Text(message),
-                ],
-              )),
-            ],
-          ),
+        child: ListView.separated(
+          padding: EdgeInsets.symmetric(horizontal: 20),
+          itemCount: chatRooms.length,
+          itemBuilder: (context, index) {
+            final chatRoom = chatRooms[index];
+            return item(chatRoom, user, ref);
+          },
+          separatorBuilder: (context, index) {
+            return Divider(height: 1);
+          },
         ),
       );
     });
+  }
+
+  Widget item(ChatRoom room, User user, WidgetRef ref) {
+    final displayUserId =
+        user.userId == room.sellerId ? room.buyerId : room.sellerId;
+
+    return FutureBuilder<User?>(
+      future: ref.read(userGlobalViewModel.notifier).getUserById(displayUserId),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return CircularProgressIndicator();
+        }
+
+        final displayUser = snapshot.data!;
+        final displayDateTime = room.messages.isEmpty
+            ? ''
+            : DateTimeUtils.formatString(room.messages.last.timestamp);
+        final message =
+            room.messages.isEmpty ? '' : room.messages.last.originalContent;
+
+        return GestureDetector(
+          onTap: () {
+            ref.read(chatGlobalViewModel.notifier).fetchChatDetail(room.chatId);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChatDetailPage(),
+              ),
+            );
+          },
+          child: Container(
+            height: 80,
+            color: Colors.transparent,
+            child: Row(
+              children: [
+                UserProfileImage(
+                  dimension: 50,
+                  imgUrl: displayUser.profileImageUrl,
+                ),
+                SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            '${displayUser.nickname}님',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(width: 4),
+                          Text(
+                            displayDateTime,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(message),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }

@@ -43,7 +43,6 @@ class HomeTabAppBar extends StatelessWidget {
               ],
             ),
             onSelected: (String newAddress) async {
-              // 현재 로그인한 사용자의 ID 가져오기
               final userId = FirebaseAuth.instance.currentUser?.uid;
 
               if (userId == null) {
@@ -51,10 +50,8 @@ class HomeTabAppBar extends StatelessWidget {
                 return;
               }
 
-              // 서버의 주소 업데이트
               await _updateAddress(userId, newAddress);
 
-              // 로컬 상태 업데이트
               ref
                   .read(homeTabViewModel.notifier)
                   .updateDefaultAddress(newAddress);

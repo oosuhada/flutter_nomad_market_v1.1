@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_market_app/data/model/user.dart';
 import 'package:flutter_market_app/data/repository/file_repository.dart';
@@ -8,7 +9,7 @@ import 'package:flutter_market_app/data/repository/user_repository.dart';
 class ProfileEditViewModel extends StateNotifier<User?> {
   ProfileEditViewModel() : super(null);
 
-  final fileRepository = FileRepository();
+  final fileRepository = FileRepository(Dio()); // Pass Dio instance
   final userRepository = UserRepository();
 
   Future<void> initUserData() async {
@@ -28,7 +29,7 @@ class ProfileEditViewModel extends StateNotifier<User?> {
     );
 
     if (state != null) {
-      state = state!.copyWith(profileImage: fileModel);
+      state = state!.copyWith(profileImageUrl: fileModel?.url);
     }
   }
 
@@ -39,9 +40,9 @@ class ProfileEditViewModel extends StateNotifier<User?> {
     if (state == null) return false;
 
     final result = await userRepository.updateProfile(
-      username: state!.username, // Ensure this is a string
+      userId: state!.userId, // Ensure this is a string
       nickname: nickname,
-      profileImageId: state!.profileImage.id,
+      profileImageUrl: state!.profileImageUrl,
     );
 
     if (result) {

@@ -1,11 +1,11 @@
 // 1. 상태클래스 만들기 => X
 
 // 2. 뷰모델 만들기
-import 'package:flutter_market_app/data/repository/user_info_repository.dart';
+import 'package:flutter_market_app/data/repository/user_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class LoginViewModel {
-  final userInfoRepository = UserInfoRepository();
+  final userInfoRepository = UserRepository();
   Future<bool?> login({
     required String email,
     required String password,
@@ -13,6 +13,7 @@ class LoginViewModel {
     return await userInfoRepository.login(
       email: email,
       password: password,
+      signInMethod: '',
     );
   }
 }

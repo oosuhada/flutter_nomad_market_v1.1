@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_market_app/data/model/product.dart';
-import 'package:flutter_market_app/ui/pages/product_write/product_write_view_model.dart';
+import 'package:flutter_market_app/data/model/post.dart';
+import 'package:flutter_market_app/data/model/product_category.dart';
+import 'package:flutter_market_app/ui/pages/post_write/%08post_write_view_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ProductCategoryBox extends StatelessWidget {
   ProductCategoryBox(this.product);
 
-  final Product? product;
+  final Post? product;
 
   @override
   Widget build(BuildContext context) {
     return Consumer(builder: (context, ref, child) {
-      final state = ref.watch(productWriteViewModel(product));
-      final vm = ref.read(productWriteViewModel(product).notifier);
+      final state = ref.watch(postWriteViewModel(product));
+      final vm = ref.read(postWriteViewModel(product).notifier);
 
       return Align(
         alignment: Alignment.centerLeft,
@@ -26,11 +27,12 @@ class ProductCategoryBox extends StatelessWidget {
           ),
           onSelected: vm.onCategorySelected,
           itemBuilder: (context) {
-            final categories = state.categories;
-
-            return categories.map((e) {
+            return CategoryConstants.categories.map((category) {
               return categoryItem(
-                  e.category, e.id == state.selectedCategory?.id);
+                category['category'] ?? '', // null 체크 추가
+                category['id'] ==
+                    (state.selectedCategory?['id'] ?? ''), // null 체크 추가
+              );
             }).toList();
           },
           child: Container(
@@ -40,12 +42,12 @@ class ProductCategoryBox extends StatelessWidget {
                   : Colors.grey[200],
               borderRadius: BorderRadius.circular(8),
             ),
-            padding: EdgeInsets.all(10),
+            padding: EdgeInsets.all(12),
             child: Text(
-              state.selectedCategory?.category ?? '카테고리 선택',
+              state.selectedCategory?['category'] ?? '카테고리 선택', // Map 접근 방식 수정
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                fontSize: 14,
+                fontSize: 12,
                 color: Theme.of(context).brightness == Brightness.dark
                     ? Colors.white
                     : Colors.black,

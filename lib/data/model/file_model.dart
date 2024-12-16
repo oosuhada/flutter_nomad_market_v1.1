@@ -7,11 +7,11 @@
 //   }
 
 class FileModel {
-  int id;
-  String url;
-  String originName;
-  String contentType;
-  DateTime createdAt;
+  final String id;
+  final String url;
+  final String originName;
+  final String contentType;
+  final String createdAt;
 
   FileModel({
     required this.id,
@@ -28,7 +28,7 @@ class FileModel {
           url: map['url'],
           originName: map['originName'],
           contentType: map['contentType'],
-          createdAt: DateTime.parse(map['createdAt']),
+          createdAt: map['createdAt'],
         );
 
   // toJson 메서드
@@ -38,7 +38,7 @@ class FileModel {
       'url': url,
       'originName': originName,
       'contentType': contentType,
-      'createdAt': createdAt.toIso8601String(),
+      'createdAt': createdAt,
     };
   }
 }

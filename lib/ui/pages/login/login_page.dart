@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/core/snackbar_util.dart';
 import 'package:flutter_market_app/ui/pages/home/home_page.dart';
@@ -77,28 +78,61 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           builder: (context, ref, child) {
                             return ElevatedButton(
                               onPressed: () async {
+                                print("===== 로그인 시도 시작 =====");
                                 if (formKey.currentState?.validate() ?? false) {
-                                  final viewModel = ref.read(loginViewmodel);
-                                  final loginResult = await viewModel.login(
-                                    email: idController.text,
-                                    password: pwController.text,
-                                  );
-                                  if (loginResult == true) {
-                                    Navigator.pushAndRemoveUntil(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) {
-                                          return HomePage();
-                                        },
-                                      ),
-                                      (route) {
-                                        return false;
-                                      },
+                                  print("폼 검증 통과");
+                                  print("입력된 이메일: ${idController.text}");
+                                  print(
+                                      "비밀번호 입력됨: ${pwController.text.isNotEmpty}");
+
+                                  try {
+                                    final viewModel = ref.read(loginViewmodel);
+                                    print("로그인 viewModel 호출");
+
+                                    final loginResult = await viewModel.login(
+                                      email: idController.text,
+                                      password: pwController.text,
                                     );
-                                  } else {
-                                    SnackbarUtil.showSnackBar(
-                                        context, '이메일과 비밀번호를 확인해주세요');
+
+                                    print("로그인 결과: $loginResult");
+
+                                    if (loginResult == true) {
+                                      print("로그인 성공 - 홈페이지로 이동 시도");
+                                      if (mounted) {
+                                        try {
+                                          await Future.delayed(Duration(
+                                              milliseconds: 100)); // 약간의 지연 추가
+                                          if (mounted) {
+                                            Navigator.pushAndRemoveUntil(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) =>
+                                                    HomePage(),
+                                              ),
+                                              (route) => false,
+                                            );
+                                            print("홈페이지 이동 완료");
+                                          }
+                                        } catch (e, stackTrace) {
+                                          print("홈페이지 이동 중 오류 발생");
+                                          print("에러: $e");
+                                          print("스택트레이스: $stackTrace");
+                                        }
+                                      }
+                                    }
+                                  } on FirebaseAuthException catch (e, stackTrace) {
+                                    print("===== Firebase 인증 에러 =====");
+                                    print("에러 코드: ${e.code}");
+                                    print("에러 메시지: ${e.message}");
+                                    print("스택 트레이스: $stackTrace");
+                                  } catch (e, stackTrace) {
+                                    print("===== 일반 에러 =====");
+                                    print("에러 타입: ${e.runtimeType}");
+                                    print("에러 메시지: $e");
+                                    print("스택 트레이스: $stackTrace");
                                   }
+                                } else {
+                                  print("폼 검증 실패");
                                 }
                               },
                               child: Text('로그인'),
@@ -125,66 +159,128 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         Consumer(
                           builder: (context, ref, child) {
                             final authService = ref.read(authServiceProvider);
-                            return Column(
-                              children: [
-                                GestureDetector(
-                                  onTap: () =>
-                                      authService.onGoogleSignIn(context),
-                                  child: Container(
-                                    width: double.infinity,
-                                    height: 52,
-                                    margin: EdgeInsets.symmetric(vertical: 10),
-                                    child: ElevatedButton(
-                                      onPressed: () =>
-                                          authService.onGoogleSignIn(context),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor:
-                                            Theme.of(context).brightness ==
-                                                    Brightness.dark
-                                                ? Colors.grey[800]
-                                                : Colors.white,
-                                        foregroundColor:
-                                            Theme.of(context).brightness ==
-                                                    Brightness.dark
-                                                ? Colors.grey[100]
-                                                : Colors.grey[600],
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(8),
+                            return GestureDetector(
+                              onTap: () async {
+                                print("===== 구글 로그인 시도 시작 =====");
+                                try {
+                                  final authService =
+                                      ref.read(authServiceProvider);
+                                  print("구글 로그인 서비스 호출");
+
+                                  final success =
+                                      await authService.onGoogleSignIn(context);
+                                  print("구글 로그인 결과: $success");
+
+                                  if (success) {
+                                    print("구글 로그인 성공 - 스낵바 표시");
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text('구글 계정으로 로그인되었습니다'),
+                                          duration: Duration(seconds: 2),
                                         ),
-                                        elevation: 4,
-                                        shadowColor:
-                                            Colors.black.withOpacity(0.25),
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 8.0),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Image.asset(
-                                              'assets/google_logo.png',
-                                              height: 24,
-                                            ),
-                                            SizedBox(width: 8),
-                                            Text(
-                                              '구글 아이디로 계속하기',
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w500,
-                                              ),
-                                            ),
-                                          ],
+                                      );
+                                    }
+
+                                    print("딜레이 시작");
+                                    await Future.delayed(Duration(seconds: 1));
+                                    print("딜레이 완료");
+
+                                    if (mounted) {
+                                      print("홈페이지로 이동 시도");
+                                      Navigator.pushAndRemoveUntil(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => HomePage()),
+                                        (route) => false,
+                                      );
+                                      print("홈페이지 이동 완료");
+                                    } else {
+                                      print("위젯이 더 이상 마운트되지 않음");
+                                    }
+                                  } else {
+                                    print("구글 로그인 실패");
+                                  }
+                                } catch (e, stackTrace) {
+                                  print("===== 구글 로그인 에러 =====");
+                                  print("에러 타입: ${e.runtimeType}");
+                                  print("에러 메시지: $e");
+                                  print("스택 트레이스: $stackTrace");
+                                }
+                              },
+                              child: Container(
+                                width: double.infinity,
+                                height: 52,
+                                margin: EdgeInsets.symmetric(vertical: 10),
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    final success = await authService
+                                        .onGoogleSignIn(context);
+                                    if (success) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text('구글 계정으로 로그인되었습니다'),
+                                          duration: Duration(seconds: 2),
                                         ),
-                                      ),
+                                      );
+
+                                      await Future.delayed(
+                                          Duration(seconds: 1));
+
+                                      Navigator.pushAndRemoveUntil(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) => HomePage()),
+                                        (route) => false,
+                                      );
+                                    }
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? Colors.grey[800]
+                                            : Colors.white,
+                                    foregroundColor:
+                                        Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? Colors.grey[100]
+                                            : Colors.grey[600],
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    elevation: 4,
+                                    shadowColor: Colors.black.withOpacity(0.25),
+                                  ),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8.0),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Image.asset(
+                                          'assets/google_logo.png',
+                                          height: 24,
+                                        ),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          '구글 아이디로 계속하기',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
-                              ],
+                              ),
                             );
                           },
-                        ),
+                        )
                       ],
                     ),
                   ),

@@ -6,38 +6,45 @@ import 'package:flutter_market_app/data/model/file_model.dart';
 import 'package:flutter_market_app/data/model/post.dart';
 import 'package:flutter_market_app/data/repository/file_repository.dart';
 import 'package:flutter_market_app/data/repository/post_repository.dart';
-import 'package:flutter_market_app/data/repository/user_info_repository.dart';
 import 'package:flutter_market_app/data/repository/user_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_market_app/ui/pages/join/join_page.dart';
 
-class JoinViewModel extends AutoDisposeNotifier<Post?> {
+// bool? 타입을 사용하여 join 결과를 나타냄
+class JoinViewModel extends AutoDisposeNotifier<bool?> {
   @override
-  Post? build() {
-    return null;
+  bool? build() {
+    return null; // 초기 상태는 null
   }
 
-  final userInfoRepository = UserInfoRepository();
+  final userInfoRepository = UserRepository();
 
-  Future<dynamic> join({
+  Future<bool?> join({
     required String nickname,
     required String email,
     required String password,
     required String addressFullName,
     required String profileImageUrl,
+    required String language,
+    required String currency,
   }) async {
-    return await userInfoRepository.join(
+    state = null; // 작업 시작 시 상태를 null로 설정
+    final result = await userInfoRepository.join(
       nickname: nickname,
       email: email,
       password: password,
       addressFullName: addressFullName,
       profileImageUrl: profileImageUrl,
+      language: language,
+      currency: currency,
     );
+    state = result; // 결과를 상태에 저장
+    return result;
   }
 }
 
-// 3. 뷰모델 관리자 만들기
-final joinViewModel = Provider.autoDispose((ref) {
+// 뷰모델 Provider 수정
+final joinViewModel = NotifierProvider.autoDispose<JoinViewModel, bool?>(() {
   return JoinViewModel();
 });
 
