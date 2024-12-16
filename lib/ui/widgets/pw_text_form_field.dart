@@ -13,6 +13,27 @@ class PwTextFormField extends StatefulWidget {
 
 class _PwTextFormFieldState extends State<PwTextFormField> {
   String? _errorText;
+  bool _obscureText = true; // 비밀번호 숨김 상태를 관리하는 변수
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: widget.controller,
+      obscureText: _obscureText, // 비밀번호 숨김 상태를 적용
+      decoration: InputDecoration(
+        hintText: '비밀번호를 입력해 주세요',
+        errorText: _errorText,
+      ),
+      onChanged: (value) async {
+        final result = await ValidatorUtil.validatorPassword(value);
+        setState(() {
+          _errorText = result;
+        });
+      },
+    );
+  }
+}
+
 
   // @override
   // Widget build(BuildContext context) {
@@ -31,20 +52,3 @@ class _PwTextFormFieldState extends State<PwTextFormField> {
   //     validator: ValidatorUtil.validatorPassword,
   //   );
   // }
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      controller: widget.controller,
-      decoration: InputDecoration(
-        hintText: '비밀번호를 입력해 주세요',
-        errorText: _errorText,
-      ),
-      onChanged: (value) async {
-        final result = await ValidatorUtil.validatorPassword(value);
-        setState(() {
-          _errorText = result;
-        });
-      },
-    );
-  }
-}
