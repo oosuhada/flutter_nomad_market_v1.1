@@ -28,7 +28,7 @@ class HomeTab extends ConsumerWidget {
                 const SizedBox(width: 8),
                 HomeTabPopupButton(
                   selectedValue: '거래방식',
-                  //items: ['거래방식', '직거래', '택배거래'],
+                  items: ['거래방식', '직거래', '택배거래'],
                   onChanged: (String? newValue) {
                     // Handle trading method change
                   },
@@ -36,7 +36,7 @@ class HomeTab extends ConsumerWidget {
                 const SizedBox(width: 8),
                 HomeTabPopupButton(
                   selectedValue: '모든상품',
-                  //items: ['모든상품', '새상품', '중고상품'],
+                  items: ['모든상품', '새상품', '중고상품'],
                   onChanged: (String? newValue) {
                     // Handle product type change
                   },

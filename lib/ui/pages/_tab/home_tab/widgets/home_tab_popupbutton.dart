@@ -6,13 +6,16 @@ import 'package:flutter_market_app/data/model/product_category.dart';
 class HomeTabPopupButton extends ConsumerWidget {
   final String selectedValue;
   final ValueChanged<String> onChanged;
+  final List<String>? items; // items 파라미터 추가
 
   const HomeTabPopupButton({
     Key? key,
     required this.selectedValue,
     required this.onChanged,
+    this.items, // 생성자에 items 파라미터 추가
   }) : super(key: key);
 
+  @override
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(productWriteViewModel(null));
@@ -30,9 +33,22 @@ class HomeTabPopupButton extends ConsumerWidget {
         ),
         onSelected: (String value) {
           onChanged(value);
-          vm.onCategorySelected(value);
+          // items가 있는 경우에만 카테고리 선택 처리
+          if (items == null) {
+            vm.onCategorySelected(value);
+          }
         },
         itemBuilder: (context) {
+          // items가 제공된 경우 해당 items로 메뉴 아이템 생성
+          if (items != null) {
+            return items!.map((String item) {
+              return PopupMenuItem<String>(
+                value: item,
+                child: Text(item),
+              );
+            }).toList();
+          }
+          // 카테고리 메뉴 아이템 생성 (기존 로직)
           return state.categories.map((ProductCategory category) {
             return categoryItem(
               context,
