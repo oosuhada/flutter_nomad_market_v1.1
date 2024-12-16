@@ -120,9 +120,22 @@ class _WelcomePageState extends State<WelcomePage> {
                     height: 50,
                     color: Colors.transparent,
                     alignment: Alignment.center,
-                    child: const Text(
-                      '이미 계정이 있나요? 로그인',
-                      style: TextStyle(color: Colors.grey),
+                    child: RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: '이미 계정이 있나요? ',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                          TextSpan(
+                            text: '로그인',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

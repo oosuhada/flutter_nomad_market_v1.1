@@ -41,8 +41,8 @@ class MyProfileBox extends StatelessWidget {
               );
             },
             child: Container(
-              height: 48,
-              width: 100,
+              height: 40,
+              width: 90,
               decoration: BoxDecoration(
                 color: Colors.purple.shade900,
                 borderRadius: BorderRadius.circular(16),
@@ -64,7 +64,7 @@ class MyProfileBox extends StatelessWidget {
                   '프로필 수정',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 14,
+                    fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
                 ),

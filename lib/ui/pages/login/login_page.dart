@@ -193,19 +193,13 @@ class _LoginPageState extends State<LoginPage> {
                     WidgetSpan(child: SizedBox(width: 10)),
                     TextSpan(
                       text: "비밀번호를 잊으셨습니까?",
-                      style: TextStyle(
-                        color: Color(0xFF98A8EA),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: TextStyle(color: Colors.grey),
                     ),
                     TextSpan(text: " "),
                     TextSpan(
                       text: "계정찾기",
                       style: TextStyle(
-                        color: Color(0xFF98A8EA),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                        color: Colors.grey,
                         decoration: TextDecoration.underline,
                       ),
                     ),

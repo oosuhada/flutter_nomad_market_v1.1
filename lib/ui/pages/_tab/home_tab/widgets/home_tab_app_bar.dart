@@ -86,20 +86,51 @@ class HomeTabAppBar extends StatelessWidget {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('상품 검색'),
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? Colors.grey.shade900
+              : Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            '상품 검색',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).textTheme.titleLarge?.color,
+            ),
+          ),
           content: TextField(
-            decoration: InputDecoration(hintText: "검색어를 입력하세요"),
+            decoration: InputDecoration(
+              hintText: "검색어를 입력하세요",
+              hintStyle: TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+              ),
+            ),
           ),
           actions: <Widget>[
             TextButton(
-              child: Text('검색'),
+              child: Text(
+                '검색',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
               onPressed: () {
                 // 검색 로직 구현
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text('취소'),
+              child: Text(
+                '취소',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey,
+                ),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
