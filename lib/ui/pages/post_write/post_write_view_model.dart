@@ -1,23 +1,29 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
+import 'package:flutter_market_app/data/model/address.dart';
 import 'package:flutter_market_app/data/model/file_model.dart';
 import 'package:flutter_market_app/data/model/post.dart';
 import 'package:flutter_market_app/data/model/product_category.dart';
 import 'package:flutter_market_app/data/repository/file_repository.dart';
 import 'package:flutter_market_app/data/repository/post_repository.dart';
+import 'package:flutter_market_app/ui/user_global_view_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // 게시글 작성 상태를 관리하는 클래스
 class PostWriteState {
-  final List<FileModel> imageFiles; // 업로드된 이미지 파일들
+  final List<FileModel> uploadedImageFiles; // 서버로 업로드된 이미지
+  final List<File> localImageFiles; // 로컬에서 선택된 이미지
   final List<String> categories; // 카테고리 목록
   final Map<String, String>? selectedCategory; // 선택된 카테고리 정보
   final String? userId; // 사용자 ID
   final String? userNickname; // 사용자 닉네임
   final String? userProfileImageUrl; // 사용자 프로필 이미지 URL
-  final String? userHomeAddress; // 사용자 주소
+  final Address? userHomeAddress; // 사용자 주소
 
   PostWriteState({
-    required this.imageFiles,
+    required this.uploadedImageFiles,
+    required this.localImageFiles,
     required this.categories,
     this.selectedCategory,
     this.userId,
@@ -28,16 +34,18 @@ class PostWriteState {
 
   // 상태 복사 메서드
   PostWriteState copyWith({
-    List<FileModel>? imageFiles,
+    List<FileModel>? uploadedImageFiles,
+    List<File>? localImageFiles,
     List<String>? categories,
     Map<String, String>? selectedCategory,
     String? userId,
     String? userNickname,
     String? userProfileImageUrl,
-    String? userHomeAddress,
+    Address? userHomeAddress,
   }) {
     return PostWriteState(
-      imageFiles: imageFiles ?? this.imageFiles,
+      uploadedImageFiles: uploadedImageFiles ?? this.uploadedImageFiles,
+      localImageFiles: localImageFiles ?? this.localImageFiles,
       categories: categories ?? this.categories,
       selectedCategory: selectedCategory ?? this.selectedCategory,
       userId: userId ?? this.userId,
@@ -53,9 +61,15 @@ class PostWriteViewModel
     extends AutoDisposeFamilyNotifier<PostWriteState, Post?> {
   @override
   PostWriteState build(Post? arg) {
-    // 초기 상태 설정
+    print("===== PostWriteViewModel 초기화 =====");
+
+    final user = ref.read(userGlobalViewModel);
+    print("현재 사용자 정보:");
+    print("- userId: ${user?.userId}");
+    print("- nickname: ${user?.nickname}");
+
     return PostWriteState(
-      imageFiles: arg?.images
+      uploadedImageFiles: arg?.images
               .map((e) => FileModel(
                     id: e,
                     url: e,
@@ -65,6 +79,7 @@ class PostWriteViewModel
                   ))
               .toList() ??
           [],
+      localImageFiles: [], // 초기에는 빈 로컬 이미지 리스트
       categories: CategoryConstants.categories
           .map((category) => category['category']!)
           .toList(),
@@ -73,52 +88,64 @@ class PostWriteViewModel
               (cat) => cat['id'] == arg!.category,
               orElse: () => CategoryConstants.categories.first)
           : null,
-      userId: arg?.userId,
-      userNickname: arg?.userNickname,
-      userProfileImageUrl: arg?.userProfileImageUrl,
-      userHomeAddress: arg?.userHomeAddress,
+      userId: user?.userId,
+      userNickname: user?.nickname,
+      userProfileImageUrl: user?.profileImageUrl ?? 'assets/defaultprofile.jpg',
+      userHomeAddress: user?.address,
     );
   }
 
   final fileRepository = FileRepository(Dio());
   final postRepository = PostRepository();
 
-  // 카테고리 선택 처리
-  void onCategorySelected(String category) {
-    print("===== 카테고리 선택 시도 =====");
-    print("선택된 카테고리: $category");
+  // 로컬 이미지 추가
+  void addLocalImages(List<File> images) {
+    print("===== 로컬 이미지 추가 =====");
+    print("추가할 이미지 수: ${images.length}");
 
-    try {
-      final selectedCategory = CategoryConstants.categories.firstWhere(
-        (cat) => cat['category'] == category,
-        orElse: () => CategoryConstants.categories.first, // 기본값 제공
-      );
-      print("찾은 카테고리 정보: $selectedCategory");
-
-      state = state.copyWith(selectedCategory: selectedCategory);
-      print("상태 업데이트 완료");
-    } catch (e, stackTrace) {
-      print("카테고리 선택 중 에러:");
-      print(e);
-      print(stackTrace);
-    }
+    state = state.copyWith(
+      localImageFiles: [...state.localImageFiles, ...images],
+    );
+    print("현재 로컬 이미지 수: ${state.localImageFiles.length}");
   }
 
-  // 이미지 업로드 처리
-  Future<void> uploadImage({
-    required String filename,
-    required String mimeType,
-    required List<int> bytes,
-  }) async {
-    final result = await fileRepository.upload(
-      bytes: bytes,
-      filename: filename,
-      mimeType: mimeType,
-    );
-    if (result != null) {
-      state = state.copyWith(
-        imageFiles: [...state.imageFiles, result],
-      );
+  // 서버 이미지 업로드
+  Future<bool> uploadLocalImages() async {
+    print("===== 서버 이미지 업로드 시작 =====");
+    print("업로드할 로컬 이미지 수: ${state.localImageFiles.length}");
+
+    try {
+      List<FileModel> uploadedFiles = [];
+
+      for (var file in state.localImageFiles) {
+        print("이미지 업로드 시도: ${file.path}");
+        final bytes = await file.readAsBytes();
+
+        final result = await fileRepository.upload(
+          bytes: bytes,
+          filename: file.path.split('/').last,
+          mimeType: 'image/jpeg',
+        );
+
+        if (result != null) {
+          print("이미지 업로드 성공: ${result.url}");
+          uploadedFiles.add(result);
+        }
+      }
+
+      if (uploadedFiles.isNotEmpty) {
+        state = state.copyWith(
+          uploadedImageFiles: [...state.uploadedImageFiles, ...uploadedFiles],
+          localImageFiles: [], // 업로드 완료된 로컬 이미지 제거
+        );
+        print("모든 이미지 업로드 완료");
+        print("업로드된 이미지 수: ${state.uploadedImageFiles.length}");
+        return true;
+      }
+      return false;
+    } catch (e) {
+      print("이미지 업로드 중 에러: $e");
+      return false;
     }
   }
 
@@ -135,16 +162,27 @@ class PostWriteViewModel
     required String userHomeAddress,
   }) async {
     print("===== PostWriteViewModel upload 시작 =====");
-    print("이미지 파일 수: ${state.imageFiles.length}");
+    print("업로드된 이미지 수: ${state.uploadedImageFiles.length}");
+    print("로컬 이미지 수: ${state.localImageFiles.length}");
     print("선택된 카테고리: ${state.selectedCategory}");
     print("사용자 ID: ${state.userId}");
 
+    // 먼저 로컬 이미지 업로드
+    if (state.localImageFiles.isNotEmpty) {
+      print("로컬 이미지 업로드 시작");
+      final uploadSuccess = await uploadLocalImages();
+      if (!uploadSuccess) {
+        print("이미지 업로드 실패");
+        return null;
+      }
+    }
+
     // 필수 데이터 검증
-    if (state.imageFiles.isEmpty ||
+    if (state.uploadedImageFiles.isEmpty ||
         state.selectedCategory == null ||
         state.userId == null) {
       print("필수 데이터 누락:");
-      print("- 이미지 파일 존재: ${state.imageFiles.isNotEmpty}");
+      print("- 이미지 파일 존재: ${state.uploadedImageFiles.isNotEmpty}");
       print("- 카테고리 선택됨: ${state.selectedCategory != null}");
       print("- 사용자 ID 존재: ${state.userId != null}");
       return null;
@@ -153,21 +191,15 @@ class PostWriteViewModel
     try {
       if (arg != null) {
         print("기존 게시글 수정 시도");
-        // 기존 게시글 수정 로직...
+        // 수정 로직...
       } else {
         print("새 게시글 생성 시도");
-        print("전달되는 데이터:");
-        print("- 제목: $originalTitle");
-        print("- 가격: ${price.amount} ${price.currency}");
-        print("- 이미지 URLs: ${state.imageFiles.map((e) => e.url).toList()}");
-        print("- 카테고리: ${state.selectedCategory!['id']}");
-
         final result = await postRepository.create(
           postId: DateTime.now().millisecondsSinceEpoch.toString(),
           userId: state.userId!,
           originalTitle: originalTitle,
           translatedTitle: translatedTitle,
-          images: state.imageFiles.map((e) => e.url).toList(),
+          images: state.uploadedImageFiles.map((e) => e.url).toList(),
           category: state.selectedCategory!['id']!,
           price: price,
           status: PostStatus.selling,
@@ -181,9 +213,6 @@ class PostWriteViewModel
         );
 
         print("게시글 생성 결과: ${result != null ? '성공' : '실패'}");
-        if (result != null) {
-          print("생성된 게시글 ID: ${result.postId}");
-        }
         return result;
       }
     } catch (e, stackTrace) {
@@ -200,7 +229,7 @@ class PostWriteViewModel
     required String userId,
     required String nickname,
     required String profileImageUrl,
-    required String homeAddress,
+    required Address homeAddress,
   }) {
     state = state.copyWith(
       userId: userId,
@@ -208,6 +237,14 @@ class PostWriteViewModel
       userProfileImageUrl: profileImageUrl,
       userHomeAddress: homeAddress,
     );
+  }
+
+  void onCategorySelected(String category) {
+    final selectedCategory = CategoryConstants.categories.firstWhere(
+      (c) => c['category'] == category,
+      orElse: () => {'id': '', 'category': ''},
+    );
+    state = state.copyWith(selectedCategory: selectedCategory);
   }
 }
 

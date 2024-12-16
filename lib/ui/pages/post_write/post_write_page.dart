@@ -6,19 +6,21 @@ import 'package:flutter_market_app/ui/pages/_tab/home_tab/home_tab_view_model.da
 import 'package:flutter_market_app/ui/pages/post_write/%08post_write_view_model.dart';
 import 'package:flutter_market_app/ui/pages/post_write/widgets/product_category_box.dart';
 import 'package:flutter_market_app/ui/pages/post_write/widgets/post_write_picture_area.dart';
+import 'package:flutter_market_app/ui/user_global_view_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class PostWritePage extends StatefulWidget {
+class PostWritePage extends ConsumerStatefulWidget {
   final bool isRequesting;
   final Post? post;
 
   PostWritePage({required this.isRequesting, this.post});
 
   @override
-  State<PostWritePage> createState() => _PostWritePageState();
+  ConsumerState<PostWritePage> createState() => _PostWritePageState();
 }
 
-class _PostWritePageState extends State<PostWritePage> {
+// State 클래스는 ConsumerState를 상속
+class _PostWritePageState extends ConsumerState<PostWritePage> {
   late final titleController =
       TextEditingController(text: widget.post?.originalTitle ?? '');
   late final priceController =
@@ -26,6 +28,7 @@ class _PostWritePageState extends State<PostWritePage> {
   late final contentController =
       TextEditingController(text: widget.post?.originalDescription ?? '');
   final formKey = GlobalKey<FormState>();
+  final _pictureAreaKey = GlobalKey<PostWritePictureAreaState>();
 
   String _tradeMethod = '';
   bool _isPriceNegotiable = false;
@@ -40,6 +43,56 @@ class _PostWritePageState extends State<PostWritePage> {
     priceController.dispose();
     contentController.dispose();
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    print("PostWritePage 초기화 시작"); // 페이지 초기화 시작 로그
+    _initUserData();
+  }
+
+  Future<void> _initUserData() async {
+    print("사용자 정보 초기화 시작");
+    try {
+      final userVM = ref.read(userGlobalViewModel.notifier);
+      await userVM.initUserData();
+      final userData = ref.read(userGlobalViewModel);
+      print("사용자 정보 로드 완료:");
+      print("- 사용자 ID: ${userData?.userId}");
+      print("- 닉네임: ${userData?.nickname}");
+    } catch (e) {
+      print("사용자 정보 초기화 중 오류 발생: $e");
+    }
+  }
+
+  Future<void> onSubmit() async {
+    print("게시글 제출 프로세스 시작");
+    final vm = ref.read(postWriteViewModel(widget.post).notifier);
+
+    print("로컬 이미지 업로드 시작");
+    await vm.uploadLocalImages();
+    print("로컬 이미지 업로드 완료");
+
+    // 게시글 작성 로직
+    print("게시글 업로드 시작");
+    final result = await vm.upload(
+      originalTitle: titleController.text,
+      translatedTitle: "Translated Title", // 실제 번역 로직 필요
+      price: Price(amount: int.parse(priceController.text), currency: "KRW"),
+      originalDescription: contentController.text,
+      translatedDescription: "Translated Description", // 실제 번역 로직 필요
+      location: "위치", // 실제 위치 정보 필요
+      userNickname: "닉네임", // 실제 사용자 닉네임 필요
+      userProfileImageUrl: "프로필 URL", // 실제 프로필 이미지 URL 필요
+      userHomeAddress: "주소", // 실제 사용자 주소 필요
+    );
+
+    if (result != null) {
+      print("게시글 업로드 성공");
+    } else {
+      print("게시글 업로드 실패");
+    }
   }
 
   @override
@@ -127,52 +180,46 @@ class _PostWritePageState extends State<PostWritePage> {
               SizedBox(height: 20),
               Consumer(builder: (context, ref, child) {
                 return ElevatedButton(
-                  // PostWritePage의 onPressed 부분
                   onPressed: () async {
-                    print("===== 작성 완료 버튼 클릭 =====");
-                    if (formKey.currentState?.validate() ?? false) {
-                      print("폼 검증 통과");
-                      final vm =
-                          ref.read(postWriteViewModel(widget.post).notifier);
-                      final price = Price(
-                        amount: num.parse(priceController.text),
-                        currency: 'KRW',
-                      );
-                      print("가격 설정: ${price.amount} ${price.currency}");
+                    print("작성 완료 버튼 클릭");
 
-                      try {
-                        print("게시글 업로드 시작");
-                        final result = await vm.upload(
-                          originalTitle: titleController.text,
-                          translatedTitle: titleController.text,
-                          price: price,
-                          originalDescription: contentController.text,
-                          translatedDescription: contentController.text,
-                          location: 'Seoul',
-                          userNickname: 'User',
-                          userProfileImageUrl: '',
-                          userHomeAddress: '',
-                        );
-                        print("업로드 결과: $result");
+                    // 폼 검증
+                    final isFormValid =
+                        formKey.currentState?.validate() ?? false;
+                    print("폼 검증 결과: $isFormValid");
 
-                        if (result != null && mounted) {
-                          print("홈탭 게시글 새로고침 시작");
-                          await ref
-                              .read(homeTabViewModel.notifier)
-                              .fetchPosts();
-                          print("홈탭 새로고침 완료");
-                          print("이전 페이지로 이동 시도");
-                          Navigator.pop(context);
-                        } else {
-                          print("업로드 실패 또는 위젯이 unmounted됨");
-                        }
-                      } catch (e, stackTrace) {
-                        print("===== 에러 발생 =====");
-                        print("에러 내용: $e");
-                        print("스택트레이스: $stackTrace");
+                    if (!isFormValid) {
+                      print("폼 검증 실패:");
+                      print("- 제목: ${titleController.text}");
+                      print("- 가격: ${priceController.text}");
+                      print("- 내용: ${contentController.text}");
+                      print("- 거래 방식: $_tradeMethod");
+                      return;
+                    }
+
+                    print("폼 검증 통과, 게시글 업로드 시작");
+
+                    try {
+                      await onSubmit();
+                      print("게시글 업로드 완료");
+
+                      if (mounted) {
+                        print("홈 탭 새로고침 시작");
+                        await ref.read(homeTabViewModel.notifier).fetchPosts();
+                        print("홈 탭 새로고침 완료");
+                        Navigator.pop(context);
                       }
-                    } else {
-                      print("폼 검증 실패");
+                    } catch (e, stackTrace) {
+                      print("게시글 작성 중 오류 발생:");
+                      print("- 오류 유형: ${e.runtimeType}");
+                      print("- 오류 내용: $e");
+                      print("- 스택 트레이스: $stackTrace");
+
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('게시글 작성 중 오류가 발생했습니다')),
+                        );
+                      }
                     }
                   },
                   child: Text('작성 완료'),

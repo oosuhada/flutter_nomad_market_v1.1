@@ -12,6 +12,7 @@
 //   }
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_market_app/data/model/address.dart';
 import 'package:flutter_market_app/data/model/file_model.dart';
 
 enum UserStatus { active, inactive, blocked }
@@ -30,6 +31,7 @@ class User {
   final DateTime createdAt;
   final DateTime lastLoginAt;
   final UserStatus status;
+  final Address address;
 
   User({
     required this.userId,
@@ -42,6 +44,7 @@ class User {
     required this.createdAt,
     required this.lastLoginAt,
     required status,
+    required this.address,
   }) : this.status = UserStatus.values.firstWhere(
             (e) => e.toString() == 'UserStatus.$status',
             orElse: () => UserStatus.active);
@@ -60,6 +63,7 @@ class User {
       status: UserStatus.values.firstWhere(
           (e) => e.toString() == 'UserStatus.${json['status']}',
           orElse: () => UserStatus.active),
+      address: Address.fromJson(json['address']),
     );
   }
 
@@ -75,6 +79,7 @@ class User {
       'createdAt': Timestamp.fromDate(createdAt),
       'lastLoginAt': Timestamp.fromDate(lastLoginAt),
       'status': status,
+      'address': address.toJson(),
     };
   }
 
@@ -89,6 +94,7 @@ class User {
     DateTime? createdAt,
     DateTime? lastLoginAt,
     String? status,
+    Address? address,
   }) {
     return User(
       userId: userId ?? this.userId,
@@ -101,6 +107,7 @@ class User {
       createdAt: createdAt ?? this.createdAt,
       lastLoginAt: lastLoginAt ?? this.lastLoginAt,
       status: status ?? this.status,
+      address: address ?? this.address,
     );
   }
 }

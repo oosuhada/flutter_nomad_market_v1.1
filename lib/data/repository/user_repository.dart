@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
-import '../model/user.dart';
+import 'package:flutter_market_app/data/model/user.dart';
 
 class UserRepository {
   final auth.FirebaseAuth _auth = auth.FirebaseAuth.instance;

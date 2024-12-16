@@ -100,6 +100,7 @@ class PostRepository {
 
   // 게시글 생성
   // post_repository.dart의 create 메서드 수정
+  // post_repository.dart의 create 메서드 수정
   Future<Post?> create({
     required String postId,
     required String userId,
@@ -118,26 +119,28 @@ class PostRepository {
     required String userHomeAddress,
   }) async {
     print("===== PostRepository create 시작 =====");
-    print("받은 데이터:");
+    print("받은 데이터 검증:");
     print("- PostID: $postId");
     print("- UserID: $userId");
     print("- 제목: $originalTitle");
-    print("- 이미지 수: ${images.length}");
+    print("- 이미지 목록: $images");
     print("- 카테고리: $category");
     print("- 가격: ${price.amount} ${price.currency}");
 
     try {
+      if (images.isEmpty) {
+        print("에러: 이미지가 없습니다");
+        return null;
+      }
+
       print("Firestore 문서 생성 시도");
       final docRef = _firestore.collection('posts').doc();
 
-      print("썸네일 생성 시도");
-      final thumbnail = images.isNotEmpty
-          ? _createThumbnail(images.first)
-          : _createThumbnail('default_image_url');
-      print("생성된 썸네일 URL: ${thumbnail.url}");
+      final thumbnail = _createThumbnail(images.first);
+      print("썸네일 생성 완료: ${thumbnail.url}");
 
       final post = Post(
-        postId: postId,
+        postId: docRef.id, // 문서 ID 사용
         userId: userId,
         originalTitle: originalTitle,
         translatedTitle: translatedTitle,
@@ -159,9 +162,9 @@ class PostRepository {
         userHomeAddress: userHomeAddress,
       );
 
-      print("Firestore에 데이터 저장 시도");
+      print("데이터 저장 시도");
       await docRef.set(post.toJson());
-      print("데이터 저장 성공");
+      print("데이터 저장 완료");
 
       return post;
     } catch (e, stackTrace) {
