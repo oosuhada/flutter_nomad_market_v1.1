@@ -7,7 +7,7 @@ class UserInfoRepository {
   Future<bool> isEmailInUse(String email) async {
     try {
       final emailQuery = await firestore
-          .collection('posts')
+          .collection('users')
           .where('email', isEqualTo: email)
           .get();
       return emailQuery.docs.isNotEmpty; // true: 중복, false: 사용 가능
@@ -21,7 +21,7 @@ class UserInfoRepository {
   Future<bool> isNicknameInUse(String nickname) async {
     try {
       final nicknameQuery = await firestore
-          .collection('posts')
+          .collection('users')
           .where('nickname', isEqualTo: nickname)
           .get();
       return nicknameQuery.docs.isNotEmpty; // true: 중복, false: 사용 가능
@@ -38,7 +38,7 @@ class UserInfoRepository {
   }) async {
     try {
       final querySnapshot = await firestore
-          .collection('posts')
+          .collection('users')
           .where('email', isEqualTo: email)
           .where('password', isEqualTo: password)
           .get();
@@ -75,7 +75,7 @@ class UserInfoRepository {
         return false;
       }
 
-      final collectionRef = firestore.collection('posts');
+      final collectionRef = firestore.collection('users');
       final docRef = collectionRef.doc();
 
       await docRef.set({
