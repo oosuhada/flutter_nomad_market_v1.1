@@ -164,7 +164,17 @@ class _JoinPageState extends ConsumerState<JoinPage> {
       );
 
       if (result == true) {
-        SnackbarUtil.showSnackBar(context, '회원가입이 성공적으로 완료되었습니다');
+        // 회원가입 성공 시 스낵바 표시
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('회원가입이 성공적으로 완료되었습니다'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+
+        // 스낵바가 표시되는 동안 대기
+        await Future.delayed(Duration(seconds: 2));
+
         // WelcomePage 이동
         Navigator.pushAndRemoveUntil(
           context,
@@ -172,9 +182,11 @@ class _JoinPageState extends ConsumerState<JoinPage> {
           (route) => false,
         );
       } else {
+        // 회원가입 실패 시 스낵바 표시
         SnackbarUtil.showSnackBar(context, '회원가입에 실패하였습니다');
       }
     } else {
+      // 폼 유효성 검사 실패 시 스낵바 표시
       SnackbarUtil.showSnackBar(context, '회원가입에 실패하였습니다');
     }
     print('onJoin');
