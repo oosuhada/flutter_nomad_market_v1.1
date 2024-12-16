@@ -25,16 +25,24 @@ class _HomeFloatingActionButtonState
         MediaQuery.of(context).size.width - 10,
         MediaQuery.of(context).size.height - 200,
       ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      color: Theme.of(context).brightness == Brightness.dark
+          ? Colors.grey.shade900
+          : Colors.white,
       items: [
         PopupMenuItem(
           child: Container(
             child: Row(
               children: [
-                Icon(Icons.request_page),
+                Icon(Icons.request_page,
+                    color: Theme.of(context).iconTheme.color),
                 SizedBox(width: 8),
                 Text(
                   '물품 의뢰하기',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: Theme.of(context).textTheme.bodyLarge?.color),
                 ),
               ],
             ),
@@ -47,11 +55,12 @@ class _HomeFloatingActionButtonState
           child: Container(
             child: Row(
               children: [
-                Icon(Icons.sell),
+                Icon(Icons.sell, color: Theme.of(context).iconTheme.color),
                 SizedBox(width: 8),
                 Text(
                   '내 물건 판매',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      color: Theme.of(context).textTheme.bodyLarge?.color),
                 ),
               ],
             ),
@@ -88,7 +97,7 @@ class _HomeFloatingActionButtonState
       height: 52,
       child: FloatingActionButton.extended(
         onPressed: _showWritingOptions,
-        extendedPadding: EdgeInsets.symmetric(horizontal: 26, vertical: 0),
+        extendedPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 0),
         label: Text(
           '상품등록',
           style: TextStyle(
@@ -101,7 +110,9 @@ class _HomeFloatingActionButtonState
           borderRadius: BorderRadius.circular(20),
         ),
         backgroundColor: _isMenuOpen
-            ? Colors.grey.shade900
+            ? Theme.of(context).brightness == Brightness.dark
+                ? Colors.grey.shade900
+                : Colors.grey.shade400
             : Theme.of(context).highlightColor,
         foregroundColor: Colors.white,
       ),
