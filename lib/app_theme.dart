@@ -16,6 +16,10 @@ class AppTheme {
           fontWeight: FontWeight.bold,
         ),
       ),
+      bottomAppBarTheme: BottomAppBarTheme(
+        color: Color.fromARGB(255, 254, 248, 245),
+        shape: CircularNotchedRectangle(),
+      ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ButtonStyle(
           foregroundColor:
@@ -75,6 +79,10 @@ class AppTheme {
           color: Colors.white,
           fontWeight: FontWeight.bold,
         ),
+      ),
+      bottomAppBarTheme: BottomAppBarTheme(
+        color: Colors.grey[900],
+        shape: CircularNotchedRectangle(),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ButtonStyle(
