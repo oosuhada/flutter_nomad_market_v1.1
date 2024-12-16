@@ -12,6 +12,7 @@ import 'package:flutter_market_app/ui/widgets/pw_text_form_field.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_market_app/ui/pages/login/login_page.dart';
+import 'package:flutter_market_app/ui/pages/social_id.dart';
 
 class JoinPage extends ConsumerStatefulWidget {
   final String language;
@@ -194,7 +195,6 @@ class _JoinPageState extends ConsumerState<JoinPage> {
 
   @override
   Widget build(BuildContext context) {
-    print(widget.address);
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -293,16 +293,18 @@ class _JoinPageState extends ConsumerState<JoinPage> {
               SizedBox(height: 20),
               Consumer(
                 builder: (context, ref, child) {
+                  final authService = ref.read(authServiceProvider);
                   return Column(
                     children: [
                       GestureDetector(
-                        onTap: () => onGoogleSignIn(ref),
+                        onTap: () => authService.onGoogleSignIn(context),
                         child: Container(
                           width: double.infinity,
                           height: 52,
                           margin: EdgeInsets.symmetric(vertical: 10),
                           child: ElevatedButton(
-                            onPressed: () => onGoogleSignIn(ref),
+                            onPressed: () =>
+                                authService.onGoogleSignIn(context),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Theme.of(context).brightness ==
                                       Brightness.dark

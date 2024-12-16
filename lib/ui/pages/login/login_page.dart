@@ -2,19 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:flutter_market_app/core/snackbar_util.dart';
 import 'package:flutter_market_app/ui/pages/home/home_page.dart';
 import 'package:flutter_market_app/ui/pages/login/login_view_model.dart';
+import 'package:flutter_market_app/ui/pages/social_id.dart';
 import 'package:flutter_market_app/ui/widgets/login_text_form_field.dart';
 import 'package:flutter_market_app/ui/widgets/pw_text_form_field.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class LoginPage extends StatefulWidget {
+class LoginPage extends ConsumerStatefulWidget {
+  const LoginPage({Key? key}) : super(key: key); // 생성자 추가
+
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  ConsumerState<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends ConsumerState<LoginPage> {
   final idController = TextEditingController();
   final pwController = TextEditingController();
   final formKey = GlobalKey<FormState>();
+
+  void onGoogleSignIn() {
+    final authService = ref.read(authServiceProvider);
+    authService.onGoogleSignIn(context);
+  }
 
   @override
   void dispose() {
@@ -116,16 +124,19 @@ class _LoginPageState extends State<LoginPage> {
                         SizedBox(height: 20),
                         Consumer(
                           builder: (context, ref, child) {
+                            final authService = ref.read(authServiceProvider);
                             return Column(
                               children: [
                                 GestureDetector(
-                                  onTap: () => onGoogleSignIn(ref),
+                                  onTap: () =>
+                                      authService.onGoogleSignIn(context),
                                   child: Container(
                                     width: double.infinity,
                                     height: 52,
                                     margin: EdgeInsets.symmetric(vertical: 10),
                                     child: ElevatedButton(
-                                      onPressed: () => onGoogleSignIn(ref),
+                                      onPressed: () =>
+                                          authService.onGoogleSignIn(context),
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor:
                                             Theme.of(context).brightness ==
@@ -182,7 +193,10 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ],
         ),
-        bottomNavigationBar: BottomAppBar(
+        resizeToAvoidBottomInset: false, // 이 속성 추가
+        extendBody: true, // 이 속성 추가
+        bottomNavigationBar: Container(
+          height: 40, // 하단바 높이 조정
           child: Align(
             alignment: Alignment.bottomCenter,
             child: Padding(

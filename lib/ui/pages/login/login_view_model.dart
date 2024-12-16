@@ -21,17 +21,3 @@ class LoginViewModel {
 final loginViewmodel = Provider.autoDispose((ref) {
   return LoginViewModel();
 });
-
-// 구글 로그인 핸들러
-void onGoogleSignIn(WidgetRef ref) {
-  // TODO: 구글 소셜 로그인 로직 구현
-  print('구글 로그인 시도');
-  // 로그인 성공 시 홈페이지로 이동하는 로직 추가 필요
-}
-
-// 페이스북 로그인 핸들러
-void onFacebookSignIn(WidgetRef ref) {
-  // TODO: 페이스북 소셜 로그인 로직 구현
-  print('페이스북 로그인 시도');
-  // 로그인 성공 시 홈페이지로 이동하는 로직 추가 필요
-}

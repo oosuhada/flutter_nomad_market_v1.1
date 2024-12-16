@@ -55,6 +55,7 @@ dependencies:
   wechat_assets_picker: ^9.4.1
   google_sign_in: ^6.2.2
   image_picker: ^1.1.2
+  go_router: ^14.6.2
 
 dev_dependencies:
   flutter_test:

@@ -133,6 +133,8 @@ class AddressSearchPage extends StatelessWidget {
                                             'latlong': pickedData.latLong,
                                             'address': pickedData.address,
                                           });
+
+                                          // 선택한 위치로 현재 위치 업데이트
                                         },
                                       ),
                                     );
