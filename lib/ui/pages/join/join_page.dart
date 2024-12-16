@@ -10,7 +10,7 @@ import 'package:flutter_market_app/ui/widgets/join_text_form_field.dart';
 import 'package:flutter_market_app/ui/widgets/nickname_text_form_field.dart';
 import 'package:flutter_market_app/ui/widgets/pw_text_form_field.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:wechat_assets_picker/wechat_assets_picker.dart';
+import 'package:image_picker/image_picker.dart';
 
 class JoinPage extends ConsumerStatefulWidget {
   final String language;
@@ -67,18 +67,14 @@ class _JoinPageState extends ConsumerState<JoinPage> {
             CupertinoActionSheetAction(
               onPressed: () async {
                 Navigator.of(context).pop();
-                final List<AssetEntity>? result = await AssetPicker.pickAssets(
-                  context,
-                  pickerConfig: AssetPickerConfig(),
-                );
-                if (result != null && result.isNotEmpty) {
-                  final File? file = await result.first.file;
-                  if (file != null) {
-                    setState(() {
-                      imageFile = file;
-                      imageUrl = file.path;
-                    });
-                  }
+                final ImagePicker picker = ImagePicker();
+                final XFile? image =
+                    await picker.pickImage(source: ImageSource.gallery);
+                if (image != null) {
+                  setState(() {
+                    imageFile = File(image.path);
+                    imageUrl = image.path;
+                  });
                 }
               },
               child: Text(
@@ -90,18 +86,14 @@ class _JoinPageState extends ConsumerState<JoinPage> {
             CupertinoActionSheetAction(
               onPressed: () async {
                 Navigator.of(context).pop();
-                final List<AssetEntity>? result = await AssetPicker.pickAssets(
-                  context,
-                  pickerConfig: AssetPickerConfig(),
-                );
-                if (result != null && result.isNotEmpty) {
-                  final File? file = await result.first.file;
-                  if (file != null) {
-                    setState(() {
-                      imageFile = file;
-                      imageUrl = file.path;
-                    });
-                  }
+                final ImagePicker picker = ImagePicker();
+                final XFile? image =
+                    await picker.pickImage(source: ImageSource.camera);
+                if (image != null) {
+                  setState(() {
+                    imageFile = File(image.path);
+                    imageUrl = image.path;
+                  });
                 }
               },
               child: Text(
