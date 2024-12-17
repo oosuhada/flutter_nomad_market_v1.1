@@ -45,7 +45,7 @@ class ProductListItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    postSummary.title,
+                    postSummary.originalTitle,
                     style: TextStyle(
                       fontSize: 15,
                     ),
@@ -78,7 +78,7 @@ class ProductListItem extends StatelessWidget {
                       ),
                       SizedBox(width: 4),
                       Text(
-                        '${postSummary.likeCnt}',
+                        '${postSummary.likes}',
                         style: TextStyle(
                           fontSize: 12,
                           height: 1,

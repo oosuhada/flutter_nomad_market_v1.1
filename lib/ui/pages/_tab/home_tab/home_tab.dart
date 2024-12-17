@@ -24,7 +24,6 @@ class _HomeTabState extends ConsumerState<HomeTab> {
       try {
         print("데이터 로드 시작");
         final vm = ref.read(homeTabViewModel.notifier);
-        await vm.loadAllProducts();
         print("데이터 로드 완료");
         if (mounted) {
           setState(() => _isLoading = false);
