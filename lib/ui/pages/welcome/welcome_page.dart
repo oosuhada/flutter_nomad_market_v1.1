@@ -88,7 +88,7 @@ class _WelcomePageState extends State<WelcomePage> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: _currentPage == index
-                        ? Theme.of(context).primaryColor
+                        ? Theme.of(context).colorScheme.primary
                         : Colors.grey.withOpacity(0.5),
                   ),
                 ),
