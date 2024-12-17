@@ -83,12 +83,14 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
     print("===== HomeTabViewModel 초기화 =====");
     print("- PostRepository 주입됨");
     print("- 초기 상태 설정 완료");
-    _initUserData();
+    print("- 초기 addresses 길이: ${state.addresses.length}");
+    print("- 초기 posts 길이: ${state.posts.length}");
+    print("- 초기 categories 길이: ${state.categories.length}");
+    initializeData();
   }
 
-  /// 사용자 정보 초기화 및 검증
-  void _initUserData() {
-    print("===== HomeTabViewModel 사용자 정보 초기화 =====");
+  Future<void> initializeData() async {
+    print("===== HomeTabViewModel 데이터 초기화 시작 =====");
     try {
       final user = ref.read(userGlobalViewModel);
       if (user != null) {
@@ -97,93 +99,61 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
         print("- nickname: ${user.nickname}");
         print("- address: ${user.address.fullNameKR}");
 
-        // 사용자 주소 정보가 있으면 초기 데이터 로드
         if (user.address.fullNameKR.isNotEmpty) {
-          refreshPosts(); // 주소 기반 게시글도 로드
-          print(user.address.fullNameKR);
-          print("초기 데이터 로드 완료");
+          final defaultAddress = user.address.fullNameKR;
+
+          // 주소 정보 파싱 및 처리
+          final addressParts = defaultAddress.split(',');
+          final cityWithState = addressParts[0].trim();
+          final country = addressParts.length > 1 ? addressParts[1].trim() : '';
+
+          // Address.processLocationInfo를 사용하여 주소 정보 정제
+          final krLocation = Address.processLocationInfo(cityWithState, country,
+              isKorean: true);
+
+          // 서비스 가능 여부 확인
+          final isServiceAvailable = Address.checkServiceAvailability(
+              krLocation['city']!, krLocation['country']!);
+
+          // 주소 정보 설정
+          state = state.copyWith(
+            addresses: [
+              Address(
+                id: '',
+                fullNameKR: defaultAddress,
+                fullNameEN: '',
+                cityKR: krLocation['city']!,
+                cityEN: '',
+                countryKR: krLocation['country']!,
+                countryEN: '',
+                defaultYn: true,
+                isServiceAvailable: isServiceAvailable,
+              )
+            ],
+          );
+
+          // 게시글 로드
+          final posts = await postSummaryRepository.getAllProducts();
+          if (posts != null) {
+            state = state.copyWith(
+              posts: posts,
+              isLoading: false,
+              hasMore: posts.length >= pageSize,
+            );
+            print("초기 데이터 로드 완료:");
+            print("- 게시글 수: ${posts.length}");
+            print("- 주소 정보: ${state.addresses.first.fullNameKR}");
+          }
         }
       } else {
         print("로그인된 사용자 정보 없음 - 초기 데이터 로드 건너뜀");
       }
     } catch (e, stack) {
-      print("사용자 정보 초기화 중 에러 발생:");
+      print("데이터 초기화 중 에러 발생:");
       print("- 에러: $e");
       print("- 스택트레이스: $stack");
-    }
-  }
-
-  /// 초기 데이터 로드 (주소 기반 게시글)
-  Future<void> _loadInitialData(String defaultAddress) async {
-    print("===== 초기 데이터 로드 시작 =====");
-    print("기본 주소: $defaultAddress");
-
-    try {
-      final posts = await postSummaryRepository.getAllProducts();
-      if (posts != null) {
-        // 주소 정보 파싱 및 처리
-        final addressParts = defaultAddress.split(',');
-        final cityWithState = addressParts[0].trim();
-        final country = addressParts.length > 1 ? addressParts[1].trim() : '';
-
-        // Address.processLocationInfo를 사용하여 주소 정보 정제
-        final krLocation =
-            Address.processLocationInfo(cityWithState, country, isKorean: true);
-
-        // 서비스 가능 여부 확인
-        final isServiceAvailable = Address.checkServiceAvailability(
-            krLocation['city']!, krLocation['country']!);
-
-        state = state.copyWith(
-          addresses: [
-            Address(
-              id: '',
-              fullNameKR: defaultAddress,
-              fullNameEN: '', // 영문 주소는 별도로 처리 필요
-              cityKR: krLocation['city']!,
-              cityEN: '', // 영문 도시명은 별도로 처리 필요
-              countryKR: krLocation['country']!,
-              countryEN: '', // 영문 국가명은 별도로 처리 필요
-              defaultYn: true,
-              isServiceAvailable: isServiceAvailable,
-            )
-          ],
-          posts: posts,
-        );
-        print("초기 데이터 로드 완료:");
-        print("- 게시글 수: ${posts.length}");
-      }
-    } catch (e) {
-      print("초기 데이터 로드 중 에러 발생: $e");
-    }
-  }
-
-  // 단일 상품 요약 정보 가져오기
-  Future<void> getProductSummary(String productId) async {
-    state = state.copyWith(isLoading: true);
-    try {
-      final postSummary =
-          await postSummaryRepository.getProductSummary(productId);
-      if (postSummary != null) {
-        // 중복 검사
-        if (!state.posts.any((product) => product.id == postSummary.id)) {
-          state = state.copyWith(
-            posts: [postSummary, ...state.posts],
-            isLoading: false,
-          );
-        } else {
-          print('이미 존재하는 상품입니다: ${postSummary.id}');
-          state = state.copyWith(isLoading: false);
-        }
-      } else {
-        state = state.copyWith(
-          error: '상품 정보를 불러오는데 실패했습니다.',
-          isLoading: false,
-        );
-      }
-    } catch (e) {
       state = state.copyWith(
-        error: '오류가 발생했습니다: $e',
+        error: '데이터 초기화 중 오류가 발생했습니다.',
         isLoading: false,
       );
     }

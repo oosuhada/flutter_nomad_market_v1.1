@@ -3,9 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/core/image_picker_helper.dart';
 import 'package:flutter_market_app/core/snackbar_util.dart';
-import 'package:flutter_market_app/data/model/user.dart';
-import 'package:flutter_market_app/data/repository/file_repository.dart';
-import 'package:flutter_market_app/data/repository/user_repository.dart';
+import 'package:flutter_market_app/ui/pages/_tab/home_tab/home_tab.dart';
+import 'package:flutter_market_app/ui/pages/home/home_page.dart';
 import 'package:flutter_market_app/ui/pages/join/join_view_model.dart';
 import 'package:flutter_market_app/ui/pages/login/login_view_model.dart';
 import 'package:flutter_market_app/ui/pages/welcome/welcome_page.dart';
@@ -41,10 +40,8 @@ class _JoinPageState extends ConsumerState<JoinPage> {
   final pwController = TextEditingController();
   final nicknameController = TextEditingController();
   final formKey = GlobalKey<FormState>();
-  final fileRepository = FileRepository();
   File? imageFile;
   String? imageUrl;
-  String? tempImagePath;
 
   @override
   void initState() {
@@ -65,101 +62,91 @@ class _JoinPageState extends ConsumerState<JoinPage> {
   }
 
   Future<void> onImageUpload() async {
-    print('onImageUpload 함수 시작');
     showCupertinoModalPopup(
       context: context,
       builder: (context) {
-        print('CupertinoActionSheet 빌더 호출');
         final theme = Theme.of(context);
         return CupertinoActionSheet(
           actions: [
             CupertinoActionSheetAction(
               onPressed: () async {
-                print('갤러리 선택 버튼 클릭');
                 Navigator.of(context).pop();
-                print('갤러리에서 이미지 선택 시작');
-                await pickAndShowImage(ImageSource.gallery);
-                print('갤러리에서 이미지 선택 및 표시 완료');
+                final ImagePicker picker = ImagePicker();
+                final XFile? image =
+                    await picker.pickImage(source: ImageSource.gallery);
+                if (image != null) {
+                  setState(() {
+                    imageFile = File(image.path);
+                    imageUrl = image.path;
+                  });
+                }
               },
-              child: Text('갤러리에서 선택',
-                  style: TextStyle(
-                      color: theme.textTheme.bodyLarge?.color, fontSize: 16)),
+              child: Text(
+                '갤러리에서 선택',
+                style: TextStyle(
+                    color: theme.textTheme.bodyLarge?.color, fontSize: 16),
+              ),
             ),
             CupertinoActionSheetAction(
               onPressed: () async {
-                print('카메라 촬영 버튼 클릭');
                 Navigator.of(context).pop();
-                print('카메라로 이미지 촬영 시작');
-                await pickAndShowImage(ImageSource.camera);
-                print('카메라로 이미지 촬영 및 표시 완료');
+                final ImagePicker picker = ImagePicker();
+                final XFile? image =
+                    await picker.pickImage(source: ImageSource.camera);
+                if (image != null) {
+                  setState(() {
+                    imageFile = File(image.path);
+                    imageUrl = image.path;
+                  });
+                }
               },
-              child: Text('카메라로 촬영',
-                  style: TextStyle(
-                      color: theme.textTheme.bodyLarge?.color, fontSize: 16)),
+              child: Text(
+                '카메라로 촬영',
+                style: TextStyle(
+                    color: theme.textTheme.bodyLarge?.color, fontSize: 16),
+              ),
             ),
           ],
           cancelButton: CupertinoActionSheetAction(
             onPressed: () {
-              print('취소 버튼 클릭');
               Navigator.of(context).pop();
             },
-            child: Text('취소',
-                style: TextStyle(
-                    color: theme.textTheme.bodyLarge?.color, fontSize: 16)),
+            child: Text(
+              '취소',
+              style: TextStyle(
+                  color: theme.textTheme.bodyLarge?.color, fontSize: 16),
+            ),
           ),
         );
       },
     );
-    print('onImageUpload 함수 종료');
   }
 
-  Future<void> pickAndShowImage(ImageSource source) async {
-    print('pickAndShowImage 함수 시작');
-    final XFile? pickedFile = await _pickImage(source);
-    if (pickedFile != null) {
-      await showLocalImage(pickedFile);
-    }
-    print('pickAndShowImage 함수 종료');
+  void showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final theme = Theme.of(context);
+        return AlertDialog(
+          backgroundColor: theme.scaffoldBackgroundColor,
+          title: Text('오류', style: theme.textTheme.titleSmall),
+          content: Text(message,
+              style: TextStyle(
+                  color: theme.listTileTheme.textColor, fontSize: 16)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('확인',
+                  style: TextStyle(
+                      color: theme.colorScheme.primary, fontSize: 16)),
+            ),
+          ],
+        );
+      },
+    );
   }
 
-  Future<XFile?> _pickImage(ImageSource source) async {
-    print('이미지 선택 시작');
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: source);
-    print('이미지 선택 완료: ${image?.path}');
-    return image;
-  }
-
-  Future<void> showLocalImage(XFile file) async {
-    print('로컬 이미지 표시 시작');
-    setState(() {
-      imageFile = File(file.path);
-      // 임시 로컬 경로 저장
-      tempImagePath = file.path;
-    });
-    print('로컬 이미지 표시 완료');
-  }
-
-  // 계정 생성 메서드 추가
-  Future<bool> createAccount({
-    required String email,
-    required String password,
-  }) async {
-    try {
-      final userRepository = UserRepository();
-      // Firebase Auth의 계정 생성 시도
-      final credential = await userRepository.createAuthAccount(
-        email: email,
-        password: password,
-      );
-      return credential != null;
-    } catch (e) {
-      print('계정 생성 실패: $e');
-      return false;
-    }
-  }
-
-// onJoin 메서드 수정
+  //onJoin 메서드 수정
   void onJoin() async {
     if (formKey.currentState?.validate() ?? false) {
       final email = emailController.text.trim();
@@ -167,71 +154,39 @@ class _JoinPageState extends ConsumerState<JoinPage> {
       final nickname = nicknameController.text.trim();
 
       if (email.isEmpty || password.isEmpty || nickname.isEmpty) {
-        SnackbarUtil.showSnackBar(context, '필수 정보를 모두 입력해주세요');
+        SnackbarUtil.showSnackBar(context, '회원가입에 실패하였습니다');
         return;
       }
 
-      // 회원가입 viewModel 준비
+      // viewModel을 직접 참조하도록 수정
       final viewModel = ref.read(joinViewModel.notifier);
-      String? uploadedImageUrl;
+      final result = await viewModel.join(
+        nickname: nickname,
+        email: email,
+        password: password,
+        addressFullName: selectedAddress,
+        profileImageUrl: imageUrl ?? '',
+        language: selectedLanguage.split(' ')[0].toLowerCase(), // 형식 변환
+        currency: selectedCurrency.split(' ')[0], // 형식 변환
+      );
 
-      try {
-        // 먼저 계정 생성 시도
-        final accountCreated = await viewModel.createAccount(
-          email: email,
-          password: password,
+      if (result == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('회원가입이 성공적으로 완료되었습니다'),
+            duration: Duration(seconds: 3),
+          ),
         );
 
-        if (!accountCreated) {
-          SnackbarUtil.showSnackBar(context, '계정 생성에 실패했습니다');
-          return;
-        }
+        await Future.delayed(Duration(seconds: 2));
 
-        // 계정 생성 성공 후 이미지 업로드 진행
-        if (tempImagePath != null) {
-          final file = XFile(tempImagePath!);
-          final bytes = await file.readAsBytes();
-          final fileName = file.path.split('/').last;
-          final fileModel = await FileRepository().upload(
-            bytes: bytes,
-            filename: fileName,
-            mimeType: 'image/jpeg',
-          );
-          uploadedImageUrl = fileModel?.url;
-        }
-
-        // 최종 회원가입 정보 저장
-        final result = await viewModel.join(
-          nickname: nickname,
-          email: email,
-          password: password,
-          addressFullName: selectedAddress,
-          profileImageUrl: uploadedImageUrl ?? '',
-          language: selectedLanguage.split(' ')[0].toLowerCase(),
-          currency: selectedCurrency.split(' ')[0],
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+          (route) => false,
         );
-
-        if (result == true) {
-          // null-safe한 비교로 변경
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('회원가입이 성공적으로 완료되었습니다'),
-              duration: Duration(seconds: 3),
-            ),
-          );
-
-          await Future.delayed(Duration(seconds: 2));
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => LoginPage()),
-            (route) => false,
-          );
-        } else {
-          SnackbarUtil.showSnackBar(context, '회원가입에 실패하였습니다');
-        }
-      } catch (e) {
-        print('회원가입 오류: $e');
-        SnackbarUtil.showSnackBar(context, '회원가입 처리 중 오류가 발생했습니다');
+      } else {
+        SnackbarUtil.showSnackBar(context, '회원가입에 실패하였습니다');
       }
     }
   }
@@ -353,7 +308,7 @@ class _JoinPageState extends ConsumerState<JoinPage> {
 
                         Navigator.pushAndRemoveUntil(
                           context,
-                          MaterialPageRoute(builder: (context) => LoginPage()),
+                          MaterialPageRoute(builder: (context) => HomePage()),
                           (route) => false,
                         );
                       }
