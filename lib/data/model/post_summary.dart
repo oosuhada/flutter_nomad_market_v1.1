@@ -1,11 +1,12 @@
 // post_summary.dart
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_market_app/data/model/address.dart';
 import 'package:flutter_market_app/data/model/file_model.dart';
 import 'package:flutter_market_app/data/model/post_enums.dart';
 
 class PostSummary {
   final String id; // 게시글 고유 식별자
-  final String title; // 게시글 제목 (원본)
+  final String originalTitle; // 게시글 제목 (원본)
   final String? translatedTitle; // 번역된 제목
   final num price; // 가격
   final String currency; // 통화 단위 (KRW, USD, JPY 등)
@@ -13,14 +14,14 @@ class PostSummary {
   final FileModel thumbnail; // 썸네일 이미지
   final PostType type; // 게시글 타입 (판매/구매)
   final PostStatus status; // 거래 상태
-  final int likeCnt; // 좋아요 수
+  final int likes; // 좋아요 수
   final Address address; // 거래 장소 주소
   final DateTime updatedAt; // 최종 수정 시간
   final DateTime createdAt; // 작성 시간
 
   const PostSummary({
     required this.id,
-    required this.title,
+    required this.originalTitle,
     this.translatedTitle,
     required this.price,
     required this.currency,
@@ -28,7 +29,7 @@ class PostSummary {
     required this.thumbnail,
     required this.type,
     required this.status,
-    required this.likeCnt,
+    required this.likes,
     required this.address,
     required this.updatedAt,
     required this.createdAt,
@@ -37,23 +38,26 @@ class PostSummary {
   // JSON 변환 생성자
   factory PostSummary.fromJson(Map<String, dynamic> json) {
     return PostSummary(
-      id: json['id'],
-      title: json['title'],
-      translatedTitle: json['translatedTitle'],
-      price: json['price'],
-      currency: json['currency'],
-      language: json['language'],
-      thumbnail: FileModel.fromJson(json['thumbnail']),
+      id: json['postId'], // 'id' 대신 'postId' 사용
+      originalTitle:
+          json['originalTitle'] ?? '', // 'title' 대신 'originalTitle' 사용
+      translatedTitle: json['translatedTitle'] ?? '',
+      price: (json['price'] as Map<String, dynamic>)['amount'] ?? 0,
+      currency: (json['price'] as Map<String, dynamic>)['currency'] ?? 'KRW',
+      language: json['language'] ?? '',
+      thumbnail: FileModel.fromJson(json['thumbnail'] ?? {}),
       type: PostType.values.firstWhere(
         (e) => e.toString() == 'PostType.${json['type']}',
+        orElse: () => PostType.unknown,
       ),
       status: PostStatus.values.firstWhere(
         (e) => e.toString() == 'PostStatus.${json['status']}',
+        orElse: () => PostStatus.unknown,
       ),
-      likeCnt: json['likeCnt'],
-      address: Address.fromJson(json['address']),
-      updatedAt: DateTime.parse(json['updatedAt']),
-      createdAt: DateTime.parse(json['createdAt']),
+      likes: json['likes'] ?? 0, // 'likeCnt' 대신 'likes' 사용
+      address: Address.fromJson(json['address'] ?? {}),
+      updatedAt: (json['updatedAt'] as Timestamp).toDate(),
+      createdAt: (json['createdAt'] as Timestamp).toDate(),
     );
   }
 
@@ -61,7 +65,7 @@ class PostSummary {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'title': title,
+      'originalTitle': originalTitle,
       'translatedTitle': translatedTitle,
       'price': price,
       'currency': currency,
@@ -69,7 +73,7 @@ class PostSummary {
       'thumbnail': thumbnail.toJson(),
       'type': type.toString().split('.').last,
       'status': status.toString().split('.').last,
-      'likeCnt': likeCnt,
+      'likes': likes,
       'address': address.toJson(),
       'updatedAt': updatedAt.toIso8601String(),
       'createdAt': createdAt.toIso8601String(),
@@ -79,7 +83,7 @@ class PostSummary {
   // 객체 복사 메서드
   PostSummary copyWith({
     String? id,
-    String? title,
+    String? originalTitle,
     String? translatedTitle,
     num? price,
     String? currency,
@@ -87,14 +91,14 @@ class PostSummary {
     FileModel? thumbnail,
     PostType? type,
     PostStatus? status,
-    int? likeCnt,
+    int? likes,
     Address? address,
     DateTime? updatedAt,
     DateTime? createdAt,
   }) {
     return PostSummary(
       id: id ?? this.id,
-      title: title ?? this.title,
+      originalTitle: originalTitle ?? this.originalTitle,
       translatedTitle: translatedTitle ?? this.translatedTitle,
       price: price ?? this.price,
       currency: currency ?? this.currency,
@@ -102,7 +106,7 @@ class PostSummary {
       thumbnail: thumbnail ?? this.thumbnail,
       type: type ?? this.type,
       status: status ?? this.status,
-      likeCnt: likeCnt ?? this.likeCnt,
+      likes: likes ?? this.likes,
       address: address ?? this.address,
       updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt ?? this.createdAt,
@@ -118,6 +122,8 @@ class PostSummary {
         return "예약중";
       case PostStatus.completed:
         return "거래완료";
+      case PostStatus.unknown:
+        return "알 수 없음";
     }
   }
 }

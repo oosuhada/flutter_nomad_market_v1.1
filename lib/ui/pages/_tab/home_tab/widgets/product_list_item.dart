@@ -12,7 +12,6 @@ class ProductListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // https://picsum.photos/200/300
     return GestureDetector(
       onTap: () {
         Navigator.push(
@@ -45,7 +44,7 @@ class ProductListItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    postSummary.title,
+                    postSummary.originalTitle, // title 대신 translatedTitle 사용
                     style: TextStyle(
                       fontSize: 15,
                     ),
@@ -57,12 +56,9 @@ class ProductListItem extends StatelessWidget {
                       color: Colors.grey[700],
                     ),
                   ),
-                  // 숫자 서식 문자열
-                  // 000 => 001
-                  // ### => 1
-                  // ###,###
                   Text(
-                    NumberFormat('#,###원').format(postSummary.price),
+                    NumberFormat('#,###${postSummary.currency}')
+                        .format(postSummary.price), // 원 대신 currency 사용
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -78,7 +74,7 @@ class ProductListItem extends StatelessWidget {
                       ),
                       SizedBox(width: 4),
                       Text(
-                        '${postSummary.likeCnt}',
+                        '${postSummary.likes}', // likes로 변경된 필드지만 PostSummary 모델에서 likeCnt로 매핑됨
                         style: TextStyle(
                           fontSize: 12,
                           height: 1,

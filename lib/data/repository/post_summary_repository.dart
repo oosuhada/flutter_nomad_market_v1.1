@@ -42,7 +42,12 @@ class PostSummaryRepository {
           .get();
 
       print('Firestore 쿼리 결과: ${querySnapshot.docs.length}개 문서');
-
+      print('데이터 변환 시도:');
+      for (var doc in querySnapshot.docs) {
+        print('- title: ${doc['originalTitle']}');
+        print('- price: ${doc['price']}');
+        print('- thumbnail: ${doc['thumbnail']}');
+      }
       final products = <PostSummary>[];
 
       for (var doc in querySnapshot.docs) {
@@ -53,14 +58,14 @@ class PostSummaryRepository {
 
           // 필수 필드 존재 여부 확인
           final requiredFields = [
-            'title',
+            'originalTitle',
             'price',
             'currency',
             'language',
             'thumbnail',
             'type',
             'status',
-            'likeCnt',
+            'likes',
             'address',
             'updatedAt',
             'createdAt'
@@ -80,7 +85,7 @@ class PostSummaryRepository {
             ...data,
           });
           products.add(product);
-          print('상품 변환 성공: ${product.title}');
+          print('상품 변환 성공: ${product.originalTitle}');
         } catch (e) {
           print('개별 상품 변환 실패: $e');
           continue;
@@ -195,13 +200,13 @@ class PostSummaryRepository {
     try {
       Query query = firestore
           .collection('post_summaries')
-          .where('likeCnt', isGreaterThanOrEqualTo: minLikes);
+          .where('likes', isGreaterThanOrEqualTo: minLikes);
 
       if (language != null) {
         query = query.where('language', isEqualTo: language);
       }
 
-      query = query.orderBy('likeCnt', descending: true).limit(limit);
+      query = query.orderBy('likes', descending: true).limit(limit);
 
       final querySnapshot = await query.get();
       return querySnapshot.docs

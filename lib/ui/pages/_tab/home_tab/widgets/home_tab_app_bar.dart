@@ -63,8 +63,8 @@ class HomeTabAppBar extends StatelessWidget {
             itemBuilder: (BuildContext context) {
               return homeTabState.addresses.map((address) {
                 return PopupMenuItem<String>(
-                  value: address.cityKR ?? '',
-                  child: Text(address.cityKR ?? ''),
+                  value: address.cityKR,
+                  child: Text(address.cityKR),
                 );
               }).toList();
             },

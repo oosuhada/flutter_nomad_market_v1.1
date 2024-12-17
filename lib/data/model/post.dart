@@ -83,6 +83,8 @@ class Post {
         return "거래완료";
       case PostStatus.reserved:
         return "예약중";
+      case PostStatus.unknown:
+        return "알 수 없음";
     }
   }
 

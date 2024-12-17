@@ -100,7 +100,7 @@ class _PostWritePageState extends ConsumerState<PostWritePage> {
       final thumbnail = uploadedImages.first; // 첫 번째 이미지를 썸네일로 사용
       final localPost = PostSummary(
         id: DateTime.now().millisecondsSinceEpoch.toString(), // 임시 ID 생성
-        title: titleController.text,
+        originalTitle: titleController.text,
         translatedTitle: null, // 번역된 제목은 서버 응답 이후 처리
         price: int.parse(priceController.text),
         currency: "KRW", // 현재 통화는 "KRW"로 고정
@@ -108,7 +108,7 @@ class _PostWritePageState extends ConsumerState<PostWritePage> {
         thumbnail: thumbnail,
         type: widget.isRequesting ? PostType.buying : PostType.selling,
         status: PostStatus.active,
-        likeCnt: 0, // 기본 좋아요 수
+        likes: 0, // 기본 좋아요 수
         address: userVM.address, // 사용자 주소
         updatedAt: DateTime.now(),
         createdAt: DateTime.now(),
