@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_market_app/data/model/address.dart';
 import 'package:flutter_market_app/data/model/post_summary.dart';
 import 'package:flutter_market_app/data/model/product_category.dart';
+import 'package:flutter_market_app/data/model/user.dart';
 import 'package:flutter_market_app/data/repository/address_repository.dart';
 import 'package:flutter_market_app/data/repository/post_repository.dart';
 import 'package:flutter_market_app/data/repository/post_summary_repository.dart';
@@ -26,6 +28,7 @@ class HomeTabState {
   final bool isLoading;
   final bool hasMore;
   final String? error;
+  final bool isInitialized; // 새로 추가된 필드
 
   const HomeTabState({
     required this.addresses,
@@ -35,6 +38,7 @@ class HomeTabState {
     this.isLoading = false,
     this.hasMore = true,
     this.error,
+    this.isInitialized = false, // 기본값을 false로 설정
   });
 
   HomeTabState copyWith({
@@ -45,6 +49,7 @@ class HomeTabState {
     bool? isLoading,
     bool? hasMore,
     String? error,
+    bool? isInitialized, // copyWith 메서드에도 추가
   }) {
     return HomeTabState(
       addresses: addresses ?? this.addresses,
@@ -54,6 +59,7 @@ class HomeTabState {
       isLoading: isLoading ?? this.isLoading,
       hasMore: hasMore ?? this.hasMore,
       error: error ?? this.error,
+      isInitialized: isInitialized ?? this.isInitialized, // copyWith에 포함
     );
   }
 }
@@ -157,7 +163,45 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
     }
   }
 
-  // 모든 상품 불러오기
+  Future<void> setInitialAddress(User user) async {
+    if (user.address.fullNameKR.isNotEmpty) {
+      final defaultAddress = user.address.fullNameKR;
+
+      // 주소 정보 파싱 및 처리
+      final addressParts = defaultAddress.split(',');
+      final cityWithState = addressParts[0].trim();
+      final country = addressParts.length > 1 ? addressParts[1].trim() : '';
+
+      // Address.processLocationInfo를 사용하여 주소 정보 정제
+      final krLocation =
+          Address.processLocationInfo(cityWithState, country, isKorean: true);
+
+      // 서비스 가능 여부 확인
+      final isServiceAvailable = Address.checkServiceAvailability(
+          krLocation['city']!, krLocation['country']!);
+
+      // 주소 정보 설정
+      state = state.copyWith(
+        addresses: [
+          Address(
+            id: '',
+            fullNameKR: defaultAddress,
+            fullNameEN: '',
+            cityKR: krLocation['city']!,
+            cityEN: '',
+            countryKR: krLocation['country']!,
+            countryEN: '',
+            defaultYn: true,
+            isServiceAvailable: isServiceAvailable,
+          )
+        ],
+      );
+
+      print("초기 주소 설정 완료:");
+      print("- 주소 정보: ${state.addresses.first.fullNameKR}");
+    }
+  }
+
   Future<void> loadAllProducts() async {
     print('===== loadAllProducts 시작 =====');
     state = state.copyWith(isLoading: true);
@@ -166,14 +210,27 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
       final postSummaries = await postSummaryRepository.getAllProducts();
       print('가져온 상품 수: ${postSummaries.length}');
 
+      // 데이터 검증 로그 추가
+      for (var post in postSummaries) {
+        print('상품 데이터 확인:');
+        print('- ID: ${post.id}');
+        print('- 제목: ${post.originalTitle}');
+        print('- 가격: ${post.price} ${post.currency}');
+        print('- 주소: ${post.address.fullNameKR}');
+      }
+
       if (postSummaries.isNotEmpty) {
+        // 상태 업데이트 전 데이터 검증
+        print('상태 업데이트 시작 - 기존 posts 길이: ${state.posts.length}');
+
         state = state.copyWith(
           posts: postSummaries,
           isLoading: false,
           hasMore: postSummaries.length >= pageSize,
         );
-        print('상태 업데이트 완료 - posts 길이: ${state.posts.length}');
-        print('게시물은 : ${state.posts}');
+
+        print('상태 업데이트 완료 - 새로운 posts 길이: ${state.posts.length}');
+        print('첫 번째 게시물 제목: ${state.posts.first.originalTitle}');
       } else {
         print('가져온 상품이 없음');
         state = state.copyWith(
@@ -196,6 +253,14 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
   void addLocalPost(PostSummary post) {
     final updatedPosts = [post, ...state.posts];
     state = state.copyWith(posts: updatedPosts);
+  }
+
+// 탭 전환 시 데이터 리프레시를 위한 메서드
+  Future<void> onTabSelected() async {
+    print("===== 홈 탭 선택됨 =====");
+    state = state.copyWith(isLoading: true);
+    await loadAllProducts();
+    state = state.copyWith(isLoading: false, isInitialized: true);
   }
 
   // 서버에서 새로운 포스트 가져오기
@@ -330,25 +395,17 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
 
   // 게시글 목록 조회
   Future<void> fetchPosts() async {
-    print("게시글 목록 가져오기 시작");
     try {
-      if (state.addresses.isEmpty) {
-        print("주소 목록이 비어있음");
-        return;
-      }
+      final snapshot =
+          await FirebaseFirestore.instance.collection('posts').get();
+      print("Firebase에서 가져온 원본 데이터:");
+      snapshot.docs.forEach((doc) => print(doc.data()));
 
-      final defaultAddress = state.addresses.firstWhere(
-        (e) => e.defaultYn ?? false,
-        orElse: () => state.addresses.first,
-      );
-
-      final summaries = await postSummaryRepository.getPostSummaryList();
-      if (summaries != null) {
-        state = state.copyWith(posts: summaries);
-        print("게시글 목록 업데이트 완료: ${summaries.length}개");
-      }
+      final posts =
+          snapshot.docs.map((doc) => PostSummary.fromJson(doc.data())).toList();
+      state = state.copyWith(posts: posts);
     } catch (e) {
-      print("게시글 목록 조회 중 에러 발생: $e");
+      print("데이터 가져오기 오류: $e");
     }
   }
 }
@@ -357,7 +414,7 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
 /// PostRepository는 직접 주입하고, UserRepository는 userGlobalViewModel을 통해 접근
 /// HomeTabViewModel Provider
 final homeTabViewModel =
-    StateNotifierProvider<HomeTabViewModel, HomeTabState>((ref) {
+    StateNotifierProvider.autoDispose<HomeTabViewModel, HomeTabState>((ref) {
   final postRepository = ref.watch(postRepositoryProvider);
   final addressRepository = ref.watch(addressRepositoryProvider);
   final postSummaryRepository = ref.watch(postSummaryRepositoryProvider);

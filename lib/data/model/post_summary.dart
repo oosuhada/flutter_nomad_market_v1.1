@@ -57,9 +57,11 @@ class PostSummary {
       thumbnail: FileModel.fromJson(json['thumbnail']),
       type: PostType.values.firstWhere(
         (e) => e.toString() == 'PostType.${json['type']}',
+        orElse: () => PostType.unknown,
       ),
       status: PostStatus.values.firstWhere(
         (e) => e.toString() == 'PostStatus.${json['status']}',
+        orElse: () => PostStatus.unknown,
       ),
       likes: json['likes'],
       address: Address.fromJson(json['address']),
@@ -129,6 +131,8 @@ class PostSummary {
         return "예약중";
       case PostStatus.completed:
         return "거래완료";
+      case PostStatus.unknown:
+        return "알 수 없음";
     }
   }
 }
