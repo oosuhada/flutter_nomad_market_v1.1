@@ -8,6 +8,7 @@ import 'package:flutter_market_app/ui/pages/home/home_page.dart';
 import 'package:flutter_market_app/ui/pages/join/join_view_model.dart';
 import 'package:flutter_market_app/ui/pages/login/login_view_model.dart';
 import 'package:flutter_market_app/ui/pages/welcome/welcome_page.dart';
+import 'package:flutter_market_app/ui/user_global_view_model.dart';
 import 'package:flutter_market_app/ui/widgets/join_text_form_field.dart';
 import 'package:flutter_market_app/ui/widgets/nickname_text_form_field.dart';
 import 'package:flutter_market_app/ui/widgets/pw_text_form_field.dart';
@@ -149,44 +150,85 @@ class _JoinPageState extends ConsumerState<JoinPage> {
   //onJoin 메서드 수정
   void onJoin() async {
     if (formKey.currentState?.validate() ?? false) {
+      print("===== 회원가입 시도 시작 =====");
       final email = emailController.text.trim();
       final password = pwController.text.trim();
       final nickname = nicknameController.text.trim();
 
       if (email.isEmpty || password.isEmpty || nickname.isEmpty) {
+        print("필수 필드 누락");
         SnackbarUtil.showSnackBar(context, '회원가입에 실패하였습니다');
         return;
       }
 
-      // viewModel을 직접 참조하도록 수정
-      final viewModel = ref.read(joinViewModel.notifier);
-      final result = await viewModel.join(
-        nickname: nickname,
-        email: email,
-        password: password,
-        addressFullName: selectedAddress,
-        profileImageUrl: imageUrl ?? '',
-        language: selectedLanguage.split(' ')[0].toLowerCase(), // 형식 변환
-        currency: selectedCurrency.split(' ')[0], // 형식 변환
-      );
-
-      if (result == true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('회원가입이 성공적으로 완료되었습니다'),
-            duration: Duration(seconds: 3),
-          ),
+      try {
+        final viewModel = ref.read(joinViewModel.notifier);
+        print("회원가입 요청 시작");
+        final result = await viewModel.join(
+          nickname: nickname,
+          email: email,
+          password: password,
+          addressFullName: selectedAddress,
+          profileImageUrl: imageUrl ?? '',
+          language: selectedLanguage.split(' ')[0].toLowerCase(),
+          currency: selectedCurrency.split(' ')[0],
         );
 
-        await Future.delayed(Duration(seconds: 2));
+        if (result == true) {
+          print("회원가입 성공");
 
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage()),
-          (route) => false,
-        );
-      } else {
-        SnackbarUtil.showSnackBar(context, '회원가입에 실패하였습니다');
+          // 사용자 정보 초기화 추가
+          print("사용자 정보 초기화 시작");
+          final userVM = ref.read(userGlobalViewModel.notifier);
+          await userVM.initUserData();
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('회원가입이 성공적으로 완료되었습니다'),
+                duration: Duration(seconds: 2),
+              ),
+            );
+
+            await Future.delayed(Duration(seconds: 2));
+
+            if (mounted) {
+              print("홈페이지로 이동");
+              Navigator.of(context).pushReplacement(
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) =>
+                      HomePage(),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                    var curve = Curves.easeInOut;
+                    var fadeAnimation = Tween(begin: 0.0, end: 1.0).animate(
+                      CurvedAnimation(parent: animation, curve: curve),
+                    );
+                    var scaleAnimation = Tween(begin: 0.1, end: 1.0).animate(
+                      CurvedAnimation(parent: animation, curve: curve),
+                    );
+                    return FadeTransition(
+                      opacity: fadeAnimation,
+                      child: ScaleTransition(
+                        scale: scaleAnimation,
+                        child: child,
+                      ),
+                    );
+                  },
+                  transitionDuration: Duration(milliseconds: 500),
+                ),
+              );
+            }
+          }
+        } else {
+          print("회원가입 실패");
+          SnackbarUtil.showSnackBar(context, '회원가입에 실패하였습니다');
+        }
+      } catch (e, stackTrace) {
+        print("회원가입 중 오류 발생");
+        print("에러: $e");
+        print("스택트레이스: $stackTrace");
+        SnackbarUtil.showSnackBar(context, '회원가입 중 오류가 발생했습니다');
       }
     }
   }

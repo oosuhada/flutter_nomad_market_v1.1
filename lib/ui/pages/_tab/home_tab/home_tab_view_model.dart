@@ -381,55 +381,71 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
   Future<void> updateDefaultAddress(String cityName) async {
     print("===== 기본 주소 업데이트 시작 =====");
     print("업데이트할 도시명: $cityName");
-    print(
-        "현재 주소 목록: ${state.addresses.map((e) => '${e.cityKR}(${e.defaultYn})')}");
 
     try {
-      // serviceableAreas에서 해당 도시의 국가 정보 찾기
+      // serviceableAreas에서 도시 정보 찾기
       final cityInfo = Address.serviceableAreas.firstWhere(
         (area) => area['cityKR'] == cityName,
         orElse: () => {
           'cityKR': cityName,
           'cityEN': '',
-          'countryKR': '대한민국', // 기본값
-          'countryEN': 'Korea'
+          'countryKR': '대한민국',
+          'countryEN': 'Korea',
+          'flag': 'KR'
         },
       );
 
+      print("도시 정보 조회 결과:");
+      print("- 도시(KR): ${cityInfo['cityKR']}");
+      print("- 국가(KR): ${cityInfo['countryKR']}");
+      print("- 도시(EN): ${cityInfo['cityEN']}");
+      print("- 국가(EN): ${cityInfo['countryEN']}");
+
+      // 새로운 주소 객체 생성 (항상 최신 정보로)
+      final updatedAddress = Address(
+        id: '', // 새 ID 또는 기존 ID 유지
+        fullNameKR: '${cityInfo['cityKR']}, ${cityInfo['countryKR']}',
+        fullNameEN: '${cityInfo['cityEN']}, ${cityInfo['countryEN']}',
+        cityKR: cityInfo['cityKR']!,
+        cityEN: cityInfo['cityEN']!,
+        countryKR: cityInfo['countryKR']!,
+        countryEN: cityInfo['countryEN']!,
+        defaultYn: true,
+        isServiceAvailable: true,
+      );
+
+      print("생성된 주소 객체:");
+      print("- 전체 이름(KR): ${updatedAddress.fullNameKR}");
+      print("- 전체 이름(EN): ${updatedAddress.fullNameEN}");
+
+      // 기존 목록에서 해당 도시 찾기
       final existingAddressIndex =
           state.addresses.indexWhere((addr) => addr.cityKR == cityName);
       List<Address> updatedAddresses;
 
       if (existingAddressIndex >= 0) {
-        print("기존 주소 목록에서 발견: $cityName (${cityInfo['countryKR']})");
-        // 기존 주소가 있는 경우, defaultYn만 업데이트
+        print("기존 주소 업데이트: ${cityName}");
+        // 기존 주소들의 defaultYn을 false로 설정하고, 선택된 주소는 새로운 정보로 업데이트
         updatedAddresses = state.addresses.map((address) {
-          return address.copyWith(defaultYn: address.cityKR == cityName);
+          if (address.cityKR == cityName) {
+            return updatedAddress; // 완전히 새로운 주소 객체로 교체
+          } else {
+            return address.copyWith(defaultYn: false);
+          }
         }).toList();
       } else {
-        print("새로운 주소 추가: $cityName (${cityInfo['countryKR']})");
-        // 새로운 주소 생성 (serviceableAreas의 정보 사용)
-        final newAddress = Address(
-          id: '',
-          fullNameKR: '$cityName, ${cityInfo['countryKR']}',
-          fullNameEN: '${cityInfo['cityEN']}, ${cityInfo['countryEN']}',
-          cityKR: cityName,
-          cityEN: cityInfo['cityEN'] ?? '',
-          countryKR: cityInfo['countryKR'] ?? '대한민국',
-          countryEN: cityInfo['countryEN'] ?? 'Korea',
-          defaultYn: true,
-          isServiceAvailable: true,
-        );
-
+        print("새로운 주소 추가: ${cityName}");
         // 기존 주소들의 defaultYn을 false로 설정하고 새 주소 추가
         updatedAddresses = state.addresses
             .map((address) => address.copyWith(defaultYn: false))
             .toList()
-          ..add(newAddress);
+          ..add(updatedAddress);
       }
 
       print(
-          "업데이트될 주소 목록: ${updatedAddresses.map((e) => '${e.cityKR}, ${e.countryKR}(${e.defaultYn})')}");
+          "업데이트 전 주소 목록: ${state.addresses.map((e) => '${e.cityKR}, ${e.countryKR}(${e.defaultYn})')}");
+      print(
+          "업데이트 후 주소 목록: ${updatedAddresses.map((e) => '${e.cityKR}, ${e.countryKR}(${e.defaultYn})')}");
 
       // 상태 업데이트
       state = state.copyWith(addresses: updatedAddresses);
@@ -438,8 +454,6 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
       await fetchPosts();
 
       print("기본 주소 업데이트 완료");
-      print(
-          "최종 주소 목록: ${state.addresses.map((e) => '${e.cityKR}, ${e.countryKR}(${e.defaultYn})')}");
     } catch (e, stack) {
       print("기본 주소 업데이트 중 에러 발생:");
       print("에러: $e");
