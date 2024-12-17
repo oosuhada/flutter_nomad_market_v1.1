@@ -134,16 +134,14 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
 
           // 게시글 로드
           final posts = await postSummaryRepository.getAllProducts();
-          if (posts != null) {
-            state = state.copyWith(
-              posts: posts,
-              isLoading: false,
-              hasMore: posts.length >= pageSize,
-            );
-            print("초기 데이터 로드 완료:");
-            print("- 게시글 수: ${posts.length}");
-            print("- 주소 정보: ${state.addresses.first.fullNameKR}");
-          }
+          state = state.copyWith(
+            posts: posts,
+            isLoading: false,
+            hasMore: posts.length >= pageSize,
+          );
+          print("초기 데이터 로드 완료:");
+          print("- 게시글 수: ${posts.length}");
+          print("- 주소 정보: ${state.addresses.first.fullNameKR}");
         }
       } else {
         print("로그인된 사용자 정보 없음 - 초기 데이터 로드 건너뜀");
