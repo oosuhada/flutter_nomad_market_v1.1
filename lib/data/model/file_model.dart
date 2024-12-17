@@ -7,11 +7,11 @@
 //   }
 
 class FileModel {
-  int id;
-  String url;
-  String originName;
-  String contentType;
-  DateTime createdAt;
+  final String id;
+  final String url;
+  final String originName;
+  final String contentType;
+  final String createdAt;
 
   FileModel({
     required this.id,
@@ -21,6 +21,14 @@ class FileModel {
     required this.createdAt,
   });
 
+  // Firebase Storage URL 정규화
+  String get normalizedUrl {
+    if (url.startsWith('https://firebasestorage.googleapis.com')) {
+      return url;
+    }
+    return 'files/$url';
+  }
+
   // fromJson 생성자
   FileModel.fromJson(Map<String, dynamic> map)
       : this(
@@ -28,7 +36,7 @@ class FileModel {
           url: map['url'],
           originName: map['originName'],
           contentType: map['contentType'],
-          createdAt: DateTime.parse(map['createdAt']),
+          createdAt: map['createdAt'],
         );
 
   // toJson 메서드
@@ -38,7 +46,7 @@ class FileModel {
       'url': url,
       'originName': originName,
       'contentType': contentType,
-      'createdAt': createdAt.toIso8601String(),
+      'createdAt': createdAt,
     };
   }
 }

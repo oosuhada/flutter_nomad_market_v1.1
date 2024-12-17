@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_market_app/ui/widgets/home_tab_list_view.dart';
+import 'package:flutter_market_app/ui/pages/_tab/home_tab/widgets/home_tab_list_view.dart';
 
 class WishListPage extends StatelessWidget {
   @override

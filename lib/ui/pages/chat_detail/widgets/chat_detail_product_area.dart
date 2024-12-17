@@ -32,7 +32,7 @@ class ChatDetailProductArea extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(state.chatRoom!.product.title),
+              Text(state.chatRoom!.postId),
               SizedBox(height: 2),
               Text(DateTimeUtils.formatString(state.chatRoom!.createdAt)),
             ],
@@ -42,3 +42,5 @@ class ChatDetailProductArea extends StatelessWidget {
     );
   }
 }
+
+

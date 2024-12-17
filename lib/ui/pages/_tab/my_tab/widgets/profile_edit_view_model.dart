@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_market_app/data/model/user.dart';
@@ -11,7 +12,7 @@ class ProfileEditViewModel extends StateNotifier<User?> {
   final userRepository = UserRepository();
 
   Future<void> initUserData() async {
-    final userData = await userRepository.myInfo();
+    final userData = await userRepository.getCurrentUserInfo();
     state = userData;
   }
 
@@ -25,21 +26,21 @@ class ProfileEditViewModel extends StateNotifier<User?> {
       filename: filename,
       mimeType: mimeType,
     );
-
-    if (state != null) {
-      state = state!.copyWith(profileImage: fileModel);
+    if (state != null && fileModel != null) {
+      state = state!.copyWith(profileImageUrl: fileModel.url);
     }
   }
 
   Future<bool> updateProfile({
     required String nickname,
+    File? imageFile,
   }) async {
     if (state == null) return false;
 
     final result = await userRepository.updateProfile(
-      username: state!.username, // Ensure this is a string
+      userId: state!.userId, // Ensure this is a string
       nickname: nickname,
-      profileImageId: state!.profileImage.id,
+      profileImageUrl: state!.profileImageUrl,
     );
 
     if (result) {

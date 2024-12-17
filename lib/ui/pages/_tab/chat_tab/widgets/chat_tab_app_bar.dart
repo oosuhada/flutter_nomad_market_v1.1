@@ -4,7 +4,9 @@ class ChatTabAppBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      title: Text('채팅'),
+      title: Center(
+        child: Text('채팅'),
+      ),
     );
   }
 }

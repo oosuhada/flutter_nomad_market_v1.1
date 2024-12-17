@@ -1,16 +1,19 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_market_app/data/model/product_category.dart';
-import 'package:flutter_market_app/data/repository/base_remote_repository.dart';
 
-class ProductCategoryRepository extends BaseRemoteRepository {
+class ProductCategoryRepository {
+  final firestore = FirebaseFirestore.instance;
+
   Future<List<ProductCategory>?> getCategoryList() async {
-    final response = await client.get('/api/product/category');
-    if (response.statusCode == 200) {
-      final content = response.data['content'];
-      return List.from(content)
-          .map((e) => ProductCategory.fromJson(e))
+    try {
+      final querySnapshot =
+          await firestore.collection('product_categories').get();
+      return querySnapshot.docs
+          .map((doc) => ProductCategory.fromJson(doc.data()))
           .toList();
+    } catch (e) {
+      print('Error fetching product categories: $e');
+      return null;
     }
-
-    return null;
   }
 }

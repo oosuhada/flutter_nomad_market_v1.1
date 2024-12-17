@@ -1,37 +1,40 @@
-//       {
-//         "id": 0,
-//         "messageType": "SENDER_TO_PRODUCT_OWNER",
-//         "content": "안녕하세요. 네고 가능할까요?",
-//         "createdAt": "2024-11-13T16:48:35.131Z"
-//       }
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ChatMessage {
-  int id;
-  String messageType;
-  String content;
-  DateTime createdAt;
+  String messageId;
+  String senderId;
+  String originalContent;
+  String translatedContent;
+  DateTime timestamp;
+  bool isRead;
 
   ChatMessage({
-    required this.id,
-    required this.messageType,
-    required this.content,
-    required this.createdAt,
+    required this.messageId,
+    required this.senderId,
+    required this.originalContent,
+    required this.translatedContent,
+    required this.timestamp,
+    required this.isRead,
   });
 
   ChatMessage.fromJson(Map<String, dynamic> map)
       : this(
-          id: map['id'],
-          messageType: map['messageType'],
-          content: map['content'],
-          createdAt: DateTime.parse(map['createdAt']),
+          messageId: map['messageId'],
+          senderId: map['senderId'],
+          originalContent: map['originalContent'],
+          translatedContent: map['translatedContent'],
+          timestamp: (map['timestamp'] as Timestamp).toDate(),
+          isRead: map['isRead'],
         );
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'messageType': messageType,
-      'contetnt': content,
-      'createdAt': createdAt.toIso8601String(),
+      'messageId': messageId,
+      'senderId': senderId,
+      'originalContent': originalContent,
+      'translatedContent': translatedContent,
+      'timestamp': Timestamp.fromDate(timestamp),
+      'isRead': isRead,
     };
   }
 }

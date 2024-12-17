@@ -1,180 +1,162 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_market_app/data/repository/post_repository.dart';
-import 'package:flutter_market_app/firebase_options.dart';
-import 'package:flutter_market_app/ui/pages/chat_detail/chat_detail_page.dart';
-import 'package:flutter_market_app/ui/pages/home/home_page.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_market_app/ui/pages/address_search/address_search_page.dart';
+import 'package:flutter_market_app/ui/pages/currency_search/currency_search_page.dart';
 import 'package:flutter_market_app/ui/pages/join/join_page.dart';
-import 'package:flutter_market_app/ui/pages/welcome/welcome_page.dart';
+import 'package:flutter_market_app/ui/pages/language_search/language_search_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_market_app/firebase_options.dart';
+import 'package:flutter_market_app/ui/pages/welcome/loading_page.dart';
+import 'package:flutter_market_app/ui/pages/welcome/welcome_page.dart';
+import 'package:flutter_market_app/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
-  // ProviderScope 로 앱을 감싸서 RiverPod이 ViewModel 관리할 수 있게 선언
-  runApp(ProviderScope(child: MyApp()));
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  // main.dart
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.light,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple.shade900),
-        highlightColor: Colors.purple.shade900,
-        scaffoldBackgroundColor: const Color.fromARGB(255, 254, 248, 245),
-        appBarTheme: AppBarTheme(
-          centerTitle: false,
-          backgroundColor: const Color.fromARGB(255, 254, 248, 245),
-          titleTextStyle: TextStyle(
-            fontSize: 18,
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ButtonStyle(
-            foregroundColor:
-                WidgetStatePropertyAll(Color.fromARGB(255, 254, 248, 245)),
-            backgroundColor: WidgetStatePropertyAll(Colors.purple.shade900),
-            minimumSize: WidgetStatePropertyAll(Size.fromHeight(52)),
-            textStyle: WidgetStatePropertyAll(
-              TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            shape: WidgetStatePropertyAll(
-              RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          hintStyle: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey,
-          ),
-          contentPadding: EdgeInsets.symmetric(
-            vertical: 16,
-            horizontal: 20,
-          ),
-          border: MaterialStateOutlineInputBorder.resolveWith((states) {
-            if (states.contains(WidgetState.focused)) {
-              return OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(
-                  color: Colors.grey,
-                  width: 2,
-                ),
-              );
-            }
-            if (states.contains(WidgetState.error)) {
-              return OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(
-                  color: Colors.red[100]!,
-                  width: 2,
-                ),
-              );
-            }
-            return OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: Colors.grey[300]!,
-                width: 1,
-              ),
-            );
-          }),
-        ),
-      ),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.purple.shade900,
-          brightness: Brightness.dark,
-        ),
-        highlightColor: Colors.purple.shade900,
-        scaffoldBackgroundColor: Colors.grey[900],
-        appBarTheme: AppBarTheme(
-          centerTitle: false,
-          backgroundColor: Colors.grey[900],
-          titleTextStyle: TextStyle(
-            fontSize: 18,
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ButtonStyle(
-            foregroundColor: WidgetStatePropertyAll(Colors.white),
-            backgroundColor: WidgetStatePropertyAll(Colors.purple.shade900),
-            minimumSize: WidgetStatePropertyAll(Size.fromHeight(52)),
-            textStyle: WidgetStatePropertyAll(
-              TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            shape: WidgetStatePropertyAll(
-              RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            shadowColor: WidgetStatePropertyAll(Colors.black.withOpacity(0.5)),
-            elevation: WidgetStatePropertyAll(8),
-          ),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          hintStyle: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey[400],
-          ),
-          contentPadding: EdgeInsets.symmetric(
-            vertical: 16,
-            horizontal: 20,
-          ),
-          border: MaterialStateOutlineInputBorder.resolveWith((states) {
-            if (states.contains(WidgetState.focused)) {
-              return OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(
-                  color: Colors.grey[400]!,
-                  width: 2,
-                ),
-              );
-            }
-            if (states.contains(WidgetState.error)) {
-              return OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(
-                  color: Colors.red[300]!,
-                  width: 2,
-                ),
-              );
-            }
-            return OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: BorderSide(
-                color: Colors.grey[600]!,
-                width: 1,
-              ),
-            );
-          }),
-        ),
-      ),
+      theme: AppTheme.lightTheme(),
+      darkTheme: AppTheme.darkTheme(),
       themeMode: ThemeMode.system,
-      home: WelcomePage(),
+      home: FutureBuilder(
+        future: Future.delayed(const Duration(seconds: 3)), // 로딩 화면 표시 시간
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return LoadingPage();
+          } else {
+            return WelcomePage(); // 시작 화면을 WelcomePage로 유지
+          }
+        },
+      ),
+      onGenerateRoute: (settings) {
+        return PageRouteBuilder(
+          settings: settings,
+          pageBuilder: (context, animation, secondaryAnimation) {
+            final page = _getPageFromRoute(settings.name!);
+            return page;
+          },
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            var begin = 0.0;
+            var end = 1.0;
+            var curve = Curves.easeInOut;
+
+            var fadeAnimation = Tween(begin: begin, end: end).animate(
+              CurvedAnimation(parent: animation, curve: curve),
+            );
+
+            var scaleAnimation = Tween(begin: 0.5, end: 1.0).animate(
+              CurvedAnimation(parent: animation, curve: curve),
+            );
+
+            return FadeTransition(
+              opacity: fadeAnimation,
+              child: ScaleTransition(
+                scale: scaleAnimation,
+                child: child,
+              ),
+            );
+          },
+          transitionDuration: Duration(milliseconds: 300),
+        );
+      },
+    );
+  }
+
+// 경로별로 해당 페이지를 반환
+  Widget _getPageFromRoute(String route) {
+    switch (route) {
+      case '/language-search':
+        return const LanguageSearchPage();
+      case '/address-search':
+        return const AddressSearchPage(selectedLanguage: 'English');
+      case '/currency-search':
+        return const CurrencySearchPage(
+            selectedLanguage: 'USD', selectedAddress: '123 Main St');
+      case '/join':
+        return JoinPage(
+          language: 'Selected Language',
+          address: 'Selected Address',
+          currency: 'Selected Currency',
+        );
+      default:
+        return const WelcomePage();
+    }
+  }
+}
+
+// 커스텀 애니메이션을 위한 PageRouteTransition 위젯
+class PageRouteTransition extends StatelessWidget {
+  final Widget child;
+  const PageRouteTransition({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return PageTransition(
+      child: child,
+    );
+  }
+}
+
+class PageTransition extends StatefulWidget {
+  final Widget child;
+  const PageTransition({super.key, required this.child});
+
+  @override
+  State<PageTransition> createState() => _PageTransitionState();
+}
+
+class _PageTransitionState extends State<PageTransition>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1000), // 애니메이션 시간을 1초로 늘림
+      vsync: this,
+    );
+
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeIn, // 부드러운 시작을 위해 easeIn 커브 사용
+    );
+
+    // 약간의 지연 후 애니메이션 시작
+    Future.delayed(Duration(milliseconds: 100), () {
+      _controller.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Opacity(
+          opacity: _animation.value,
+          child: widget.child,
+        );
+      },
     );
   }
 }

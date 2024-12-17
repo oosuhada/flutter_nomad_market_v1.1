@@ -5,6 +5,7 @@ class MyTabAppBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppBar(
       title: Text('마이페이지'),
+      centerTitle: true,
     );
   }
 }
