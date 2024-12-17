@@ -18,7 +18,7 @@ class UserGlobalViewModel extends StateNotifier<User?> {
         print("- userId: ${userData.userId}");
         print("- email: ${userData.email}");
         print("- nickname: ${userData.nickname}");
-        print("- address: ${userData.address.fullName}");
+        print("- address: ${userData.address.fullNameKR}");
 
         // 상태 업데이트
         state = userData;

@@ -30,13 +30,16 @@ class AddressSearchViewModel extends AutoDisposeNotifier<List<Address>> {
 
   Future<List<Address>> searchByName(String query, BuildContext context) async {
     try {
-      List<Address> result =
-          await addressSearchRepository.findByName(query, context);
-      if (result.isEmpty) {
+      // 단일 Address가 아닌 List<Address>로 반환하도록 수정
+      Address? result = await addressSearchRepository.searchByName(context,
+          cityWithState: '', country: '');
+      if (result == null) {
         print('검색 결과가 없습니다.');
+        return [];
       }
-      state = result;
-      return result;
+      final resultList = [result]; // 단일 결과를 리스트로 변환
+      state = resultList;
+      return resultList;
     } catch (e) {
       print('검색 중 오류 발생: $e');
       state = [];
@@ -49,8 +52,30 @@ class AddressSearchViewModel extends AutoDisposeNotifier<List<Address>> {
       final result = await mapboxRepository.findByLatLng(lat, lng);
       if (result.isEmpty) {
         print('위치에 대한 결과가 없습니다.');
+        state = [];
+        return;
       }
-      state = result;
+
+      // mapbox API 결과를 새로운 Address 모델 구조에 맞게 변환
+      final addresses = result.map((location) {
+        final bool isServiceAvailable = Address.checkServiceAvailability(
+          location.cityKR,
+          location.countryKR,
+        );
+
+        return Address(
+          id: '',
+          fullNameKR: '${location.cityKR}, ${location.countryKR}',
+          fullNameEN: '${location.cityEN}, ${location.countryEN}',
+          cityKR: location.cityKR,
+          cityEN: location.cityEN,
+          countryKR: location.countryKR,
+          countryEN: location.countryEN,
+          isServiceAvailable: isServiceAvailable,
+        );
+      }).toList();
+
+      state = addresses;
     } catch (e) {
       print('위치 검색 중 오류 발생: $e');
       state = [];

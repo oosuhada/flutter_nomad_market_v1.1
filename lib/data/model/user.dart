@@ -1,16 +1,3 @@
-// {
-//     "id": 1,
-//     "username": "tester",
-//     "nickname": "오상구",
-//     "profileImage": {
-//       "id": 1,
-//       "url": "http://localhost:8080/api/file/0e78ead5-cf18-465b-8f23-c1342a26fa6d",
-//       "originName": "sanggoo.jpeg",
-//       "contentType": "image/jpeg",
-//       "createdAt": "2024-11-12T15:43:19.017Z"
-//     }
-//   }
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_market_app/data/model/address.dart';
 
@@ -18,7 +5,44 @@ enum UserStatus { active, inactive, blocked }
 
 enum SignInMethod { email, google }
 
-// user.dart
+class ProfileImageUrlHelper {
+  static const String defaultProfileImageUrl = '';
+  static const String storageBasePath = 'files/';
+
+  static String normalizeStorageUrl(String? url) {
+    if (url == null || url.isEmpty) {
+      return defaultProfileImageUrl;
+    }
+
+    if (url.startsWith('https://firebasestorage.googleapis.com')) {
+      return url;
+    }
+
+    if (url.startsWith(storageBasePath)) {
+      return url;
+    }
+
+    return '$storageBasePath$url';
+  }
+
+  // 파일 이름으로부터 Storage 경로 생성
+  static String createStoragePath(String filename) {
+    // 파일명에 경로가 포함되어 있는 경우 처리
+    if (filename.startsWith(storageBasePath)) {
+      return filename;
+    }
+
+    // 파일명에서 특수문자 및 공백 제거
+    final sanitizedFilename = filename.replaceAll(RegExp(r'[^\w\s\-.]'), '');
+
+    // 타임스탬프를 추가하여 고유한 파일명 생성
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final uniqueFilename = '${timestamp}_$sanitizedFilename';
+
+    return '$storageBasePath$uniqueFilename';
+  }
+}
+
 class User {
   final String userId;
   final String email;
@@ -37,14 +61,16 @@ class User {
     required this.email,
     this.password,
     required this.nickname,
-    required this.profileImageUrl,
+    required String profileImageUrl,
     required this.preferences,
     required this.signInMethod,
     required this.createdAt,
     required this.lastLoginAt,
     required status,
     required this.address,
-  }) : this.status = UserStatus.values.firstWhere(
+  })  : this.profileImageUrl =
+            ProfileImageUrlHelper.normalizeStorageUrl(profileImageUrl),
+        this.status = UserStatus.values.firstWhere(
             (e) => e.toString() == 'UserStatus.$status',
             orElse: () => UserStatus.active);
 
@@ -52,11 +78,9 @@ class User {
     try {
       print("User.fromJson 입력 데이터: $json");
 
-      // preferences가 없는 경우 기본값 설정
       Map<String, dynamic> preferencesData = json['preferences'] ??
           {'language': 'ko', 'currency': 'KRW', 'homeAddress': ''};
 
-      // Timestamp 타입 체크 및 변환
       DateTime getDateTime(dynamic value) {
         if (value is Timestamp) {
           return value.toDate();
@@ -98,7 +122,7 @@ class User {
       'signInMethod': signInMethod,
       'createdAt': Timestamp.fromDate(createdAt),
       'lastLoginAt': Timestamp.fromDate(lastLoginAt),
-      'status': status,
+      'status': status.toString().split('.').last,
       'address': address.toJson(),
     };
   }
@@ -126,7 +150,7 @@ class User {
       signInMethod: signInMethod ?? this.signInMethod,
       createdAt: createdAt ?? this.createdAt,
       lastLoginAt: lastLoginAt ?? this.lastLoginAt,
-      status: status ?? this.status,
+      status: status ?? this.status.toString().split('.').last,
       address: address ?? this.address,
     );
   }
@@ -171,35 +195,3 @@ class Preferences {
     );
   }
 }
-
-// class User {
-//   int id;
-//   String username;
-//   String nickname;
-//   FileModel profileImage;
-
-//   User({
-//     required this.id,
-//     required this.username,
-//     required this.nickname,
-//     required this.profileImage,
-//   });
-
-//   // 1. fromJson 네임드 생성자
-//   User.fromJson(Map<String, dynamic> map)
-//       : this(
-//           id: map['id'],
-//           username: map['username'],
-//           nickname: map['nickname'],
-//           profileImage: FileModel.fromJson(map['profileImage']),
-//         );
-
-//   // 2. toJson 메서드
-//   Map<String, dynamic> toJson() {
-//     return {
-//       'id': id,
-//       'username': username,
-//       'nickname': nickname,
-//       'profileImage': profileImage.toJson(),
-//     };
-//   }

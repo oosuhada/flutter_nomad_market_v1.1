@@ -26,9 +26,8 @@ class ProfileEditViewModel extends StateNotifier<User?> {
       filename: filename,
       mimeType: mimeType,
     );
-
-    if (state != null) {
-      state = state!.copyWith(profileImageUrl: fileModel?.url);
+    if (state != null && fileModel != null) {
+      state = state!.copyWith(profileImageUrl: fileModel.url);
     }
   }
 

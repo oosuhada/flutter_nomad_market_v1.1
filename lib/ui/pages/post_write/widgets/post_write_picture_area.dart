@@ -114,13 +114,11 @@ class PostWritePictureAreaState extends ConsumerState<PostWritePictureArea> {
       padding: const EdgeInsets.only(right: 8.0),
       child: AspectRatio(
         aspectRatio: 1,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            image: DecorationImage(
-              image: FileImage(imageFile),
-              fit: BoxFit.cover,
-            ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.file(
+            imageFile,
+            fit: BoxFit.cover,
           ),
         ),
       ),

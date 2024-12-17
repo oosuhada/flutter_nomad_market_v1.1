@@ -13,11 +13,6 @@ class MapboxRepository {
   final String _accessToken =
       'pk.eyJ1Ijoibm9tYWRtYXJrZXQiLCJhIjoiY200bWptcndxMDBiOTJrcHJ0Nm41c3hlNSJ9.mGmhE83zkJuDsX0yaALg5w';
 
-//
-//
-
-  // findByLatLng related functions
-
   Future<List<Address>> findByLatLng(double lat, double lng) async {
     print('Starting findByLatLng with lat: $lat, lng: $lng');
     try {
@@ -51,6 +46,7 @@ class MapboxRepository {
         queryParameters: {
           'access_token': _accessToken,
           'language': language,
+          'types': 'place', // city level results
         },
       );
     } catch (e) {
@@ -67,68 +63,52 @@ class MapboxRepository {
     final featureKR = featuresKR[0];
     final featureEN = featuresEN[0];
 
-    final fullNameKR = _buildFullAddressByLatLng(featureKR);
-    final fullNameEN = _buildFullAddressByLatLng(featureEN, isEnglish: true);
+    // Mapbox 응답에서 context 정보 추출
+    final contextKR = featureKR['context'] ?? [];
+    final contextEN = featureEN['context'] ?? [];
+
+    // 도시, 국가 정보 추출
+    String cityKR = featureKR['text'] ?? '';
+    String cityEN = featureEN['text'] ?? '';
+    String countryKR = '';
+    String countryEN = '';
+
+    // context에서 국가 정보 찾기
+    for (var ctx in contextKR) {
+      if (ctx['id']?.startsWith('country.') ?? false) {
+        countryKR = ctx['text'] ?? '';
+        break;
+      }
+    }
+    for (var ctx in contextEN) {
+      if (ctx['id']?.startsWith('country.') ?? false) {
+        countryEN = ctx['text'] ?? '';
+        break;
+      }
+    }
+
+    // 전체 주소 문자열 생성
+    final fullNameKR = '$cityKR, $countryKR';
+    final fullNameEN = '$cityEN, $countryEN';
+
+    // 서비스 가능 여부 확인
+    bool isServiceAvailable =
+        Address.checkServiceAvailability(cityKR, countryKR);
+
+    print('Processed location - KR: $fullNameKR, EN: $fullNameEN');
 
     return [
       Address(
         id: '',
-        fullName: fullNameKR,
-        displayNameEN: fullNameEN,
-        displayNameKR: fullNameKR,
-        city: _extractCityByLatLng(featureKR),
-        state: '',
-        country: '',
+        fullNameKR: fullNameKR,
+        fullNameEN: fullNameEN,
+        cityKR: cityKR,
+        cityEN: cityEN,
+        countryKR: countryKR,
+        countryEN: countryEN,
         defaultYn: true,
+        isServiceAvailable: isServiceAvailable,
       )
     ];
-  }
-
-  String _buildFullAddressByLatLng(Map<String, dynamic> feature,
-      {bool isEnglish = false}) {
-    final List<String> addressParts = [];
-    final context = feature['context'] as List?;
-    final languageSuffix = isEnglish ? 'en' : 'ko';
-
-    String? cityName;
-    String? regionName;
-    String countryName = isEnglish ? 'South Korea' : '대한민국';
-
-    if (context != null) {
-      for (var item in context) {
-        final itemId = item['id'].toString();
-        final itemText = item['text_$languageSuffix'] ?? item['text'];
-
-        if (itemId.startsWith('place') && cityName == null) {
-          cityName = itemText;
-        } else if (itemId.startsWith('region') && regionName == null) {
-          regionName = itemText;
-        }
-      }
-    }
-
-    if (cityName != null) {
-      addressParts.add(cityName);
-    }
-
-    if (regionName != null && regionName != cityName) {
-      addressParts.add(regionName);
-    }
-
-    addressParts.add(countryName);
-
-    return addressParts.join(', ');
-  }
-
-  String _extractCityByLatLng(Map<String, dynamic> feature) {
-    final context = feature['context'] as List?;
-    if (context != null) {
-      for (var item in context) {
-        if (item['id'].startsWith('place')) {
-          return item['text_ko'] ?? item['text'];
-        }
-      }
-    }
-    return feature['text_ko'] ?? feature['text'];
   }
 }

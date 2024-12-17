@@ -4,6 +4,7 @@ import 'package:flutter_market_app/core/snackbar_util.dart';
 import 'package:flutter_market_app/ui/pages/home/home_page.dart';
 import 'package:flutter_market_app/ui/pages/login/login_view_model.dart';
 import 'package:flutter_market_app/ui/pages/social_id.dart';
+import 'package:flutter_market_app/ui/user_global_view_model.dart';
 import 'package:flutter_market_app/ui/widgets/login_text_form_field.dart';
 import 'package:flutter_market_app/ui/widgets/pw_text_form_field.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,6 +31,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     idController.dispose();
     pwController.dispose();
     super.dispose();
+  }
+
+  Future<void> initUserData() async {
+    print("사용자 정보 초기화 시작");
+    try {
+      final userVM = ref.read(userGlobalViewModel.notifier);
+      await userVM.initUserData();
+      final userData = ref.read(userGlobalViewModel);
+      print("사용자 정보 로드 완료:");
+      print("- 사용자 ID: ${userData?.userId}");
+      print("- 닉네임: ${userData?.nickname}");
+    } catch (e) {
+      print("사용자 정보 초기화 중 오류 발생: $e");
+    }
   }
 
   @override
@@ -84,20 +99,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   print("입력된 이메일: ${idController.text}");
                                   print(
                                       "비밀번호 입력됨: ${pwController.text.isNotEmpty}");
-
                                   try {
                                     final viewModel = ref.read(loginViewmodel);
                                     print("로그인 viewModel 호출");
-
                                     final loginResult = await viewModel.login(
                                       email: idController.text,
                                       password: pwController.text,
                                     );
-
                                     print("로그인 결과: $loginResult");
-
                                     if (loginResult == true) {
-                                      print("로그인 성공 - 홈페이지로 이동 시도");
+                                      print("로그인 성공 - 사용자 정보 초기화 시도");
+                                      await initUserData();
+                                      print("홈페이지로 이동 시도");
                                       if (mounted) {
                                         try {
                                           await Future.delayed(Duration(
@@ -119,6 +132,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                           print("스택트레이스: $stackTrace");
                                         }
                                       }
+                                    } else {
+                                      print("로그인 실패");
                                     }
                                   } on FirebaseAuthException catch (e, stackTrace) {
                                     print("===== Firebase 인증 에러 =====");

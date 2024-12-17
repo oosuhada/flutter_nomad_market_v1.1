@@ -21,6 +21,14 @@ class FileModel {
     required this.createdAt,
   });
 
+  // Firebase Storage URL 정규화
+  String get normalizedUrl {
+    if (url.startsWith('https://firebasestorage.googleapis.com')) {
+      return url;
+    }
+    return 'files/$url';
+  }
+
   // fromJson 생성자
   FileModel.fromJson(Map<String, dynamic> map)
       : this(

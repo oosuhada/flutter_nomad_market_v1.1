@@ -1,25 +1,112 @@
+import 'dart:async'; // Timer 클래스 사용을 위해 추가
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/ui/pages/currency_search/currency_search_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:flutter_market_app/core/geolocator_helper.dart';
 import 'package:flutter_market_app/ui/pages/address_search/address_search_view_model.dart';
-import 'package:flutter_market_app/ui/pages/join/join_page.dart';
+import 'package:flutter_market_app/data/model/address.dart';
 import 'package:location_picker_flutter_map/location_picker_flutter_map.dart';
 
-class AddressSearchPage extends StatelessWidget {
+class AddressSearchPage extends ConsumerStatefulWidget {
   final String selectedLanguage;
 
   const AddressSearchPage({Key? key, required this.selectedLanguage})
       : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    debugPrint("Building AddressSearchPage widget"); // 디버깅 메시지 추가
+  ConsumerState<AddressSearchPage> createState() => _AddressSearchPageState();
+}
 
+class _AddressSearchPageState extends ConsumerState<AddressSearchPage> {
+  OverlayEntry? _overlayEntry;
+  Timer? _timer;
+
+  void _showIOSStyleSnackbar(String message) {
+    _removeOverlay();
+
+    _overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        bottom: MediaQuery.of(context).padding.bottom + 10,
+        left: 16,
+        right: 16,
+        child: Material(
+          color: Colors.transparent,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              color: Colors.black.withOpacity(0.8),
+              child: Text(
+                message,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    Overlay.of(context).insert(_overlayEntry!);
+
+    _timer = Timer(const Duration(seconds: 5), () {
+      _removeOverlay();
+    });
+  }
+
+  void _removeOverlay() {
+    _timer?.cancel();
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+  }
+
+  @override
+  void dispose() {
+    _removeOverlay();
+    super.dispose();
+  }
+
+  void _handleAddressSelection(Address address) {
+    if (address.isServiceAvailable) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CurrencySearchPage(
+            selectedLanguage: widget.selectedLanguage,
+            selectedAddress: address.fullNameKR,
+          ),
+        ),
+      );
+    } else {
+      _showIOSStyleSnackbar('해당 지역은 현재 서비스 불가 지역입니다');
+
+      // 서비스 가능 지역 목록으로 상태 업데이트
+      final serviceableAddresses = Address.serviceableAreas
+          .map((area) => Address(
+                id: '',
+                fullNameKR: '${area['cityKR']}, ${area['countryKR']}',
+                fullNameEN: '${area['cityEN']}, ${area['countryEN']}',
+                cityKR: area['cityKR']!,
+                cityEN: area['cityEN']!,
+                countryKR: area['countryKR']!,
+                countryEN: area['countryEN']!,
+                isServiceAvailable: true,
+              ))
+          .toList();
+
+      // updateAddresses 대신 state 직접 업데이트
+      ref.read(addressSearchViewModel.notifier).state = serviceableAddresses;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // 기존의 build 메서드 내용을 유지하되, GestureDetector의 onTap을 _handleAddressSelection으로 변경
     return GestureDetector(
       onTap: () {
-        debugPrint("Unfocusing any active text fields"); // 디버깅 메시지 추가
         FocusScope.of(context).unfocus();
       },
       child: Scaffold(
@@ -31,14 +118,12 @@ class AddressSearchPage extends StatelessWidget {
               child: Column(
                 children: [
                   Consumer(builder: (context, ref, child) {
-                    debugPrint(
-                        "Initializing search field and search logic"); // 디버깅 메시지 추가
                     return Column(
                       children: [
                         const SizedBox(height: 12),
                         TextField(
                           decoration: InputDecoration(
-                            hintText: '도시, 국가로 검색 (ex. 서울, 한국)', // 필요에 따라 변경
+                            hintText: '도시, 국가로 검색 (ex. 서울, 대한민국)',
                             prefixIcon: const Icon(Icons.search),
                             border: const OutlineInputBorder(),
                             focusedBorder: OutlineInputBorder(
@@ -53,101 +138,21 @@ class AddressSearchPage extends StatelessWidget {
                                 vertical: 16, horizontal: 20),
                           ),
                           onTap: () async {
-                            debugPrint("Search field tapped"); // 디버깅 메시지 추가
-
+                            debugPrint("Search field tapped");
                             try {
                               final result = await Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) {
-                                    debugPrint(
-                                        "Navigating to FlutterLocationPicker"); // 디버깅 메시지 추가
-                                    return Scaffold(
-                                      appBar:
-                                          AppBar(title: const Text('위치 선택')),
-                                      body: FlutterLocationPicker(
-                                        initPosition: LatLong(
-                                          37.560706, // 기본 위치 (서울)
-                                          126.910531,
-                                        ),
-                                        urlTemplate: Theme.of(context)
-                                                    .brightness ==
-                                                Brightness.dark
-                                            ? 'https://api.maptiler.com/maps/darkmatter/256/{z}/{x}/{y}.png?key=X8VVOmH05lH238brX29b'
-                                            : 'https://api.maptiler.com/maps/basic-v2/256/{z}/{x}/{y}.png?key=X8VVOmH05lH238brX29b', // 테마에 따라 지도 스타일 변경
-                                        searchBarHintText:
-                                            'Seoul, South Korea', // 힌트 텍스트 수정
-                                        searchBarBackgroundColor:
-                                            getSearchBarBackgroundColor(
-                                                context),
-                                        searchBarTextColor:
-                                            getSearchBarTextColor(context),
-                                        searchBarHintColor:
-                                            getSearchBarHintColor(context),
-                                        locationButtonBackgroundColor:
-                                            getLocationButtonBackgroundColor(
-                                                context),
-                                        locationButtonsColor:
-                                            getLocationButtonIconColor(context),
-                                        zoomButtonsBackgroundColor:
-                                            getZoomButtonBackgroundColor(
-                                                context),
-                                        zoomButtonsColor:
-                                            getZoomButtonIconColor(context),
-                                        mapLoadingBackgroundColor:
-                                            getMapLoadingBackgroundColor(
-                                                context),
-                                        selectLocationButtonStyle:
-                                            ElevatedButton.styleFrom(
-                                          backgroundColor:
-                                              Theme.of(context).brightness ==
-                                                      Brightness.dark
-                                                  ? Colors.purple.shade900
-                                                  : Colors.purple
-                                                      .shade900, // 배경색 설정
-                                          foregroundColor:
-                                              Colors.white, // 텍스트 색상
-                                          padding: const EdgeInsets.symmetric(
-                                              horizontal: 20,
-                                              vertical: 12), // 내부 여백 설정
-                                          fixedSize: const Size(180,
-                                              60), // 버튼의 고정 크기 (가로 200, 세로 50)
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                                6), // 모서리 둥글게 설정
-                                          ),
-                                        ),
-
-                                        selectLocationButtonText: '위치 선택',
-                                        selectLocationButtonWidth: 340,
-                                        selectLocationButtonHeight: 52,
-                                        selectedLocationButtonTextStyle:
-                                            TextStyle(fontSize: 16),
-                                        selectLocationButtonPositionRight: 0,
-                                        selectLocationButtonPositionLeft: 0,
-                                        selectLocationButtonPositionBottom: 0,
-                                        onPicked: (PickedData pickedData) {
-                                          debugPrint(
-                                              "Location picked: ${pickedData.latLong} - ${pickedData.address}");
-                                          Navigator.pop(context, {
-                                            'latlong': pickedData.latLong,
-                                            'address': pickedData.address,
-                                          });
-
-                                          // 선택한 위치로 현재 위치 업데이트
-                                        },
-                                      ),
-                                    );
-                                  },
+                                  builder: (context) =>
+                                      _buildLocationPicker(context),
                                 ),
                               );
 
                               if (result != null) {
                                 final selectedLocation = result['latlong'];
                                 final address = result['address'];
-
                                 debugPrint(
-                                    "Selected location: $selectedLocation, Address: $address"); // 디버깅 메시지 추가
+                                    "Selected location: $selectedLocation, Address: $address");
 
                                 if (selectedLocation != null) {
                                   ref
@@ -159,21 +164,18 @@ class AddressSearchPage extends StatelessWidget {
                                 }
                               }
                             } catch (e) {
-                              debugPrint(
-                                  "Error during navigation: $e"); // 디버깅 메시지 추가
+                              debugPrint("Error during navigation: $e");
                             }
                           },
                           onChanged: (pattern) async {
-                            debugPrint(
-                                "Search pattern changed: $pattern"); // 디버깅 메시지 추가
+                            debugPrint("Search pattern changed: $pattern");
                             if (pattern.isNotEmpty) {
                               try {
                                 await ref
                                     .read(addressSearchViewModel.notifier)
                                     .searchByName(pattern, context);
                               } catch (e) {
-                                debugPrint(
-                                    "Error during search: $e"); // 디버깅 메시지 추가
+                                debugPrint("Error during search: $e");
                               }
                             }
                           },
@@ -185,44 +187,31 @@ class AddressSearchPage extends StatelessWidget {
                   Expanded(
                     child: Consumer(
                       builder: (context, ref, child) {
-                        debugPrint("Building search result list"); // 디버깅 메시지 추가
                         final addresses = ref.watch(addressSearchViewModel);
                         return ListView.builder(
                           itemCount: addresses.length,
                           itemBuilder: (context, index) {
                             final item = addresses[index];
-                            debugPrint(
-                                "Displaying address: ${item.displayNameKR}, ${item.displayNameEN}"); // 디버깅 메시지 추가
                             return GestureDetector(
-                              onTap: () {
-                                debugPrint(
-                                    "Address tapped: ${item.fullName}"); // 디버깅 메시지 추가
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => CurrencySearchPage(
-                                      selectedLanguage: selectedLanguage,
-                                      selectedAddress: item.fullName,
-                                    ),
-                                  ),
-                                );
-                              },
+                              onTap: () => _handleAddressSelection(item),
                               child: Container(
                                 height: 70,
                                 width: double.infinity,
                                 color: Colors.transparent,
-                                alignment: Alignment.centerLeft,
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
                                     Text(
-                                      item.displayNameKR,
-                                      style: TextStyle(fontSize: 16),
+                                      item.fullNameKR,
+                                      style: const TextStyle(fontSize: 16),
                                     ),
+                                    const SizedBox(height: 4),
                                     Text(
-                                      item.displayNameEN,
-                                      style: TextStyle(
+                                      item.fullNameEN,
+                                      style: const TextStyle(
                                         fontSize: 12,
                                         color: Colors.grey,
                                       ),
@@ -239,64 +228,107 @@ class AddressSearchPage extends StatelessWidget {
                 ],
               ),
             ),
-            Positioned(
-              bottom: 30,
-              left: 0,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.all(0.0),
-                child: Consumer(builder: (context, ref, child) {
-                  debugPrint(
-                      "Initializing current location search button"); // 디버깅 메시지 추가
-                  return Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 24),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              debugPrint(
-                                  "Current location button pressed"); // 디버깅 메시지 추가
-                              try {
-                                final position =
-                                    await GeolocatorHelper.getPosition();
-                                if (position != null) {
-                                  debugPrint(
-                                      "Current location: ${position.latitude}, ${position.longitude}"); // 디버깅 메시지 추가
-                                  final viewModel =
-                                      ref.read(addressSearchViewModel.notifier);
-                                  viewModel.searchByLocation(
-                                    position.latitude,
-                                    position.longitude,
-                                  );
-                                }
-                              } catch (e) {
-                                debugPrint(
-                                    "Error getting current location: $e"); // 디버깅 메시지 추가
-                              }
-                            },
-                            child: const Text('현재 위치로 찾기'),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      Align(
-                        alignment: Alignment.center,
-                        child: const Text(
-                          'Find by current location',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                    ],
-                  );
-                }),
-              ),
-            ),
+            _buildCurrentLocationButton(context),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildLocationPicker(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('위치 선택')),
+      body: FlutterLocationPicker(
+        initPosition: LatLong(37.560706, 126.910531), // 서울 초기 위치
+        urlTemplate: Theme.of(context).brightness == Brightness.dark
+            ? 'https://api.maptiler.com/maps/basic-v2/256/{z}/{x}/{y}.png?key=X8VVOmH05lH238brX29b'
+            : 'https://api.maptiler.com/maps/basic-v2/256/{z}/{x}/{y}.png?key=X8VVOmH05lH238brX29b',
+        searchBarHintText: 'Seoul, South Korea',
+        searchBarBackgroundColor: getSearchBarBackgroundColor(context),
+        searchBarTextColor: getSearchBarTextColor(context),
+        searchBarHintColor: getSearchBarHintColor(context),
+        locationButtonBackgroundColor:
+            getLocationButtonBackgroundColor(context),
+        locationButtonsColor: getLocationButtonIconColor(context),
+        zoomButtonsBackgroundColor: getZoomButtonBackgroundColor(context),
+        zoomButtonsColor: getZoomButtonIconColor(context),
+        mapLoadingBackgroundColor: getMapLoadingBackgroundColor(context),
+        selectLocationButtonText: '위치 선택',
+        selectLocationButtonStyle: ElevatedButton.styleFrom(
+          backgroundColor: Theme.of(context).brightness == Brightness.dark
+              ? Colors.purple.shade900
+              : Colors.purple.shade900,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          fixedSize: const Size(180, 60),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(6),
+          ),
+        ),
+        selectLocationButtonWidth: 340,
+        selectLocationButtonHeight: 52,
+        selectedLocationButtonTextStyle: const TextStyle(fontSize: 16),
+        selectLocationButtonPositionRight: 0,
+        selectLocationButtonPositionLeft: 0,
+        selectLocationButtonPositionBottom: 0,
+        onPicked: (PickedData pickedData) {
+          debugPrint(
+              "Location picked: ${pickedData.latLong} - ${pickedData.address}");
+          Navigator.pop(context, {
+            'latlong': pickedData.latLong,
+            'address': pickedData.address,
+          });
+        },
+      ),
+    );
+  }
+
+  Widget _buildCurrentLocationButton(BuildContext context) {
+    return Positioned(
+      bottom: 30,
+      left: 0,
+      right: 0,
+      child: Container(
+        padding: const EdgeInsets.all(0.0),
+        child: Consumer(builder: (context, ref, child) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 24),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      try {
+                        final position = await GeolocatorHelper.getPosition();
+                        if (position != null) {
+                          debugPrint(
+                              "Current location: ${position.latitude}, ${position.longitude}");
+                          ref
+                              .read(addressSearchViewModel.notifier)
+                              .searchByLocation(
+                                position.latitude,
+                                position.longitude,
+                              );
+                        }
+                      } catch (e) {
+                        debugPrint("Error getting current location: $e");
+                      }
+                    },
+                    child: const Text('현재 위치로 찾기'),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 5),
+              const Text(
+                'Find by current location',
+                style: TextStyle(fontSize: 12),
+              ),
+              const SizedBox(height: 5),
+            ],
+          );
+        }),
       ),
     );
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_market_app/core/validator_util.dart';
 import 'package:flutter_market_app/data/model/post.dart';
+import 'package:flutter_market_app/data/model/post_summary.dart';
 import 'package:flutter_market_app/ui/pages/_tab/home_tab/home_tab_view_model.dart';
 import 'package:flutter_market_app/ui/pages/post_write/%08post_write_view_model.dart';
 import 'package:flutter_market_app/ui/pages/post_write/widgets/product_category_box.dart';
@@ -69,29 +70,90 @@ class _PostWritePageState extends ConsumerState<PostWritePage> {
   Future<void> onSubmit() async {
     print("게시글 제출 프로세스 시작");
     final vm = ref.read(postWriteViewModel(widget.post).notifier);
+    final userVM = ref.read(userGlobalViewModel);
 
-    print("로컬 이미지 업로드 시작");
-    await vm.uploadLocalImages();
-    print("로컬 이미지 업로드 완료");
+    if (userVM == null) {
+      print("사용자 정보 없음");
+      return;
+    }
 
-    // 게시글 작성 로직
-    print("게시글 업로드 시작");
-    final result = await vm.upload(
-      originalTitle: titleController.text,
-      translatedTitle: "Translated Title", // 실제 번역 로직 필요
-      price: Price(amount: int.parse(priceController.text), currency: "KRW"),
-      originalDescription: contentController.text,
-      translatedDescription: "Translated Description", // 실제 번역 로직 필요
-      location: "위치", // 실제 위치 정보 필요
-      userNickname: "닉네임", // 실제 사용자 닉네임 필요
-      userProfileImageUrl: "프로필 URL", // 실제 프로필 이미지 URL 필요
-      userHomeAddress: "주소", // 실제 사용자 주소 필요
-    );
+    try {
+      // 1. 로컬 이미지 업로드
+      print("로컬 이미지 업로드 시작");
+      final uploadedImages = await vm.uploadLocalImages();
+      print("로컬 이미지 업로드 완료: ${uploadedImages.length}개");
 
-    if (result != null) {
-      print("게시글 업로드 성공");
-    } else {
-      print("게시글 업로드 실패");
+      // 2. 로컬 PostSummary 생성
+      final localPost = PostSummary(
+        id: DateTime.now().millisecondsSinceEpoch.toString(), // 임시 ID
+        userId: userVM.userId,
+        title: titleController.text,
+        price: Price(
+          amount: int.parse(priceController.text),
+          currency: "KRW",
+        ),
+        negotiable: _isPriceNegotiable,
+        thumbnail: FileModel(
+          id: uploadedImages.isNotEmpty ? uploadedImages.first : '',
+          url: uploadedImages.isNotEmpty ? uploadedImages.first : '',
+          originName: '',
+          contentType: 'image/jpeg',
+          createdAt: DateTime.now().toIso8601String(),
+        ),
+        address: userVM.address,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+        category: '', // 카테고리 정보 추가 필요
+        likeCnt: 0,
+        status: 'ACTIVE',
+      );
+
+      // 3. 로컬 상태 업데이트 및 네비게이션
+      final homeTabVM = ref.read(homeTabViewModel.notifier);
+      homeTabVM.addLocalPost(localPost);
+
+      if (mounted) {
+        Navigator.pop(context);
+      }
+
+      // 4. 백그라운드에서 서버 업로드 진행
+      print("서버 업로드 시작");
+      final result = await vm.upload(
+        originalTitle: titleController.text,
+        translatedTitle: titleController.text, // 실제 번역 로직 필요
+        price: Price(amount: int.parse(priceController.text), currency: "KRW"),
+        originalDescription: contentController.text,
+        translatedDescription: contentController.text, // 실제 번역 로직 필요
+        location: userVM.address.fullNameKR,
+        userNickname: userVM.nickname,
+        userProfileImageUrl: userVM.profileImageUrl,
+        userHomeAddress: userVM.address.fullNameKR,
+      );
+
+      if (result != null) {
+        print("서버 업로드 성공");
+        // 서버 업로드 성공 후 홈탭 새로고침
+        await homeTabVM.refreshPosts();
+      } else {
+        print("서버 업로드 실패");
+        // 업로드 실패 시 에러 처리
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('게시글 업로드에 실패했습니다. 다시 시도해주세요.')),
+          );
+        }
+      }
+    } catch (e, stackTrace) {
+      print("게시글 처리 중 오류 발생:");
+      print("- 오류 유형: ${e.runtimeType}");
+      print("- 오류 내용: $e");
+      print("- 스택 트레이스: $stackTrace");
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('게시글 작성 중 오류가 발생했습니다')),
+        );
+      }
     }
   }
 

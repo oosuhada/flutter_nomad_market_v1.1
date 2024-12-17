@@ -1,10 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/core/image_picker_helper.dart';
+import 'package:flutter_market_app/core/snackbar_util.dart';
 import 'package:flutter_market_app/ui/pages/_tab/my_tab/widgets/profile_edit_view_model.dart';
 import 'package:flutter_market_app/ui/pages/home/home_view_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:wechat_assets_picker/wechat_assets_picker.dart';
 
@@ -33,66 +35,92 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
   }
 
   Future<void> onImageUpload() async {
+    print('onImageUpload 함수 시작');
     showCupertinoModalPopup(
       context: context,
       builder: (context) {
+        print('CupertinoActionSheet 빌더 호출');
         final theme = Theme.of(context);
         return CupertinoActionSheet(
           actions: [
             CupertinoActionSheetAction(
               onPressed: () async {
+                print('갤러리 선택 버튼 클릭');
                 Navigator.of(context).pop();
-                final pickedFile =
-                    await ImagePickerHelper.pickImageFromGallery();
-                if (pickedFile != null) {
-                  setState(() {
-                    _imageFile = File(pickedFile.path);
-                  });
-                }
+                await pickAndShowImage(ImageSource.gallery);
               },
-              child: Text(
-                '갤러리에서 선택',
-                style: TextStyle(
-                    color: theme.textTheme.bodyLarge?.color, fontSize: 16),
-              ),
+              child: Text('갤러리에서 선택',
+                  style: TextStyle(
+                      color: theme.textTheme.bodyLarge?.color, fontSize: 16)),
             ),
             CupertinoActionSheetAction(
               onPressed: () async {
+                print('카메라 촬영 버튼 클릭');
                 Navigator.of(context).pop();
-                final List<AssetEntity>? result = await AssetPicker.pickAssets(
-                  context,
-                  pickerConfig: AssetPickerConfig(),
-                );
-                if (result != null && result.isNotEmpty) {
-                  final File? file = await result.first.file;
-                  if (file != null) {
-                    setState(() {
-                      imageFile = file;
-                      imageUrl = file.path;
-                    });
-                  }
-                }
+                await pickAndShowImage(ImageSource.camera);
               },
-              child: Text(
-                '카메라로 촬영',
-                style: TextStyle(
-                    color: theme.textTheme.bodyLarge?.color, fontSize: 16),
-              ),
+              child: Text('카메라로 촬영',
+                  style: TextStyle(
+                      color: theme.textTheme.bodyLarge?.color, fontSize: 16)),
             ),
           ],
           cancelButton: CupertinoActionSheetAction(
             onPressed: () {
+              print('취소 버튼 클릭');
               Navigator.of(context).pop();
             },
-            child: Text(
-              '취소',
-              style: TextStyle(
-                  color: theme.textTheme.bodyLarge?.color, fontSize: 16),
-            ),
+            child: Text('취소',
+                style: TextStyle(
+                    color: theme.textTheme.bodyLarge?.color, fontSize: 16)),
           ),
         );
       },
     );
+    print('onImageUpload 함수 종료');
+  }
+
+  Future<void> pickAndShowImage(ImageSource source) async {
+    print('pickAndShowImage 함수 시작');
+    final XFile? pickedFile = await pickImage(source);
+    if (pickedFile != null) {
+      await showLocalImage(pickedFile);
+      await uploadImage(pickedFile);
+    }
+    print('pickAndShowImage 함수 종료');
+  }
+
+  Future<XFile?> pickImage(ImageSource source) async {
+    print('이미지 선택 시작');
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: source);
+    print('이미지 선택 완료: ${image?.path}');
+    return image;
+  }
+
+  Future<void> showLocalImage(XFile file) async {
+    print('로컬 이미지 표시 시작');
+    setState(() {
+      _imageFile = File(file.path);
+    });
+    print('로컬 이미지 표시 완료');
+  }
+
+  Future<void> uploadImage(XFile file) async {
+    print('이미지 업로드 시작');
+    try {
+      final bytes = await file.readAsBytes();
+      final fileName = file.path.split('/').last;
+      final viewModel = ref.read(profileEditViewModel.notifier);
+      await viewModel.uploadImage(
+        filename: fileName,
+        mimeType: 'image/jpeg',
+        bytes: bytes,
+      );
+      print('이미지 업로드 완료');
+    } catch (e) {
+      print('이미지 업로드 오류: $e');
+      SnackbarUtil.showSnackBar(context, '이미지 업로드에 실패했습니다');
+    }
   }
 
   void navigateToMyTab() {

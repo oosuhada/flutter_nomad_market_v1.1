@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_market_app/data/model/file_model.dart';
+import 'package:flutter_market_app/data/model/user.dart';
 import 'package:flutter_market_app/data/repository/firebase_repository.dart';
 
 class FileRepository extends FirebaseRepository {
@@ -23,8 +24,9 @@ class FileRepository extends FirebaseRepository {
 
     try {
       // 스토리지 참조 생성 - files 폴더 아래에 파일 저장
-      final ref = storage.ref().child('files/$filename');
-      print("저장 경로: files/$filename");
+      final actualFileName = filename.split('/').last;
+      final ref = storage.ref().child('files/$actualFileName');
+      print("저장 경로: files/$actualFileName");
 
       // 메타데이터와 함께 파일 업로드 시작
       print("파일 업로드 시작...");
@@ -51,7 +53,7 @@ class FileRepository extends FirebaseRepository {
 
       // FileModel 생성 및 반환
       final fileModel = FileModel(
-        id: snapshot.ref.fullPath,
+        id: ProfileImageUrlHelper.createStoragePath(filename),
         url: downloadUrl,
         originName: filename,
         contentType: mimeType,

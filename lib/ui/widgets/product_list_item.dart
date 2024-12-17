@@ -51,7 +51,7 @@ class ProductListItem extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    '${productSummary.address.displayNameKR} ${DateTimeUtils.formatString(productSummary.updatedAt)}',
+                    '${productSummary.address.fullNameKR} ${DateTimeUtils.formatString(productSummary.updatedAt)}',
                     style: TextStyle(
                       fontSize: 13,
                       color: Colors.grey[700],

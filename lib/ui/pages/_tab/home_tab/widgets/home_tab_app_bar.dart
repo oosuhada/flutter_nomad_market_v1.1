@@ -28,7 +28,7 @@ class HomeTabAppBar extends StatelessWidget {
           final target = homeTabState.addresses
               .where((e) => e.defaultYn ?? false)
               .toList();
-          final addr = target.isEmpty ? '' : target.first.city;
+          final addr = target.isEmpty ? '' : target.first.cityKR;
           return PopupMenuButton<String>(
             position: PopupMenuPosition.under,
             child: Row(
@@ -61,8 +61,8 @@ class HomeTabAppBar extends StatelessWidget {
             itemBuilder: (BuildContext context) {
               return homeTabState.addresses.map((address) {
                 return PopupMenuItem<String>(
-                  value: address.city ?? '',
-                  child: Text(address.city ?? ''),
+                  value: address.cityKR ?? '',
+                  child: Text(address.cityKR ?? ''),
                 );
               }).toList();
             },

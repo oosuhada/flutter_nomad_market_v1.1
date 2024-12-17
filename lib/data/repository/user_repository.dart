@@ -18,16 +18,50 @@ class UserRepository {
     print("데이터 보강 시작:");
     print("- 원본 데이터: $userData");
 
+    // preferences에서 주소 정보 추출
+    final preferences = userData['preferences'] as Map<String, dynamic>?;
+    final homeAddress = preferences?['homeAddress'] as String?;
+
+    // 주소 정보 파싱 및 처리
+    Map<String, dynamic> addressData = {};
+    if (homeAddress != null && homeAddress.isNotEmpty) {
+      final parts = homeAddress.split(',');
+      final cityWithState = parts[0].trim();
+      final country = parts.length > 1 ? parts[1].trim() : '';
+
+      addressData = {
+        'fullNameKR': homeAddress,
+        'fullNameEN': '', // 영문 주소는 별도 처리 필요
+        'cityKR': cityWithState,
+        'cityEN': '', // 영문 도시명은 별도 처리 필요
+        'countryKR': country,
+        'countryEN': '', // 영문 국가명은 별도 처리 필요
+        'defaultYn': true,
+        'isServiceAvailable':
+            true // 서비스 가능 여부는 Address.checkServiceAvailability로 확인
+      };
+    } else {
+      addressData = {
+        'fullNameKR': '',
+        'fullNameEN': '',
+        'cityKR': '',
+        'cityEN': '',
+        'countryKR': '',
+        'countryEN': '',
+        'defaultYn': true,
+        'isServiceAvailable': false
+      };
+    }
+
     final enrichedData = {
       ...userData,
       'userId': documentId,
       'profileImageUrl': userData['profileImageUrl'] ?? '',
-      'preferences': userData['preferences'] ??
+      'preferences': preferences ??
           {'language': 'ko', 'currency': 'KRW', 'homeAddress': ''},
       'signInMethod': userData['signInMethod'] ?? 'email',
       'status': userData['status'] ?? 'active',
-      'address': userData['address'] ??
-          {'fullName': userData['preferences']?['homeAddress'] ?? ''}
+      'address': addressData
     };
 
     print("- 보강된 데이터: $enrichedData");
@@ -254,7 +288,44 @@ class UserRepository {
     }
   }
 
-  /// 새로운 사용자를 등록합니다.
+  /// Firebase Auth에 새 계정을 생성합니다.
+  /// 성공 시 UserCredential을, 실패 시 null을 반환합니다.
+  Future<auth.UserCredential?> createAuthAccount({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      print("Firebase Auth 계정 생성 시도");
+      print("- 이메일: $email");
+
+      // 이메일 중복 확인
+      if (!await isEmailAvailable(email)) {
+        print('계정 생성 실패: 이메일 중복');
+        return null;
+      }
+
+      // Firebase Auth에 사용자 생성
+      final credential = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      if (credential.user == null) {
+        print("Firebase Auth 계정 생성 실패: 사용자 정보가 null입니다");
+        return null;
+      }
+
+      print("Firebase Auth 계정 생성 성공");
+      return credential;
+    } catch (e, stackTrace) {
+      print('Firebase Auth 계정 생성 실패:');
+      print('- 에러: $e');
+      print('- 스택트레이스: $stackTrace');
+      return null;
+    }
+  }
+
+  // join 메서드도 수정하여 createAuthAccount를 활용하도록 변경
   Future<bool> join({
     required String email,
     required String nickname,
@@ -269,31 +340,26 @@ class UserRepository {
       print("- 이메일: $email");
       print("- 닉네임: $nickname");
 
-      // 중복 확인
-      if (!await isEmailAvailable(email)) {
-        print('회원가입 실패: 이메일 중복');
-        return false;
-      }
+      // 닉네임 중복 확인
       if (!await isNicknameAvailable(nickname)) {
         print('회원가입 실패: 닉네임 중복');
         return false;
       }
 
-      // Firebase Auth에 사용자 생성
-      print("Firebase Auth 계정 생성 시도");
-      final credential = await _auth.createUserWithEmailAndPassword(
+      // 계정 생성
+      final credential = await createAuthAccount(
         email: email,
         password: password,
       );
 
-      if (credential.user == null) {
-        print("Firebase Auth 계정 생성 실패");
+      if (credential?.user == null) {
+        print("회원가입 실패: 계정 생성 실패");
         return false;
       }
 
       // Firestore에 사용자 정보 저장
       print("Firestore에 사용자 정보 저장 시도");
-      await _firestore.collection('users').doc(credential.user!.uid).set({
+      await _firestore.collection('users').doc(credential!.user!.uid).set({
         'userId': credential.user!.uid,
         'email': email,
         'nickname': nickname,
