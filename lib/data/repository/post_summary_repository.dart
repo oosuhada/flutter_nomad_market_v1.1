@@ -56,11 +56,18 @@ class PostSummaryRepository {
           print('문서 데이터 확인: ${doc.id}');
           print('데이터 내용: $data');
 
+          // price 필드 검증
+          if (data['price'] == null ||
+              data['price']['amount'] == null ||
+              data['price']['currency'] == null) {
+            print('price 필드가 누락되었습니다: $data');
+            continue; // 누락된 데이터 건너뛰기
+          }
+
           // 필수 필드 존재 여부 확인
           final requiredFields = [
             'originalTitle',
             'price',
-            'currency',
             'language',
             'thumbnail',
             'type',
@@ -85,6 +92,8 @@ class PostSummaryRepository {
             ...data,
           });
           products.add(product);
+
+          print('상품 변환 성공: ${product.id}');
           print('상품 변환 성공: ${product.originalTitle}');
         } catch (e) {
           print('개별 상품 변환 실패: $e');

@@ -9,7 +9,7 @@ class PostSummary {
   final String originalTitle; // 게시글 제목 (원본)
   final String? translatedTitle; // 번역된 제목
   final num price; // 가격
-  final String currency; // 통화 단위 (KRW, USD, JPY 등)
+  final String? currency; // 통화 단위 (KRW, USD, JPY 등)
   final String language; // 작성 언어 (ko, en, ja 등)
   final FileModel thumbnail; // 썸네일 이미지
   final PostType type; // 게시글 타입 (판매/구매)
@@ -24,7 +24,7 @@ class PostSummary {
     required this.originalTitle,
     this.translatedTitle,
     required this.price,
-    required this.currency,
+    this.currency,
     required this.language,
     required this.thumbnail,
     required this.type,
@@ -36,16 +36,25 @@ class PostSummary {
   });
 
   // JSON 변환 생성자
+  static DateTime _parseDate(dynamic date) {
+    if (date is Timestamp) {
+      return date.toDate();
+    } else if (date is String) {
+      return DateTime.parse(date);
+    } else {
+      throw FormatException('Unsupported date format: $date');
+    }
+  }
+
   factory PostSummary.fromJson(Map<String, dynamic> json) {
     return PostSummary(
-      id: json['postId'], // 'id' 대신 'postId' 사용
-      originalTitle:
-          json['originalTitle'] ?? '', // 'title' 대신 'originalTitle' 사용
-      translatedTitle: json['translatedTitle'] ?? '',
-      price: (json['price'] as Map<String, dynamic>)['amount'] ?? 0,
-      currency: (json['price'] as Map<String, dynamic>)['currency'] ?? 'KRW',
-      language: json['language'] ?? '',
-      thumbnail: FileModel.fromJson(json['thumbnail'] ?? {}),
+      id: json['id'],
+      originalTitle: json['originalTitle'],
+      translatedTitle: json['translatedTitle'],
+      price: json['price']['amount'],
+      currency: json['price']['currency'],
+      language: json['language'],
+      thumbnail: FileModel.fromJson(json['thumbnail']),
       type: PostType.values.firstWhere(
         (e) => e.toString() == 'PostType.${json['type']}',
         orElse: () => PostType.unknown,
@@ -54,10 +63,10 @@ class PostSummary {
         (e) => e.toString() == 'PostStatus.${json['status']}',
         orElse: () => PostStatus.unknown,
       ),
-      likes: json['likes'] ?? 0, // 'likeCnt' 대신 'likes' 사용
-      address: Address.fromJson(json['address'] ?? {}),
-      updatedAt: (json['updatedAt'] as Timestamp).toDate(),
-      createdAt: (json['createdAt'] as Timestamp).toDate(),
+      likes: json['likes'],
+      address: Address.fromJson(json['address']),
+      updatedAt: _parseDate(json['updatedAt']),
+      createdAt: _parseDate(json['createdAt']),
     );
   }
 

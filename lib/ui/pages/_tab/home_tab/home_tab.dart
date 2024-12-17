@@ -23,8 +23,7 @@ class _HomeTabState extends ConsumerState<HomeTab> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
         print("데이터 로드 시작");
-        await ref.read(homeTabViewModel.notifier).onTabSelected();
-        await _initializeData();
+        final vm = ref.read(homeTabViewModel.notifier);
         print("데이터 로드 완료");
         if (mounted) {
           setState(() => _isLoading = false);
