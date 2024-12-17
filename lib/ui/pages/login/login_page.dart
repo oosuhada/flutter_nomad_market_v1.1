@@ -20,6 +20,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final idController = TextEditingController();
   final pwController = TextEditingController();
   final formKey = GlobalKey<FormState>();
+  OverlayEntry? _loadingOverlay;
 
   void onGoogleSignIn() {
     final authService = ref.read(authServiceProvider);
@@ -45,6 +46,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     } catch (e) {
       print("사용자 정보 초기화 중 오류 발생: $e");
     }
+  }
+
+//로딩 오버레이를 표시하고 숨기는 메서드
+  void _showLoadingOverlay() {
+    _loadingOverlay = OverlayEntry(
+      builder: (context) => Container(
+        color: Colors.black.withOpacity(0.5),
+        child: Center(
+          child: CircularProgressIndicator(),
+        ),
+      ),
+    );
+    Overlay.of(context)!.insert(_loadingOverlay!);
+  }
+
+  void _hideLoadingOverlay() {
+    _loadingOverlay?.remove();
+    _loadingOverlay = null;
   }
 
   @override
@@ -100,6 +119,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                   print(
                                       "비밀번호 입력됨: ${pwController.text.isNotEmpty}");
                                   try {
+                                    _showLoadingOverlay(); // 로딩 오버레이 표시
                                     final viewModel = ref.read(loginViewmodel);
                                     print("로그인 viewModel 호출");
                                     final loginResult = await viewModel.login(
@@ -107,22 +127,71 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                       password: pwController.text,
                                     );
                                     print("로그인 결과: $loginResult");
+                                    _hideLoadingOverlay(); // 로딩 오버레이 숨기기
                                     if (loginResult == true) {
                                       print("로그인 성공 - 사용자 정보 초기화 시도");
                                       await initUserData();
                                       print("홈페이지로 이동 시도");
                                       if (mounted) {
+                                        // 로그인 성공 메시지를 표시하고 2초 동안 유지
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text('로그인에 성공했습니다'),
+                                            duration: Duration(seconds: 2),
+                                            behavior: SnackBarBehavior.floating,
+                                          ),
+                                        );
+
                                         try {
-                                          await Future.delayed(Duration(
-                                              milliseconds: 100)); // 약간의 지연 추가
+                                          // 2초 대기 후 홈페이지로 이동
+                                          await Future.delayed(
+                                              Duration(seconds: 2));
                                           if (mounted) {
-                                            Navigator.pushAndRemoveUntil(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
+                                            // 페이드인 및 확대 애니메이션과 함께 홈페이지로 이동
+                                            Navigator.of(context)
+                                                .pushReplacement(
+                                              PageRouteBuilder(
+                                                pageBuilder: (context,
+                                                        animation,
+                                                        secondaryAnimation) =>
                                                     HomePage(),
+                                                transitionsBuilder: (context,
+                                                    animation,
+                                                    secondaryAnimation,
+                                                    child) {
+                                                  var begin = 0.0;
+                                                  var end = 10.0;
+                                                  var curve = Curves.easeInOut;
+
+                                                  var fadeAnimation = Tween(
+                                                          begin: begin,
+                                                          end: end)
+                                                      .animate(
+                                                    CurvedAnimation(
+                                                        parent: animation,
+                                                        curve: curve),
+                                                  );
+
+                                                  var scaleAnimation = Tween(
+                                                          begin: 0.1, end: 1.0)
+                                                      .animate(
+                                                    CurvedAnimation(
+                                                        parent: animation,
+                                                        curve: curve),
+                                                  );
+
+                                                  return FadeTransition(
+                                                    opacity: fadeAnimation,
+                                                    child: ScaleTransition(
+                                                      scale: scaleAnimation,
+                                                      child: child,
+                                                    ),
+                                                  );
+                                                },
+                                                transitionDuration:
+                                                    Duration(milliseconds: 500),
                                               ),
-                                              (route) => false,
                                             );
                                             print("홈페이지 이동 완료");
                                           }
@@ -134,6 +203,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                       }
                                     } else {
                                       print("로그인 실패");
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                            content:
+                                                Text('오류가 발생했습니다. 다시 시도해주세요.')),
+                                      );
                                     }
                                   } on FirebaseAuthException catch (e, stackTrace) {
                                     print("===== Firebase 인증 에러 =====");
@@ -216,12 +291,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                                     }
                                   } else {
                                     print("구글 로그인 실패");
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('구글 로그인에 실패했습니다'),
+                                        duration: Duration(seconds: 2),
+                                      ),
+                                    );
                                   }
                                 } catch (e, stackTrace) {
                                   print("===== 구글 로그인 에러 =====");
                                   print("에러 타입: ${e.runtimeType}");
                                   print("에러 메시지: $e");
                                   print("스택 트레이스: $stackTrace");
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('로그인 중 오류가 발생했습니다'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
                                 }
                               },
                               child: Container(

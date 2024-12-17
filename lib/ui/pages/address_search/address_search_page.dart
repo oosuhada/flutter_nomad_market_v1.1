@@ -81,7 +81,7 @@ class _AddressSearchPageState extends ConsumerState<AddressSearchPage> {
         ),
       );
     } else {
-      _showIOSStyleSnackbar('해당 지역은 현재 서비스 불가 지역입니다');
+      _showIOSStyleSnackbar('해당 도시는 현재 서비스 불가 지역입니다');
 
       // 서비스 가능 지역 목록으로 상태 업데이트
       final serviceableAddresses = Address.serviceableAreas
@@ -104,7 +104,6 @@ class _AddressSearchPageState extends ConsumerState<AddressSearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    // 기존의 build 메서드 내용을 유지하되, GestureDetector의 onTap을 _handleAddressSelection으로 변경
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -228,7 +227,21 @@ class _AddressSearchPageState extends ConsumerState<AddressSearchPage> {
                 ],
               ),
             ),
-            _buildCurrentLocationButton(context),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                color: Theme.of(context).primaryColor,
+                height: 100, // 높이 조절
+              ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: _buildCurrentLocationButton(context),
+            ),
           ],
         ),
       ),

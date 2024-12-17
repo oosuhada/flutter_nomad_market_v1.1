@@ -27,7 +27,7 @@ class Address {
       'cityKR': '서울',
       'countryKR': '대한민국',
       'cityEN': 'Seoul',
-      'countryEN': 'USA',
+      'countryEN': 'South Korea',
       'flag': 'KR'
     },
     {

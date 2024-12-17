@@ -5,13 +5,28 @@ class LoadingPage extends StatefulWidget {
   _LoadingPageState createState() => _LoadingPageState();
 }
 
-class _LoadingPageState extends State<LoadingPage> {
+class _LoadingPageState extends State<LoadingPage>
+    with SingleTickerProviderStateMixin {
   bool _showSecondAnimation = false;
+  late AnimationController _progressController;
 
   @override
   void initState() {
     super.initState();
     _startSecondAnimation();
+    _progressController = AnimationController(
+      vsync: this,
+      duration: Duration(seconds: 3),
+    )..addListener(() {
+        setState(() {});
+      });
+    _progressController.forward();
+  }
+
+  @override
+  void dispose() {
+    _progressController.dispose();
+    super.dispose();
   }
 
   void _startSecondAnimation() {
@@ -24,6 +39,9 @@ class _LoadingPageState extends State<LoadingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+
     return Scaffold(
       body: SafeArea(
         child: Stack(
@@ -42,9 +60,7 @@ class _LoadingPageState extends State<LoadingPage> {
                   );
                 },
                 child: Image.asset(
-                  Theme.of(context).brightness == Brightness.dark
-                      ? 'assets/welcome_2.png'
-                      : 'assets/welcome_1.png',
+                  isDarkMode ? 'assets/welcome_2.png' : 'assets/welcome_1.png',
                   height: 100,
                 ),
               ),
@@ -84,6 +100,17 @@ class _LoadingPageState extends State<LoadingPage> {
                       ),
                     )
                   : SizedBox(),
+            ),
+            Positioned(
+              bottom: 20,
+              left: 20,
+              right: 20,
+              child: LinearProgressIndicator(
+                value: _progressController.value,
+                backgroundColor:
+                    isDarkMode ? Colors.grey[800] : Colors.grey[200],
+                valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
+              ),
             ),
           ],
         ),

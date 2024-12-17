@@ -4,6 +4,7 @@ import 'package:flutter_market_app/ui/pages/_tab/home_tab/home_tab_view_model.da
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_market_app/data/model/address.dart'; // Address 모델 import 추가
 
 class HomeTabAppBar extends StatelessWidget {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -20,6 +21,20 @@ class HomeTabAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 서비스 가능 지역 리스트를 Address 객체로 변환
+    final List<Address> serviceableAddresses = Address.serviceableAreas
+        .map((area) => Address(
+              id: '',
+              fullNameKR: '${area['cityKR']}, ${area['countryKR']}',
+              fullNameEN: '${area['cityEN']}, ${area['countryEN']}',
+              cityKR: area['cityKR']!,
+              cityEN: area['cityEN']!,
+              countryKR: area['countryKR']!,
+              countryEN: area['countryEN']!,
+              isServiceAvailable: true,
+            ))
+        .toList();
+
     return AppBar(
       automaticallyImplyLeading: false,
       title: Consumer(
@@ -30,8 +45,9 @@ class HomeTabAppBar extends StatelessWidget {
               .toList();
           final addr = target.isEmpty
               ? ''
-              : '${target.first.cityKR},${target.first.countryKR}';
-          return PopupMenuButton<String>(
+              : '${target.first.cityKR}, ${target.first.countryKR}';
+
+          return PopupMenuButton<Address>(
             position: PopupMenuPosition.under,
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -44,7 +60,7 @@ class HomeTabAppBar extends StatelessWidget {
                 Icon(Icons.keyboard_arrow_down, size: 20),
               ],
             ),
-            onSelected: (String newAddress) async {
+            onSelected: (Address selectedAddress) async {
               final userId = FirebaseAuth.instance.currentUser?.uid;
 
               if (userId == null) {
@@ -52,19 +68,33 @@ class HomeTabAppBar extends StatelessWidget {
                 return;
               }
 
+              final newAddress = selectedAddress.fullNameKR;
               await _updateAddress(userId, newAddress);
 
               ref
                   .read(homeTabViewModel.notifier)
                   .updateDefaultAddress(newAddress);
 
-              SnackbarUtil.showSnackBar(context, '주소가 업데이트되었습니다: $newAddress');
+              SnackbarUtil.showSnackBar(
+                  context, '주소가 업데이트되었습니다: ${selectedAddress.fullNameKR}');
             },
             itemBuilder: (BuildContext context) {
-              return homeTabState.addresses.map((address) {
-                return PopupMenuItem<String>(
-                  value: address.cityKR,
-                  child: Text(address.cityKR),
+              return serviceableAddresses.map((address) {
+                return PopupMenuItem<Address>(
+                  value: address,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(address.fullNameKR),
+                      Text(
+                        address.fullNameEN,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               }).toList();
             },

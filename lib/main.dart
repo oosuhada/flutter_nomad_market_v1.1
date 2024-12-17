@@ -41,12 +41,34 @@ class MyApp extends StatelessWidget {
         },
       ),
       onGenerateRoute: (settings) {
-        // 페이지 전환 시 페이드 애니메이션 추가
         return PageRouteBuilder(
+          settings: settings,
           pageBuilder: (context, animation, secondaryAnimation) {
             final page = _getPageFromRoute(settings.name!);
-            return FadeTransition(opacity: animation, child: page);
+            return page;
           },
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            var begin = 0.0;
+            var end = 1.0;
+            var curve = Curves.easeInOut;
+
+            var fadeAnimation = Tween(begin: begin, end: end).animate(
+              CurvedAnimation(parent: animation, curve: curve),
+            );
+
+            var scaleAnimation = Tween(begin: 0.5, end: 1.0).animate(
+              CurvedAnimation(parent: animation, curve: curve),
+            );
+
+            return FadeTransition(
+              opacity: fadeAnimation,
+              child: ScaleTransition(
+                scale: scaleAnimation,
+                child: child,
+              ),
+            );
+          },
+          transitionDuration: Duration(milliseconds: 300),
         );
       },
     );
