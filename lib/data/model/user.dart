@@ -13,7 +13,6 @@
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_market_app/data/model/address.dart';
-import 'package:flutter_market_app/data/model/file_model.dart';
 
 enum UserStatus { active, inactive, blocked }
 
@@ -50,21 +49,42 @@ class User {
             orElse: () => UserStatus.active);
 
   factory User.fromJson(Map<String, dynamic> json) {
-    return User(
-      userId: json['userId'],
-      email: json['email'],
-      password: json['password'],
-      nickname: json['nickname'],
-      profileImageUrl: json['profileImageUrl'],
-      preferences: Preferences.fromJson(json['preferences']),
-      signInMethod: json['signInMethod'],
-      createdAt: (json['createdAt'] as Timestamp).toDate(),
-      lastLoginAt: (json['lastLoginAt'] as Timestamp).toDate(),
-      status: UserStatus.values.firstWhere(
-          (e) => e.toString() == 'UserStatus.${json['status']}',
-          orElse: () => UserStatus.active),
-      address: Address.fromJson(json['address']),
-    );
+    try {
+      print("User.fromJson 입력 데이터: $json");
+
+      // preferences가 없는 경우 기본값 설정
+      Map<String, dynamic> preferencesData = json['preferences'] ??
+          {'language': 'ko', 'currency': 'KRW', 'homeAddress': ''};
+
+      // Timestamp 타입 체크 및 변환
+      DateTime getDateTime(dynamic value) {
+        if (value is Timestamp) {
+          return value.toDate();
+        } else if (value is DateTime) {
+          return value;
+        }
+        return DateTime.now();
+      }
+
+      return User(
+        userId: json['userId'] ?? '',
+        email: json['email'] ?? '',
+        password: json['password'],
+        nickname: json['nickname'] ?? '',
+        profileImageUrl: json['profileImageUrl'] ?? '',
+        preferences: Preferences.fromJson(preferencesData),
+        signInMethod: json['signInMethod'] ?? 'email',
+        createdAt: getDateTime(json['createdAt']),
+        lastLoginAt: getDateTime(json['lastLoginAt']),
+        status: json['status'] ?? 'active',
+        address: Address.fromJson(json['address'] ??
+            {'fullName': preferencesData['homeAddress'] ?? ''}),
+      );
+    } catch (e, stackTrace) {
+      print("User.fromJson 에러: $e");
+      print("스택트레이스: $stackTrace");
+      rethrow;
+    }
   }
 
   Map<String, dynamic> toJson() {

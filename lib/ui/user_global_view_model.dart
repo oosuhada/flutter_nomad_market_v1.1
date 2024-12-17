@@ -9,22 +9,34 @@ class UserGlobalViewModel extends StateNotifier<User?> {
 
   UserGlobalViewModel(this.userRepository) : super(null);
 
-  Future<void> initUserData() async {
+  Future<User?> initUserData() async {
     print("===== UserGlobalViewModel initUserData 시작 =====");
     try {
-      final userData = await userRepository.myInfo();
-      print("사용자 정보 조회 결과:");
-      print("- userId: ${userData?.userId}");
-      print("- nickname: ${userData?.nickname}");
-      state = userData;
-    } catch (e) {
-      print("사용자 정보 초기화 에러: $e");
-    }
-  }
+      final userData = await userRepository.getCurrentUserInfo();
+      if (userData != null) {
+        print("사용자 정보 조회 성공:");
+        print("- userId: ${userData.userId}");
+        print("- email: ${userData.email}");
+        print("- nickname: ${userData.nickname}");
+        print("- address: ${userData.address.fullName}");
 
-  Future<User?> getUserById(String userId) async {
-    print("사용자 정보 조회 시도: $userId");
-    return await userRepository.getUserById(userId);
+        // 상태 업데이트
+        state = userData;
+        return state;
+      } else {
+        print("사용자 정보 조회 실패: null 반환됨");
+        // 상태 초기화
+        state = null;
+        return null;
+      }
+    } catch (e, stackTrace) {
+      print("사용자 정보 초기화 에러:");
+      print("- 에러: $e");
+      print("- 스택트레이스: $stackTrace");
+      // 에러 발생 시 상태 초기화
+      state = null;
+      return null;
+    }
   }
 }
 

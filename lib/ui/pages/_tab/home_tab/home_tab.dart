@@ -106,7 +106,8 @@ class _HomeTabState extends ConsumerState<HomeTab> {
                     onChanged: (String newValue) {
                       print("카테고리 변경 시도: $newValue");
                       try {
-                        vm.onCategorySelected(newValue);
+                        vm.onCategorySelected(
+                            newValue); // onCategorySelected 호출 수정
                         print("카테고리 변경 성공");
                       } catch (e) {
                         print("카테고리 변경 실패: $e");

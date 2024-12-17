@@ -41,7 +41,7 @@ class ChatTabListView extends StatelessWidget {
         user.userId == room.sellerId ? room.buyerId : room.sellerId;
 
     return FutureBuilder<User?>(
-      future: ref.read(userGlobalViewModel.notifier).getUserById(displayUserId),
+      future: ref.read(userGlobalViewModel.notifier).initUserData(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return CircularProgressIndicator();

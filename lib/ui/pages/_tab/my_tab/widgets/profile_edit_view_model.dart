@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_market_app/data/model/user.dart';
 import 'package:flutter_market_app/data/repository/file_repository.dart';
@@ -9,11 +8,11 @@ import 'package:flutter_market_app/data/repository/user_repository.dart';
 class ProfileEditViewModel extends StateNotifier<User?> {
   ProfileEditViewModel() : super(null);
 
-  final fileRepository = FileRepository(Dio()); // Pass Dio instance
+  final fileRepository = FileRepository();
   final userRepository = UserRepository();
 
   Future<void> initUserData() async {
-    final userData = await userRepository.myInfo();
+    final userData = await userRepository.getCurrentUserInfo();
     state = userData;
   }
 

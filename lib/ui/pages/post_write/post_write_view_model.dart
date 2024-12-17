@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:dio/dio.dart';
 import 'package:flutter_market_app/data/model/address.dart';
 import 'package:flutter_market_app/data/model/file_model.dart';
 import 'package:flutter_market_app/data/model/post.dart';
@@ -63,10 +62,14 @@ class PostWriteViewModel
   PostWriteState build(Post? arg) {
     print("===== PostWriteViewModel 초기화 =====");
 
-    final user = ref.read(userGlobalViewModel);
-    print("현재 사용자 정보:");
-    print("- userId: ${user?.userId}");
-    print("- nickname: ${user?.nickname}");
+    // userGlobalViewModel에서 현재 상태를 읽어옴
+    final userState = ref.read(userGlobalViewModel);
+    print("현재 사용자 정보 읽기 시도:");
+    print("- userState: ${userState?.toString()}");
+
+    if (userState == null) {
+      print("경고: 사용자 상태가 null입니다");
+    }
 
     return PostWriteState(
       uploadedImageFiles: arg?.images
@@ -79,7 +82,7 @@ class PostWriteViewModel
                   ))
               .toList() ??
           [],
-      localImageFiles: [], // 초기에는 빈 로컬 이미지 리스트
+      localImageFiles: [],
       categories: CategoryConstants.categories
           .map((category) => category['category']!)
           .toList(),
@@ -88,14 +91,15 @@ class PostWriteViewModel
               (cat) => cat['id'] == arg!.category,
               orElse: () => CategoryConstants.categories.first)
           : null,
-      userId: user?.userId,
-      userNickname: user?.nickname,
-      userProfileImageUrl: user?.profileImageUrl ?? 'assets/defaultprofile.jpg',
-      userHomeAddress: user?.address,
+      userId: userState?.userId,
+      userNickname: userState?.nickname,
+      userProfileImageUrl:
+          userState?.profileImageUrl ?? 'assets/defaultprofile.jpg',
+      userHomeAddress: userState?.address,
     );
   }
 
-  final fileRepository = FileRepository(Dio());
+  final fileRepository = FileRepository();
   final postRepository = PostRepository();
 
   // 로컬 이미지 추가
@@ -163,7 +167,7 @@ class PostWriteViewModel
   }) async {
     print("===== PostWriteViewModel upload 시작 =====");
     print("업로드된 이미지 수: ${state.uploadedImageFiles.length}");
-    print("로컬 이미지 수: ${state.localImageFiles.length}");
+    print("upload - 로컬 이미지 수: ${state.localImageFiles.length}");
     print("선택된 카테고리: ${state.selectedCategory}");
     print("사용자 ID: ${state.userId}");
 
