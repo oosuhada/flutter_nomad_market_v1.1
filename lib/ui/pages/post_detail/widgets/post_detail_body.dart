@@ -77,7 +77,7 @@ class PostDetailBody extends StatelessWidget {
                 ),
               ),
               Text(
-                post.userHomeAddress,
+                post.userAddress.fullNameKR,
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.grey,

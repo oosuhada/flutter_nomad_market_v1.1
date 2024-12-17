@@ -18,7 +18,7 @@ class PostDetailPicture extends StatelessWidget {
           itemCount: images.length,
           itemBuilder: (context, index) {
             return Image.network(
-              images[index],
+              images[index].url,
               fit: BoxFit.cover,
             );
           },

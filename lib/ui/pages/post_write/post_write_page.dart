@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_market_app/core/validator_util.dart';
 import 'package:flutter_market_app/data/model/post.dart';
+import 'package:flutter_market_app/data/model/post_enums.dart';
 import 'package:flutter_market_app/data/model/post_summary.dart';
 import 'package:flutter_market_app/ui/pages/_tab/home_tab/home_tab_view_model.dart';
 import 'package:flutter_market_app/ui/pages/post_write/%08post_write_view_model.dart';
@@ -69,6 +70,8 @@ class _PostWritePageState extends ConsumerState<PostWritePage> {
 
   Future<void> onSubmit() async {
     print("게시글 제출 프로세스 시작");
+
+    // 뷰모델 참조
     final vm = ref.read(postWriteViewModel(widget.post).notifier);
     final userVM = ref.read(userGlobalViewModel);
 
@@ -80,35 +83,38 @@ class _PostWritePageState extends ConsumerState<PostWritePage> {
     try {
       // 1. 로컬 이미지 업로드
       print("로컬 이미지 업로드 시작");
-      final uploadedImages = await vm.uploadLocalImages();
-      print("로컬 이미지 업로드 완료: ${uploadedImages.length}개");
+      final uploadSuccess = await vm.uploadLocalImages();
+      if (!uploadSuccess) {
+        print("로컬 이미지 업로드 실패");
+        return;
+      }
 
-      // 2. 로컬 PostSummary 생성
+      // 2. `PostSummary` 객체 생성
+      final uploadedImages = vm.state.uploadedImageFiles;
+
+      if (uploadedImages.isEmpty) {
+        print("업로드된 이미지가 없음");
+        return;
+      }
+
+      final thumbnail = uploadedImages.first; // 첫 번째 이미지를 썸네일로 사용
       final localPost = PostSummary(
-        id: DateTime.now().millisecondsSinceEpoch.toString(), // 임시 ID
-        userId: userVM.userId,
+        id: DateTime.now().millisecondsSinceEpoch.toString(), // 임시 ID 생성
         title: titleController.text,
-        price: Price(
-          amount: int.parse(priceController.text),
-          currency: "KRW",
-        ),
-        negotiable: _isPriceNegotiable,
-        thumbnail: FileModel(
-          id: uploadedImages.isNotEmpty ? uploadedImages.first : '',
-          url: uploadedImages.isNotEmpty ? uploadedImages.first : '',
-          originName: '',
-          contentType: 'image/jpeg',
-          createdAt: DateTime.now().toIso8601String(),
-        ),
-        address: userVM.address,
-        createdAt: DateTime.now(),
+        translatedTitle: null, // 번역된 제목은 서버 응답 이후 처리
+        price: int.parse(priceController.text),
+        currency: "KRW", // 현재 통화는 "KRW"로 고정
+        language: "ko", // 기본 언어 설정
+        thumbnail: thumbnail,
+        type: widget.isRequesting ? PostType.buying : PostType.selling,
+        status: PostStatus.active,
+        likeCnt: 0, // 기본 좋아요 수
+        address: userVM.address, // 사용자 주소
         updatedAt: DateTime.now(),
-        category: '', // 카테고리 정보 추가 필요
-        likeCnt: 0,
-        status: 'ACTIVE',
+        createdAt: DateTime.now(),
       );
 
-      // 3. 로컬 상태 업데이트 및 네비게이션
+      // 3. 로컬 상태 업데이트
       final homeTabVM = ref.read(homeTabViewModel.notifier);
       homeTabVM.addLocalPost(localPost);
 
@@ -116,27 +122,25 @@ class _PostWritePageState extends ConsumerState<PostWritePage> {
         Navigator.pop(context);
       }
 
-      // 4. 백그라운드에서 서버 업로드 진행
+      // 4. 백그라운드 서버 업로드
       print("서버 업로드 시작");
       final result = await vm.upload(
         originalTitle: titleController.text,
-        translatedTitle: titleController.text, // 실제 번역 로직 필요
+        translatedTitle: titleController.text, // 번역 로직 필요 시 수정
         price: Price(amount: int.parse(priceController.text), currency: "KRW"),
         originalDescription: contentController.text,
-        translatedDescription: contentController.text, // 실제 번역 로직 필요
+        translatedDescription: contentController.text, // 번역 로직 필요 시 수정
         location: userVM.address.fullNameKR,
         userNickname: userVM.nickname,
         userProfileImageUrl: userVM.profileImageUrl,
-        userHomeAddress: userVM.address.fullNameKR,
+        userHomeAddress: userVM.address,
       );
 
       if (result != null) {
         print("서버 업로드 성공");
-        // 서버 업로드 성공 후 홈탭 새로고침
         await homeTabVM.refreshPosts();
       } else {
         print("서버 업로드 실패");
-        // 업로드 실패 시 에러 처리
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('게시글 업로드에 실패했습니다. 다시 시도해주세요.')),
@@ -145,13 +149,12 @@ class _PostWritePageState extends ConsumerState<PostWritePage> {
       }
     } catch (e, stackTrace) {
       print("게시글 처리 중 오류 발생:");
-      print("- 오류 유형: ${e.runtimeType}");
       print("- 오류 내용: $e");
       print("- 스택 트레이스: $stackTrace");
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('게시글 작성 중 오류가 발생했습니다')),
+          SnackBar(content: Text('게시글 작성 중 오류가 발생했습니다.')),
         );
       }
     }

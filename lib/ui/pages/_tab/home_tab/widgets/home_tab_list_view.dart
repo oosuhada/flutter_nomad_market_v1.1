@@ -21,7 +21,11 @@ class _HomeTabListViewState extends ConsumerState<HomeTabListView> {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
       final viewModel = ref.read(homeTabViewModel.notifier);
-      viewModel.loadMorePosts();
+
+      // `state.posts`의 마지막 게시글을 기준으로 추가 데이터 요청
+      if (viewModel.state.hasMore && !viewModel.state.isLoading) {
+        viewModel.loadMorePosts();
+      }
     }
   }
 

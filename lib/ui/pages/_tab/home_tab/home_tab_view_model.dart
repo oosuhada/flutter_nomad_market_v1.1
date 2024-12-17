@@ -99,7 +99,9 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
 
         // 사용자 주소 정보가 있으면 초기 데이터 로드
         if (user.address.fullNameKR.isNotEmpty) {
-          _loadInitialData(user.address.fullNameKR);
+          refreshPosts(); // 주소 기반 게시글도 로드
+          print(user.address.fullNameKR);
+          print("초기 데이터 로드 완료");
         }
       } else {
         print("로그인된 사용자 정보 없음 - 초기 데이터 로드 건너뜀");
@@ -117,8 +119,7 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
     print("기본 주소: $defaultAddress");
 
     try {
-      final posts =
-          await postSummaryRepository.getPostSummaryList(defaultAddress);
+      final posts = await postSummaryRepository.getAllProducts();
       if (posts != null) {
         // 주소 정보 파싱 및 처리
         final addressParts = defaultAddress.split(',');
@@ -157,6 +158,72 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
     }
   }
 
+  // 단일 상품 요약 정보 가져오기
+  Future<void> getProductSummary(String productId) async {
+    state = state.copyWith(isLoading: true);
+    try {
+      final postSummary =
+          await postSummaryRepository.getProductSummary(productId);
+      if (postSummary != null) {
+        // 중복 검사
+        if (!state.posts.any((product) => product.id == postSummary.id)) {
+          state = state.copyWith(
+            posts: [postSummary, ...state.posts],
+            isLoading: false,
+          );
+        } else {
+          print('이미 존재하는 상품입니다: ${postSummary.id}');
+          state = state.copyWith(isLoading: false);
+        }
+      } else {
+        state = state.copyWith(
+          error: '상품 정보를 불러오는데 실패했습니다.',
+          isLoading: false,
+        );
+      }
+    } catch (e) {
+      state = state.copyWith(
+        error: '오류가 발생했습니다: $e',
+        isLoading: false,
+      );
+    }
+  }
+
+  // 모든 상품 불러오기
+  Future<void> loadAllProducts() async {
+    print('===== loadAllProducts 시작 =====');
+    state = state.copyWith(isLoading: true);
+
+    try {
+      final postSummaries = await postSummaryRepository.getAllProducts();
+      print('가져온 상품 수: ${postSummaries.length}');
+
+      if (postSummaries.isNotEmpty) {
+        state = state.copyWith(
+          posts: postSummaries,
+          isLoading: false,
+          hasMore: postSummaries.length >= pageSize,
+        );
+        print('상태 업데이트 완료 - posts 길이: ${state.posts.length}');
+        print('게시물은 : ${state.posts}');
+      } else {
+        print('가져온 상품이 없음');
+        state = state.copyWith(
+          isLoading: false,
+          hasMore: false,
+        );
+      }
+    } catch (e, stack) {
+      print('loadAllProducts 에러 발생');
+      print('에러: $e');
+      print('스택트레이스: $stack');
+      state = state.copyWith(
+        error: '상품 목록을 불러오는데 실패했습니다: $e',
+        isLoading: false,
+      );
+    }
+  }
+
 // 새 포스트를 로컬에 즉시 추가
   void addLocalPost(PostSummary post) {
     final updatedPosts = [post, ...state.posts];
@@ -177,8 +244,7 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
         return;
       }
 
-      final posts = await postSummaryRepository
-          .getPostSummaryList(user.address.fullNameKR);
+      final posts = await postSummaryRepository.getAllProducts();
       if (posts != null) {
         state = state.copyWith(
           posts: posts,
@@ -192,6 +258,57 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
       state = state.copyWith(
         isLoading: false,
         error: '게시글을 불러오는데 실패했습니다.',
+      );
+    }
+  }
+
+  Future<void> loadMorePosts() async {
+    // 이미 로딩 중이거나 더 불러올 데이터가 없으면 종료
+    if (state.isLoading || !state.hasMore) {
+      print(
+          "추가 데이터 로드 중단: isLoading=${state.isLoading}, hasMore=${state.hasMore}");
+      return;
+    }
+
+    print("===== 추가 데이터 로드 시작 =====");
+    state = state.copyWith(isLoading: true);
+
+    try {
+      final user = ref.read(userGlobalViewModel);
+      if (user == null || user.address.fullNameKR.isEmpty) {
+        print("사용자 주소 정보 없음");
+        state = state.copyWith(isLoading: false, error: '사용자 주소 정보가 없습니다.');
+        return;
+      }
+
+      // 현재 게시글 수
+      final currentPostCount = state.posts.length;
+
+      // 추가 데이터 요청
+      final newPosts = await postSummaryRepository.getPostSummaryList(
+        addressId: user.address.fullNameKR,
+        limit: pageSize,
+        // 현재 게시글의 마지막 항목을 기준으로 가져오기 (Pagination)
+        // 'updatedAt' 필드가 페이지네이션의 기준이라고 가정
+      );
+
+      if (newPosts.isNotEmpty) {
+        print("추가 데이터 로드 완료: ${newPosts.length}개");
+        state = state.copyWith(
+          posts: [...state.posts, ...newPosts],
+          hasMore: newPosts.length >= pageSize,
+          isLoading: false,
+        );
+      } else {
+        print("더 이상 불러올 데이터 없음");
+        state = state.copyWith(hasMore: false, isLoading: false);
+      }
+    } catch (e, stackTrace) {
+      print("추가 데이터 로드 중 에러 발생: $e");
+      print("스택트레이스: $stackTrace");
+      state = state.copyWith(
+        isLoading: false,
+        error: '추가 데이터를 불러오는 중 오류가 발생했습니다.',
       );
     }
   }
@@ -257,8 +374,7 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
         orElse: () => state.addresses.first,
       );
 
-      final summaries =
-          await postSummaryRepository.getPostSummaryList(defaultAddress.cityKR);
+      final summaries = await postSummaryRepository.getPostSummaryList();
       if (summaries != null) {
         state = state.copyWith(posts: summaries);
         print("게시글 목록 업데이트 완료: ${summaries.length}개");

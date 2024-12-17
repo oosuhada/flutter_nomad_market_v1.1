@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/ui/pages/_tab/home_tab/home_tab_view_model.dart';
+import 'package:flutter_market_app/ui/pages/_tab/home_tab/widgets/home_tab_list_view.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_market_app/ui/pages/_tab/home_tab/widgets/home_tab_app_bar.dart';
 import 'package:flutter_market_app/ui/pages/_tab/home_tab/widgets/home_tab_popupbutton.dart';
-import 'package:flutter_market_app/ui/widgets/home_tab_list_view.dart';
 import 'package:flutter_market_app/ui/pages/post_write/%08post_write_view_model.dart';
 
 // 홈 탭 화면을 구성하는 StatefulWidget
@@ -19,9 +19,26 @@ class _HomeTabState extends ConsumerState<HomeTab> {
   @override
   void initState() {
     super.initState();
-    print("===== HomeTab initState 호출 =====");
-    // 비동기 초기화를 위한 microtask 사용
-    Future.microtask(() => _initializeData());
+    print("===== HomeTab initState =====");
+    Future.microtask(() async {
+      try {
+        print("데이터 로드 시작");
+        final vm = ref.read(homeTabViewModel.notifier);
+        await vm.loadAllProducts();
+        print("데이터 로드 완료");
+        if (mounted) {
+          setState(() => _isLoading = false);
+        }
+      } catch (e) {
+        print("데이터 로드 실패: $e");
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _errorMessage = '데이터 로드 중 오류가 발생했습니다';
+          });
+        }
+      }
+    });
   }
 
   // 초기 데이터 로드 메서드

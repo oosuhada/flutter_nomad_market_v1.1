@@ -18,13 +18,10 @@ class PostDetailViewModel extends AutoDisposeFamilyNotifier<Post?, String> {
 
   Future<bool> like() async {
     final newLike = await postRepository.like(arg);
-    if (newLike == null) {
-      return false;
-    }
     state = state?.copyWith(
       likes: state!.likes + 1,
     );
-    return true;
+    return newLike;
   }
 
   Future<bool> delete() async {

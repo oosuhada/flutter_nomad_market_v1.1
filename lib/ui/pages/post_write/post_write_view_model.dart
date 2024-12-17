@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter_market_app/data/model/address.dart';
 import 'package:flutter_market_app/data/model/file_model.dart';
 import 'package:flutter_market_app/data/model/post.dart';
+import 'package:flutter_market_app/data/model/post_enums.dart';
 import 'package:flutter_market_app/data/model/product_category.dart';
 import 'package:flutter_market_app/data/repository/file_repository.dart';
 import 'package:flutter_market_app/data/repository/post_repository.dart';
@@ -19,6 +20,7 @@ class PostWriteState {
   final String? userNickname; // 사용자 닉네임
   final String? userProfileImageUrl; // 사용자 프로필 이미지 URL
   final Address? userHomeAddress; // 사용자 주소
+  final PostType tradeType; // 거래 유형 추가 (판매/구매)
 
   PostWriteState({
     required this.uploadedImageFiles,
@@ -29,6 +31,7 @@ class PostWriteState {
     this.userNickname,
     this.userProfileImageUrl,
     this.userHomeAddress,
+    this.tradeType = PostType.selling, // 기본값으로 판매 설정
   });
 
   // 상태 복사 메서드
@@ -41,6 +44,7 @@ class PostWriteState {
     String? userNickname,
     String? userProfileImageUrl,
     Address? userHomeAddress,
+    required PostType tradeType, // 거래 유형 추가 (판매/구매)
   }) {
     return PostWriteState(
       uploadedImageFiles: uploadedImageFiles ?? this.uploadedImageFiles,
@@ -51,6 +55,7 @@ class PostWriteState {
       userNickname: userNickname ?? this.userNickname,
       userProfileImageUrl: userProfileImageUrl ?? this.userProfileImageUrl,
       userHomeAddress: userHomeAddress ?? this.userHomeAddress,
+      tradeType: tradeType,
     );
   }
 }
@@ -74,8 +79,8 @@ class PostWriteViewModel
     return PostWriteState(
       uploadedImageFiles: arg?.images
               .map((e) => FileModel(
-                    id: e,
-                    url: e,
+                    id: e.id,
+                    url: e.url,
                     originName: '',
                     contentType: '',
                     createdAt: DateTime.now().toIso8601String(),
@@ -109,6 +114,7 @@ class PostWriteViewModel
 
     state = state.copyWith(
       localImageFiles: [...state.localImageFiles, ...images],
+      tradeType: PostType.selling,
     );
     print("현재 로컬 이미지 수: ${state.localImageFiles.length}");
   }
@@ -140,7 +146,7 @@ class PostWriteViewModel
       if (uploadedFiles.isNotEmpty) {
         state = state.copyWith(
           uploadedImageFiles: [...state.uploadedImageFiles, ...uploadedFiles],
-          localImageFiles: [], // 업로드 완료된 로컬 이미지 제거
+          localImageFiles: [], tradeType: PostType.selling, // 업로드 완료된 로컬 이미지 제거
         );
         print("모든 이미지 업로드 완료");
         print("업로드된 이미지 수: ${state.uploadedImageFiles.length}");
@@ -163,7 +169,7 @@ class PostWriteViewModel
     required String location,
     required String userNickname,
     required String userProfileImageUrl,
-    required String userHomeAddress,
+    required Address userHomeAddress,
   }) async {
     print("===== PostWriteViewModel upload 시작 =====");
     print("업로드된 이미지 수: ${state.uploadedImageFiles.length}");
@@ -193,54 +199,40 @@ class PostWriteViewModel
     }
 
     try {
-      if (arg != null) {
-        print("기존 게시글 수정 시도");
-        // 수정 로직...
-      } else {
-        print("새 게시글 생성 시도");
-        final result = await postRepository.create(
-          postId: DateTime.now().millisecondsSinceEpoch.toString(),
-          userId: state.userId!,
-          originalTitle: originalTitle,
-          translatedTitle: translatedTitle,
-          images: state.uploadedImageFiles.map((e) => e.url).toList(),
-          category: state.selectedCategory!['id']!,
-          price: price,
-          status: PostStatus.selling,
-          negotiable: true,
-          originalDescription: originalDescription,
-          translatedDescription: translatedDescription,
-          location: location,
-          userNickname: userNickname,
-          userProfileImageUrl: userProfileImageUrl,
-          userHomeAddress: userHomeAddress,
-        );
+      final images = state.uploadedImageFiles;
 
-        print("게시글 생성 결과: ${result != null ? '성공' : '실패'}");
-        return result;
-      }
+      final result = await postRepository.createPost(
+        userId: state.userId!,
+        originalTitle: originalTitle,
+        translatedTitle: translatedTitle,
+        images: images,
+        category: state.selectedCategory!['id']!,
+        price: price,
+        type: state.tradeType,
+        status: PostStatus.active,
+        negotiable: true, // 수정 필요 시 인자로 받을 수 있음
+        originalDescription: originalDescription,
+        translatedDescription: translatedDescription,
+        address: userHomeAddress,
+        userNickname: userNickname,
+        userProfileImageUrl: userProfileImageUrl,
+        userAddress: userHomeAddress,
+        language: "ko", // 언어 정보는 고정 또는 사용자 설정 기반으로 처리
+      );
+
+      print("게시글 생성 결과: ${result != null ? '성공' : '실패'}");
+      return result;
     } catch (e, stackTrace) {
       print("===== 게시글 업로드 중 에러 발생 =====");
       print("에러 내용: $e");
       print("스택트레이스: $stackTrace");
       return null;
     }
-    return null;
   }
 
-  // 사용자 정보 설정
-  void setUserInfo({
-    required String userId,
-    required String nickname,
-    required String profileImageUrl,
-    required Address homeAddress,
-  }) {
-    state = state.copyWith(
-      userId: userId,
-      userNickname: nickname,
-      userProfileImageUrl: profileImageUrl,
-      userHomeAddress: homeAddress,
-    );
+  void onTradeTypeSelected(PostType type) {
+    state = state.copyWith(tradeType: type);
+    print("거래 유형 변경: $type");
   }
 
   void onCategorySelected(String category) {
@@ -248,7 +240,8 @@ class PostWriteViewModel
       (c) => c['category'] == category,
       orElse: () => {'id': '', 'category': ''},
     );
-    state = state.copyWith(selectedCategory: selectedCategory);
+    state = state.copyWith(
+        selectedCategory: selectedCategory, tradeType: PostType.selling);
   }
 }
 
