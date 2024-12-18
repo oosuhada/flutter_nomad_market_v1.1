@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/ui/pages/_tab/my_tab/widgets/city_selection.dart';
@@ -13,6 +14,24 @@ import 'package:flutter_market_app/ui/pages/_tab/my_tab/widgets/transaction_acco
 import 'package:flutter_market_app/ui/pages/_tab/my_tab/widgets/wishlist.dart';
 
 class MyTab extends StatelessWidget {
+  final FirebaseAuth _auth = FirebaseAuth.instance; // Firebase Auth 인스턴스 추가
+
+  Future<void> _handleLogout(BuildContext context) async {
+    try {
+      await _auth.signOut();
+      // main.dart 페이지로 이동하고 이전 스택 모두 제거
+      Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+    } catch (e) {
+      print('Logout Error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('로그아웃 중 오류가 발생했습니다.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -86,6 +105,28 @@ class MyTab extends StatelessWidget {
                 text: '약관 및 정책',
                 nextPage: TermsAndPoliciesPage(),
               ),
+              Divider(),
+              GestureDetector(
+                onTap: () => _handleLogout(context),
+                child: Container(
+                  height: 40,
+                  color: Colors.transparent,
+                  child: Row(
+                    children: [
+                      Icon(Icons.logout, color: Colors.red), // 빨간색 로그아웃 아이콘
+                      SizedBox(width: 8),
+                      Text(
+                        '로그아웃',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.red, // 텍스트도 빨간색으로
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 20), // 하단 여백 추가
             ],
           ),
         ),

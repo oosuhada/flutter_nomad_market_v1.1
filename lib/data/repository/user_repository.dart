@@ -392,47 +392,50 @@ class UserRepository {
     String? profileImageUrl,
   }) async {
     try {
-      print("프로필 업데이트 시작:");
+      print("===== 프로필 업데이트 시작 =====");
       print("- 사용자 ID: $userId");
       print("- 새 닉네임: $nickname");
 
-      // 닉네임 중복 확인 (현재 사용자 제외)
+      // 닉네임 중복 확인
       final nicknameQuery = await _firestore
           .collection('users')
           .where('nickname', isEqualTo: nickname)
           .where('userId', isNotEqualTo: userId)
           .get();
 
+      print("닉네임 중복 확인 결과: ${nicknameQuery.docs.length}개 문서");
       if (nicknameQuery.docs.isNotEmpty) {
-        print('프로필 업데이트 실패: 닉네임 중복');
+        print("프로필 업데이트 실패: 닉네임 중복");
         return false;
       }
 
+      // 사용자 문서 확인
+      final docRef = _firestore.collection('users').doc(userId);
+      final docSnapshot = await docRef.get();
+      if (!docSnapshot.exists) {
+        print("프로필 업데이트 실패: 사용자 문서가 존재하지 않음 (userId: $userId)");
+        return false;
+      }
+
+      // 업데이트 데이터 구성
       final updateData = {
         'nickname': nickname,
         if (profileImageUrl != null) 'profileImageUrl': profileImageUrl,
-        'updatedAt': FieldValue.serverTimestamp(),
       };
 
-      await _firestore.collection('users').doc(userId).update(updateData);
-      print("프로필 업데이트 성공");
+      print("업데이트 데이터: $updateData");
+
+      // Firestore 업데이트 실행
+      await docRef.update(updateData);
+
+      print("===== 프로필 업데이트 성공 =====");
       return true;
     } catch (e, stackTrace) {
-      print('프로필 업데이트 실패:');
-      print('- 에러: $e');
-      print('- 스택트레이스: $stackTrace');
+      print("===== 프로필 업데이트 실패 =====");
+      print("- 에러 타입: ${e.runtimeType}");
+      print("- 에러 내용: $e");
+      print("- 스택트레이스: $stackTrace");
       return false;
-    }
-  }
-
-  /// 현재 로그인된 사용자를 로그아웃합니다.
-  Future<void> signOut() async {
-    print("로그아웃 시도");
-    try {
-      await _auth.signOut();
-      print("로그아웃 성공");
-    } catch (e) {
-      print("로그아웃 실패: $e");
     }
   }
 }

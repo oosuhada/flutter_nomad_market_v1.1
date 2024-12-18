@@ -8,6 +8,7 @@ enum SignInMethod { email, google }
 class ProfileImageUrlHelper {
   static const String defaultProfileImageUrl = '';
   static const String storageBasePath = 'files/';
+  static const String profileImageBasePath = 'profile/';
 
   static String normalizeStorageUrl(String? url) {
     if (url == null || url.isEmpty) {
@@ -40,6 +41,39 @@ class ProfileImageUrlHelper {
     final uniqueFilename = '${timestamp}_$sanitizedFilename';
 
     return '$storageBasePath$uniqueFilename';
+  }
+
+  static String normalizeProfileStorageUrl(String? url) {
+    if (url == null || url.isEmpty) {
+      return defaultProfileImageUrl;
+    }
+
+    if (url.startsWith('https://firebasestorage.googleapis.com')) {
+      return url;
+    }
+
+    if (url.startsWith(profileImageBasePath)) {
+      return url;
+    }
+
+    return '$profileImageBasePath$url';
+  }
+
+  // 파일 이름으로부터 Storage 경로 생성
+  static String createProfileStoragePath(String filename) {
+    // 파일명에 경로가 포함되어 있는 경우 처리
+    if (filename.startsWith(profileImageBasePath)) {
+      return filename;
+    }
+
+    // 파일명에서 특수문자 및 공백 제거
+    final sanitizedFilename = filename.replaceAll(RegExp(r'[^\w\s\-.]'), '');
+
+    // 타임스탬프를 추가하여 고유한 파일명 생성
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final uniqueFilename = '${timestamp}_$sanitizedFilename';
+
+    return '$profileImageBasePath$uniqueFilename';
   }
 }
 
