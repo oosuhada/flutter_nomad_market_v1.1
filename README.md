@@ -1,16 +1,78 @@
-# flutter_market_app
+# Nomad_Market_1.1.README
 
-A new Flutter project.
+![Nomad Market Logo](assets/15.png)
 
-## Getting Started
+## 프로젝트 개요
 
-This project is a starting point for a Flutter application.
+### “Nomad Market"은 글로벌 물품거래 솔루션을 제공합니다
 
-A few resources to get you started if this is your first Flutter project:
+#### 💡 '노마드 마켓'은 다음과 같은 솔루션을 제공합니다
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+> 🧳 글로벌 물품거래에 여행자와 유저를 연결시켜 빠른배송이 가능합니다
+>
+> ✈️ 해외에 이벤트나 한정판매 같은 커스텀 오더가 가능합니다
+>
+> 🚂 P2P 거래를 넘어 커뮤니티 확장으로 소셜미디어 기능을 제공합니다
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+<br/>
+
+## 팀원 구성
+
+|                         **장우수**                         |                **김시은**                |      **이승준**      |             **AI**              |
+| :--------------------------------------------------------: | :--------------------------------------: | :------------------: | :-----------------------------: |
+| UI 전반 빌드, GPS기반 기능, DB검색 필터링, 소셜로그인 적용 | UI 전반 빌드, 파이어스토어 적용, flqjvkt | 조인 텍스트 중복방지 | 코드 점검, 코드 수정, 기능 추천 |
+
+<br/>
+
+## 주요 기능
+
+- **사용자 인증**: 회원가입, 로그인, 소셜 로그인
+- **홈 화면**: 상품 목록 표시, 카테고리별 필터링
+- **채팅**: 실시간 메시징, 상품 정보 공유
+- **게시물 관리**: 상품 등록, 수정, 삭제
+- **프로필 관리**: 사용자 정보 수정, 프로필 이미지 업로드
+- **설정**: 언어, 통화, 위치 설정
+- **거래 내역**: 구매 및 판매 이력 조회
+
+<br/>
+
+## 기술 스택
+
+- **프레임워크**: Flutter
+- **상태 관리**: Provider (ViewModel 패턴 사용)
+- **데이터베이스**: Firebase
+- **위치 서비스**: Geolocator, Mapbox
+- **이미지 처리**: Image Picker
+
+<br/>
+
+## 프로젝트 일정
+
+24/12/11~24/12/18
+
+<br/>
+
+## TroubleShooting
+
+#### 초반 모델 설계의 부재와 호환성 이슈가 있었다
+
+- 필요성: 모델 설계가 뒤에 이어지다 보니 추가 개발이 늦어졌다.
+- 해결책: 다음부터는 초기 모델 설계를 중심으로 시작해야겠다고 팀원의 의견을 모았다
+- 개선점: erd나 기타 자료를 통해 초기 세팅을 진행해야겠다
+
+#### iOS 18버전과 Image Picker의 호환성 문제
+
+- 문제: 이미지 피커 호환성문제로 프리징 문제가 발생함
+- 해결책: ios 버전을 18버전에서 17버전으로 낮추었다
+- 개선점: 다음에는 미리 이런 큰 이슈들을 인지하고 시작해야겠다
+
+<br/>
+
+## 유지보수 및 개선사항
+
+### 2024/12/15: ERD 및 초기 설계 미진으로 유저 정의하는데 시간을 많이뺏김
+
+- 문제 기기: 기존 서버 역할의 rest api들이 문제
+- 이슈 상황: 모델정의가 다르고 파이어베이스랑 플랫폼도 달라서 문제 발생
+- 임시 대응: 시간을 갈아넣음
+- 향후 계획: 위 추가 장치 및 초기설계 온건히 하기
