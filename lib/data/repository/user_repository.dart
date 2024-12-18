@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as auth;
 import 'package:flutter_market_app/data/model/user.dart';
+import 'package:flutter_market_app/data/repository/file_repository.dart';
 
 /// UserRepository는 사용자 인증 및 데이터 관리를 담당하는 클래스입니다.
 /// Firebase Authentication과 Firestore를 사용하여 사용자 정보를 관리합니다.
@@ -331,7 +334,7 @@ class UserRepository {
     required String nickname,
     required String password,
     required String addressFullName,
-    required String profileImageUrl,
+    required String profileImageUrl, // 로컬 파일 경로
     required String language,
     required String currency,
   }) async {
@@ -344,6 +347,33 @@ class UserRepository {
       if (!await isNicknameAvailable(nickname)) {
         print('회원가입 실패: 닉네임 중복');
         return false;
+      }
+
+      // 프로필 이미지 처리
+      String finalProfileImageUrl = '';
+      if (profileImageUrl.isNotEmpty) {
+        print("프로필 이미지 업로드 시작");
+        try {
+          final File imageFile = File(profileImageUrl);
+          final bytes = await imageFile.readAsBytes();
+          final filename = profileImageUrl.split('/').last;
+
+          final fileRepository = FileRepository();
+          final fileModel = await fileRepository.upload(
+            bytes: bytes,
+            filename: filename,
+            mimeType: 'image/jpeg', // 또는 적절한 mimeType 설정
+          );
+
+          if (fileModel != null) {
+            finalProfileImageUrl = fileModel.url;
+            print("프로필 이미지 업로드 성공: $finalProfileImageUrl");
+          }
+        } catch (e) {
+          print("프로필 이미지 업로드 실패: $e");
+          // 이미지 업로드 실패시 기본 이미지 URL 사용
+          finalProfileImageUrl = ProfileImageUrlHelper.defaultProfileImageUrl;
+        }
       }
 
       // 계정 생성
@@ -363,7 +393,7 @@ class UserRepository {
         'userId': credential.user!.uid,
         'email': email,
         'nickname': nickname,
-        'profileImageUrl': profileImageUrl,
+        'profileImageUrl': finalProfileImageUrl, // 업로드된 이미지 URL 사용
         'preferences': {
           'language': language.split(' ')[0].toLowerCase(),
           'currency': currency.split(' ')[0],
@@ -390,6 +420,7 @@ class UserRepository {
     required String userId,
     required String nickname,
     String? profileImageUrl,
+    File? newImageFile,
   }) async {
     try {
       print("프로필 업데이트 시작:");
@@ -408,9 +439,34 @@ class UserRepository {
         return false;
       }
 
+      // 새 이미지 파일이 있는 경우 업로드
+      String finalImageUrl = profileImageUrl ?? '';
+      if (newImageFile != null) {
+        print("새 프로필 이미지 업로드 시작");
+        try {
+          final bytes = await newImageFile.readAsBytes();
+          final filename = newImageFile.path.split('/').last;
+
+          final fileRepository = FileRepository();
+          final fileModel = await fileRepository.upload(
+            bytes: bytes,
+            filename: filename,
+            mimeType: 'image/jpeg',
+          );
+
+          if (fileModel != null) {
+            finalImageUrl = fileModel.url;
+            print("새 프로필 이미지 업로드 성공: $finalImageUrl");
+          }
+        } catch (e) {
+          print("새 프로필 이미지 업로드 실패: $e");
+          // 이미지 업로드 실패시에도 계속 진행 (기존 이미지 유지)
+        }
+      }
+
       final updateData = {
         'nickname': nickname,
-        if (profileImageUrl != null) 'profileImageUrl': profileImageUrl,
+        'profileImageUrl': finalImageUrl,
         'updatedAt': FieldValue.serverTimestamp(),
       };
 
@@ -435,7 +491,42 @@ class UserRepository {
       print("로그아웃 실패: $e");
     }
   }
+
+  /// 현재 로그인한 사용자의 정보를 실시간으로 감시하는 스트림을 반환합니다.
+  Stream<User?> getUserStream() {
+    final currentUser = _auth.currentUser;
+    if (currentUser == null) return Stream.value(null);
+
+    return _firestore
+        .collection('users')
+        .doc(currentUser.uid)
+        .snapshots()
+        .map((doc) {
+      if (!doc.exists) return null;
+
+      // 데이터 보강 및 변환
+      final enrichedData = _enrichUserData(doc.data()!, doc.id);
+      return User.fromJson(enrichedData);
+    }).handleError((error) {
+      print('사용자 정보 스트림 에러: $error');
+      return null;
+    });
+  }
+
+  /// 특정 사용자의 정보를 실시간으로 감시하는 스트림을 반환합니다.
+  Stream<User?> getUserStreamById(String userId) {
+    return _firestore.collection('users').doc(userId).snapshots().map((doc) {
+      if (!doc.exists) return null;
+
+      final enrichedData = _enrichUserData(doc.data()!, doc.id);
+      return User.fromJson(enrichedData);
+    }).handleError((error) {
+      print('특정 사용자 정보 스트림 에러: $error');
+      return null;
+    });
+  }
 }
+
 
 //   // 현재 로그인한 사용자 정보 조회 수정
 //   Future<User?> myInfo() async {

@@ -19,12 +19,22 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
   final nicknameController = TextEditingController();
   final formKey = GlobalKey<FormState>();
   File? _imageFile;
+  String? _currentImageUrl; // 추가: 현재 이미지 URL 저장
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(profileEditViewModel.notifier).initUserData();
+    print("ProfileEditPage initState");
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await ref.read(profileEditViewModel.notifier).initUserData();
+      final userData = ref.read(profileEditViewModel);
+      if (userData != null) {
+        setState(() {
+          _currentImageUrl = userData.profileImageUrl;
+          nicknameController.text = userData.nickname;
+        });
+        print("현재 이미지 URL: $_currentImageUrl");
+      }
     });
   }
 
@@ -33,6 +43,41 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
     nicknameController.dispose();
     super.dispose();
   }
+
+  // // 이미지 표시 위젯 부분 수정
+  // Widget buildProfileImage() {
+  //   if (_imageFile != null) {
+  //     return ClipRRect(
+  //       borderRadius: BorderRadius.circular(100),
+  //       child: Image.file(
+  //         _imageFile!,
+  //         fit: BoxFit.cover,
+  //         width: 150,
+  //         height: 150,
+  //       ),
+  //     );
+  //   } else if (_currentImageUrl != null && _currentImageUrl!.isNotEmpty) {
+  //     return ClipRRect(
+  //       borderRadius: BorderRadius.circular(100),
+  //       child: CachedNetworkImage(
+  //         imageUrl: _currentImageUrl!,
+  //         fit: BoxFit.cover,
+  //         width: 150,
+  //         height: 150,
+  //         placeholder: (context, url) => CircularProgressIndicator(),
+  //         errorWidget: (context, url, error) => Icon(Icons.person, size: 90),
+  //       ),
+  //     );
+  //   } else {
+  //     return Column(
+  //       mainAxisAlignment: MainAxisAlignment.center,
+  //       children: [
+  //         Icon(Icons.person, size: 90),
+  //         SizedBox(height: 5),
+  //       ],
+  //     );
+  //   }
+  // }
 
   Future<void> onImageUpload() async {
     print('onImageUpload 함수 시작');
@@ -80,13 +125,78 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
   }
 
   Future<void> pickAndShowImage(ImageSource source) async {
-    print('pickAndShowImage 함수 시작');
+    print('이미지 선택 시작');
     final XFile? pickedFile = await pickImage(source);
     if (pickedFile != null) {
-      await showLocalImage(pickedFile);
-      await uploadImage(pickedFile);
+      try {
+        final bytes = await pickedFile.readAsBytes();
+        final fileName = pickedFile.path.split('/').last;
+
+        // 로컬 이미지 미리보기 업데이트
+        setState(() {
+          _imageFile = File(pickedFile.path);
+        });
+
+        // 이미지 즉시 업로드 및 프로필 업데이트
+        final viewModel = ref.read(profileEditViewModel.notifier);
+        final success = await viewModel.uploadAndUpdateImage(
+          filename: fileName,
+          mimeType: 'image/jpeg',
+          bytes: bytes,
+        );
+
+        if (success) {
+          final userData = ref.read(profileEditViewModel);
+          if (userData != null) {
+            setState(() {
+              _currentImageUrl = userData.profileImageUrl;
+            });
+          }
+        } else {
+          if (mounted) {
+            SnackbarUtil.showSnackBar(context, '이미지 업로드에 실패했습니다');
+          }
+        }
+      } catch (e) {
+        print('이미지 업로드 오류: $e');
+        if (mounted) {
+          SnackbarUtil.showSnackBar(context, '이미지 업로드에 실패했습니다');
+        }
+      }
     }
-    print('pickAndShowImage 함수 종료');
+    print('이미지 선택 완료');
+  }
+
+  Widget buildProfileImage() {
+    print(
+        "프로필 이미지 빌드: imageFile: ${_imageFile != null}, currentUrl: $_currentImageUrl");
+    if (_imageFile != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(75),
+        child: Image.file(
+          _imageFile!,
+          width: 150,
+          height: 150,
+          fit: BoxFit.cover,
+        ),
+      );
+    } else if (_currentImageUrl != null && _currentImageUrl!.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(75),
+        child: CachedNetworkImage(
+          imageUrl: _currentImageUrl!,
+          width: 150,
+          height: 150,
+          fit: BoxFit.cover,
+          placeholder: (context, url) => CircularProgressIndicator(),
+          errorWidget: (context, url, error) {
+            print("이미지 로드 에러: $error");
+            return Icon(Icons.person, size: 90);
+          },
+        ),
+      );
+    }
+    return Icon(Icons.person, size: 90);
   }
 
   Future<XFile?> pickImage(ImageSource source) async {
@@ -111,15 +221,34 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
       final bytes = await file.readAsBytes();
       final fileName = file.path.split('/').last;
       final viewModel = ref.read(profileEditViewModel.notifier);
-      await viewModel.uploadImage(
+
+      // uploadImage 대신 uploadAndUpdateImage 호출
+      final success = await viewModel.uploadAndUpdateImage(
         filename: fileName,
         mimeType: 'image/jpeg',
         bytes: bytes,
       );
-      print('이미지 업로드 완료');
+
+      if (success) {
+        print('이미지 업로드 및 프로필 업데이트 완료');
+        // 현재 상태 갱신
+        final userData = ref.read(profileEditViewModel);
+        if (userData != null && mounted) {
+          setState(() {
+            _currentImageUrl = userData.profileImageUrl;
+          });
+        }
+      } else {
+        print('이미지 업로드 실패');
+        if (mounted) {
+          SnackbarUtil.showSnackBar(context, '이미지 업로드에 실패했습니다');
+        }
+      }
     } catch (e) {
       print('이미지 업로드 오류: $e');
-      SnackbarUtil.showSnackBar(context, '이미지 업로드에 실패했습니다');
+      if (mounted) {
+        SnackbarUtil.showSnackBar(context, '이미지 업로드에 실패했습니다');
+      }
     }
   }
 
@@ -147,28 +276,13 @@ class _ProfileEditPageState extends ConsumerState<ProfileEditPage> {
                   child: Container(
                     width: 150,
                     height: 150,
+                    clipBehavior: Clip.antiAlias, // 추가
                     decoration: BoxDecoration(
                       color: Colors.grey[300],
                       shape: BoxShape.circle,
                     ),
-                    child: imageFile != null
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(100),
-                            child: Image.file(
-                              imageFile!,
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                        : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.person,
-                                size: 90,
-                              ),
-                              SizedBox(height: 5),
-                            ],
-                          ),
+                    child: buildProfileImage(),
+                    // 수정된 부분
                   ),
                 ),
                 Positioned(

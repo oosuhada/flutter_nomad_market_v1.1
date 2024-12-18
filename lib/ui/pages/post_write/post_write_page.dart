@@ -51,31 +51,32 @@ class _PostWritePageState extends ConsumerState<PostWritePage> {
   void initState() {
     super.initState();
     print("PostWritePage 초기화 시작"); // 페이지 초기화 시작 로그
-    _initUserData();
   }
 
-  Future<void> _initUserData() async {
-    print("사용자 정보 초기화 시작");
-    try {
-      final userVM = ref.read(userGlobalViewModel.notifier);
-      await userVM.initUserData();
-      final userData = ref.read(userGlobalViewModel);
-      print("사용자 정보 로드 완료:");
-      print("- 사용자 ID: ${userData?.userId}");
-      print("- 닉네임: ${userData?.nickname}");
-    } catch (e) {
-      print("사용자 정보 초기화 중 오류 발생: $e");
-    }
-  }
+  // // initUserData 메서드 제거 (스트림으로 대체)
+  // Future<void> _initUserData() async {
+  //   print("사용자 정보 초기화 시작");
+  //   try {
+  //     final userVM = ref.read(userGlobalViewModel.notifier);
+  //     await userVM.initUserData();
+  //     final userData = ref.read(userGlobalViewModel);
+  //     print("사용자 정보 로드 완료:");
+  //     print("- 사용자 ID: ${userData?.userId}");
+  //     print("- 닉네임: ${userData?.nickname}");
+  //   } catch (e) {
+  //     print("사용자 정보 초기화 중 오류 발생: $e");
+  //   }
+  // }
 
   Future<void> onSubmit() async {
     print("게시글 제출 프로세스 시작");
 
     // 뷰모델 참조
     final vm = ref.read(postWriteViewModel(widget.post).notifier);
-    final userVM = ref.read(userGlobalViewModel);
+    final userState = ref.read(userGlobalViewModel);
+    final user = userState?.user; // user 객체에서 필요한 정보 접근
 
-    if (userVM == null) {
+    if (user == null) {
       print("사용자 정보 없음");
       return;
     }
@@ -89,7 +90,7 @@ class _PostWritePageState extends ConsumerState<PostWritePage> {
         return;
       }
 
-      // 2. `PostSummary` 객체 생성
+      // 2. PostSummary 객체 생성
       final uploadedImages = vm.state.uploadedImageFiles;
 
       if (uploadedImages.isEmpty) {
@@ -97,19 +98,19 @@ class _PostWritePageState extends ConsumerState<PostWritePage> {
         return;
       }
 
-      final thumbnail = uploadedImages.first; // 첫 번째 이미지를 썸네일로 사용
+      final thumbnail = uploadedImages.first;
       final localPost = PostSummary(
-        id: DateTime.now().millisecondsSinceEpoch.toString(), // 임시 ID 생성
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
         originalTitle: titleController.text,
-        translatedTitle: null, // 번역된 제목은 서버 응답 이후 처리
+        translatedTitle: null,
         price: int.parse(priceController.text),
-        currency: "KRW", // 현재 통화는 "KRW"로 고정
-        language: "ko", // 기본 언어 설정
+        currency: "KRW",
+        language: "ko",
         thumbnail: thumbnail,
         type: widget.isRequesting ? PostType.buying : PostType.selling,
         status: PostStatus.active,
-        likes: 0, // 기본 좋아요 수
-        address: userVM.address, // 사용자 주소
+        likes: 0,
+        address: user.address, // User 객체에서 주소 접근
         updatedAt: DateTime.now(),
         createdAt: DateTime.now(),
       );
@@ -126,14 +127,14 @@ class _PostWritePageState extends ConsumerState<PostWritePage> {
       print("서버 업로드 시작");
       final result = await vm.upload(
         originalTitle: titleController.text,
-        translatedTitle: titleController.text, // 번역 로직 필요 시 수정
+        translatedTitle: titleController.text,
         price: Price(amount: int.parse(priceController.text), currency: "KRW"),
         originalDescription: contentController.text,
-        translatedDescription: contentController.text, // 번역 로직 필요 시 수정
-        location: userVM.address.fullNameKR,
-        userNickname: userVM.nickname,
-        userProfileImageUrl: userVM.profileImageUrl,
-        userHomeAddress: userVM.address,
+        translatedDescription: contentController.text,
+        location: user.address.fullNameKR, // User 객체에서 주소 접근
+        userNickname: user.nickname, // User 객체에서 닉네임 접근
+        userProfileImageUrl: user.profileImageUrl, // User 객체에서 프로필 이미지 URL 접근
+        userHomeAddress: user.address, // User 객체에서 주소 접근
       );
 
       if (result != null) {

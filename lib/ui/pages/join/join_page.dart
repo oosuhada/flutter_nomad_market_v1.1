@@ -3,19 +3,15 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/core/image_picker_helper.dart';
 import 'package:flutter_market_app/core/snackbar_util.dart';
-import 'package:flutter_market_app/ui/pages/_tab/home_tab/home_tab.dart';
 import 'package:flutter_market_app/ui/pages/home/home_page.dart';
 import 'package:flutter_market_app/ui/pages/join/join_view_model.dart';
-import 'package:flutter_market_app/ui/pages/login/login_view_model.dart';
-import 'package:flutter_market_app/ui/pages/welcome/welcome_page.dart';
+import 'package:flutter_market_app/ui/pages/social_id.dart';
 import 'package:flutter_market_app/ui/user_global_view_model.dart';
 import 'package:flutter_market_app/ui/widgets/join_text_form_field.dart';
 import 'package:flutter_market_app/ui/widgets/nickname_text_form_field.dart';
 import 'package:flutter_market_app/ui/widgets/pw_text_form_field.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:flutter_market_app/ui/pages/login/login_page.dart';
-import 'package:flutter_market_app/ui/pages/social_id.dart';
 
 class JoinPage extends ConsumerStatefulWidget {
   final String language;
@@ -35,14 +31,14 @@ class JoinPage extends ConsumerStatefulWidget {
 
 class _JoinPageState extends ConsumerState<JoinPage> {
   final emailController = TextEditingController();
-  late final String selectedLanguage;
-  late final String selectedAddress;
-  late final String selectedCurrency;
   final pwController = TextEditingController();
   final nicknameController = TextEditingController();
   final formKey = GlobalKey<FormState>();
   File? imageFile;
   String? imageUrl;
+  late final String selectedLanguage;
+  late final String selectedAddress;
+  late final String selectedCurrency;
 
   @override
   void initState() {
@@ -85,7 +81,9 @@ class _JoinPageState extends ConsumerState<JoinPage> {
               child: Text(
                 '갤러리에서 선택',
                 style: TextStyle(
-                    color: theme.textTheme.bodyLarge?.color, fontSize: 16),
+                  color: theme.textTheme.bodyLarge?.color,
+                  fontSize: 16,
+                ),
               ),
             ),
             CupertinoActionSheetAction(
@@ -104,7 +102,9 @@ class _JoinPageState extends ConsumerState<JoinPage> {
               child: Text(
                 '카메라로 촬영',
                 style: TextStyle(
-                    color: theme.textTheme.bodyLarge?.color, fontSize: 16),
+                  color: theme.textTheme.bodyLarge?.color,
+                  fontSize: 16,
+                ),
               ),
             ),
           ],
@@ -115,7 +115,9 @@ class _JoinPageState extends ConsumerState<JoinPage> {
             child: Text(
               '취소',
               style: TextStyle(
-                  color: theme.textTheme.bodyLarge?.color, fontSize: 16),
+                color: theme.textTheme.bodyLarge?.color,
+                fontSize: 16,
+              ),
             ),
           ),
         );
@@ -133,13 +135,17 @@ class _JoinPageState extends ConsumerState<JoinPage> {
           title: Text('오류', style: theme.textTheme.titleSmall),
           content: Text(message,
               style: TextStyle(
-                  color: theme.listTileTheme.textColor, fontSize: 16)),
+                color: theme.listTileTheme.textColor,
+                fontSize: 16,
+              )),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text('확인',
                   style: TextStyle(
-                      color: theme.colorScheme.primary, fontSize: 16)),
+                    color: theme.colorScheme.primary,
+                    fontSize: 16,
+                  )),
             ),
           ],
         );
@@ -147,94 +153,67 @@ class _JoinPageState extends ConsumerState<JoinPage> {
     );
   }
 
-  //onJoin 메서드 수정
-  void onJoin() async {
-    if (formKey.currentState?.validate() ?? false) {
-      print("===== 회원가입 시도 시작 =====");
-      final email = emailController.text.trim();
-      final password = pwController.text.trim();
-      final nickname = nicknameController.text.trim();
+  Future<void> onJoin() async {
+    if (!(formKey.currentState?.validate() ?? false)) return;
 
-      if (email.isEmpty || password.isEmpty || nickname.isEmpty) {
-        print("필수 필드 누락");
-        SnackbarUtil.showSnackBar(context, '회원가입에 실패하였습니다');
-        return;
-      }
+    final email = emailController.text.trim();
+    final password = pwController.text.trim();
+    final nickname = nicknameController.text.trim();
 
-      try {
-        final viewModel = ref.read(joinViewModel.notifier);
-        print("회원가입 요청 시작");
-        final result = await viewModel.join(
-          nickname: nickname,
-          email: email,
-          password: password,
-          addressFullName: selectedAddress,
-          profileImageUrl: imageUrl ?? '',
-          language: selectedLanguage.split(' ')[0].toLowerCase(),
-          currency: selectedCurrency.split(' ')[0],
+    if (email.isEmpty || password.isEmpty || nickname.isEmpty) {
+      SnackbarUtil.showSnackBar(context, '모든 필드를 입력해주세요');
+      return;
+    }
+
+    try {
+      final viewModel = ref.read(joinViewModelProvider.notifier);
+      await viewModel.join(
+        nickname: nickname,
+        email: email,
+        password: password,
+        addressFullName: widget.address,
+        language: widget.language.split(' ')[0].toLowerCase(),
+        currency: widget.currency.split(' ')[0],
+      );
+
+      if (viewModel.state.joinSuccess == true) {
+        await ref.read(userGlobalViewModel.notifier).refreshUserData();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('회원가입이 성공적으로 완료되었습니다'),
+            duration: Duration(seconds: 2),
+          ),
         );
-
-        if (result == true) {
-          print("회원가입 성공");
-
-          // 사용자 정보 초기화 추가
-          print("사용자 정보 초기화 시작");
-          final userVM = ref.read(userGlobalViewModel.notifier);
-          await userVM.initUserData();
-
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('회원가입이 성공적으로 완료되었습니다'),
-                duration: Duration(seconds: 2),
-              ),
-            );
-
-            await Future.delayed(Duration(seconds: 2));
-
-            if (mounted) {
-              print("홈페이지로 이동");
-              Navigator.of(context).pushReplacement(
-                PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) =>
-                      HomePage(),
-                  transitionsBuilder:
-                      (context, animation, secondaryAnimation, child) {
-                    var curve = Curves.easeInOut;
-                    var fadeAnimation = Tween(begin: 0.0, end: 1.0).animate(
-                      CurvedAnimation(parent: animation, curve: curve),
-                    );
-                    var scaleAnimation = Tween(begin: 0.1, end: 1.0).animate(
-                      CurvedAnimation(parent: animation, curve: curve),
-                    );
-                    return FadeTransition(
-                      opacity: fadeAnimation,
-                      child: ScaleTransition(
-                        scale: scaleAnimation,
-                        child: child,
-                      ),
-                    );
-                  },
-                  transitionDuration: Duration(milliseconds: 500),
-                ),
-              );
-            }
-          }
-        } else {
-          print("회원가입 실패");
-          SnackbarUtil.showSnackBar(context, '회원가입에 실패하였습니다');
-        }
-      } catch (e, stackTrace) {
-        print("회원가입 중 오류 발생");
-        print("에러: $e");
-        print("스택트레이스: $stackTrace");
-        SnackbarUtil.showSnackBar(context, '회원가입 중 오류가 발생했습니다');
+        await Future.delayed(const Duration(seconds: 2));
+        if (!mounted) return;
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => HomePage()),
+        );
+      } else {
+        if (!mounted) return;
+        SnackbarUtil.showSnackBar(context, '회원가입에 실패했습니다');
       }
+    } catch (e) {
+      print("회원가입 중 오류 발생: $e");
+      if (!mounted) return;
+      SnackbarUtil.showSnackBar(context, '회원가입 중 오류가 발생했습니다');
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final userState = ref.watch(userGlobalViewModel);
+    final error = userState.error;
+
+    if (error != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('오류: $error')),
+        );
+      });
+    }
+
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -338,16 +317,13 @@ class _JoinPageState extends ConsumerState<JoinPage> {
                     onTap: () async {
                       final success = await authService.onGoogleSignIn(context);
                       if (success) {
-                        // 로그인 성공 시 처리
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text('Google 계정으로 가입되었습니다'),
                             duration: Duration(seconds: 3),
                           ),
                         );
-
                         await Future.delayed(Duration(seconds: 2));
-
                         Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(builder: (context) => HomePage()),
@@ -405,19 +381,14 @@ class _JoinPageState extends ConsumerState<JoinPage> {
 
 class UserDataFormatter {
   static String formatLanguage(String language) {
-    // "한국어" -> "ko"
-    // "English" -> "en" 등으로 변환
     final languageMap = {
       "한국어": "ko",
       "English": "en",
-      // 필요한 언어 매핑 추가
     };
     return languageMap[language] ?? "ko";
   }
 
   static String formatCurrency(String currency) {
-    // "KRW (₩)" -> "KRW"
-    // "USD ($)" -> "USD" 등으로 변환
     return currency.split(' ')[0];
   }
 }

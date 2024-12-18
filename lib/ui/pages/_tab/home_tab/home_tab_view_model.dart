@@ -58,7 +58,7 @@ class HomeTabState {
       selectedCategory: selectedCategory ?? this.selectedCategory,
       isLoading: isLoading ?? this.isLoading,
       hasMore: hasMore ?? this.hasMore,
-      error: error ?? this.error,
+      error: error,
       isInitialized: isInitialized ?? this.isInitialized, // copyWith에 포함
     );
   }
@@ -269,7 +269,7 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
       state = state.copyWith(isLoading: true, error: null);
 
       final user = ref.read(userGlobalViewModel);
-      if (user == null || user.address.fullNameKR.isEmpty) {
+      if (user.address.fullNameKR.isNotEmpty) {
         state = state.copyWith(
           isLoading: false,
           error: '사용자 위치 정보가 없습니다.',
@@ -319,7 +319,7 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
 
       // 추가 데이터 요청
       final newPosts = await postSummaryRepository.getPostSummaryList(
-        addressId: user.address.fullNameKR,
+        addressId: user.address?.fullNameKR,
         limit: pageSize,
         // 현재 게시글의 마지막 항목을 기준으로 가져오기 (Pagination)
         // 'updatedAt' 필드가 페이지네이션의 기준이라고 가정

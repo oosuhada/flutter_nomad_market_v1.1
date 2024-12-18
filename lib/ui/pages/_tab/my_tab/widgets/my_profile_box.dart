@@ -4,6 +4,7 @@ import 'package:flutter_market_app/ui/pages/_tab/my_tab/widgets/profile_edit.dar
 import 'package:flutter_market_app/ui/user_global_view_model.dart';
 import 'package:flutter_market_app/ui/widgets/user_profile_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_market_app/data/repository/user_repository.dart';
 
 class MyProfileBox extends StatelessWidget {
   @override
@@ -17,14 +18,14 @@ class MyProfileBox extends StatelessWidget {
               ? SizedBox()
               : UserProfileImage(
                   dimension: 50,
-                  imgUrl: user.profileImageUrl,
+                  imgUrl: user.profileImageUrl ?? '',
                 ),
           SizedBox(width: 10),
           Expanded(
             child: user == null
                 ? SizedBox()
                 : Text(
-                    user.nickname,
+                    user.nickname ?? 'No nickname',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,

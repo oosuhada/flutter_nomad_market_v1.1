@@ -26,7 +26,7 @@ class _AddressSearchPageState extends ConsumerState<AddressSearchPage> {
 
     _overlayEntry = OverlayEntry(
       builder: (context) => Positioned(
-        bottom: MediaQuery.of(context).padding.bottom + 10,
+        bottom: MediaQuery.of(context).padding.bottom + 15,
         left: 16,
         right: 16,
         child: Material(

@@ -65,10 +65,13 @@ class PostWriteViewModel
     extends AutoDisposeFamilyNotifier<PostWriteState, Post?> {
   @override
   PostWriteState build(Post? arg) {
+    // 사용자 상태 스트림 구독
+    final userState = ref.watch(userGlobalViewModel);
+    final user = userState?.user;
     print("===== PostWriteViewModel 초기화 =====");
 
     // userGlobalViewModel에서 현재 상태를 읽어옴
-    final userState = ref.read(userGlobalViewModel);
+
     print("현재 사용자 정보 읽기 시도:");
     print("- userState: ${userState?.toString()}");
 
@@ -96,11 +99,10 @@ class PostWriteViewModel
               (cat) => cat['id'] == arg!.category,
               orElse: () => CategoryConstants.categories.first)
           : null,
-      userId: userState?.userId,
-      userNickname: userState?.nickname,
-      userProfileImageUrl:
-          userState?.profileImageUrl ?? 'assets/defaultprofile.jpg',
-      userHomeAddress: userState?.address,
+      userId: user?.userId,
+      userNickname: user?.nickname,
+      userProfileImageUrl: user?.profileImageUrl ?? 'assets/defaultprofile.jpg',
+      userHomeAddress: user?.address,
     );
   }
 

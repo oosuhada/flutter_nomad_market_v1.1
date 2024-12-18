@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/ui/chat_global_view_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_market_app/ui/user_global_view_model.dart';
 
 class ChatDetailBottomSheet extends ConsumerStatefulWidget {
   ChatDetailBottomSheet(this.bottomPadding);
@@ -22,10 +23,9 @@ class _ChatDetailBottomSheetState extends ConsumerState<ChatDetailBottomSheet> {
   }
 
   void onSend() {
-    final vm = ref.read(chatGlobalViewModel.notifier);
     final text = controller.text;
     if (text.trim().isNotEmpty) {
-      vm.send(text);
+      // TODO: 채팅 메시지 전송 로직 구현 필요
       controller.text = '';
     }
   }
@@ -41,7 +41,6 @@ class _ChatDetailBottomSheetState extends ConsumerState<ChatDetailBottomSheet> {
           Expanded(
             child: Row(
               children: [
-                //
                 Expanded(
                   child: TextField(
                     controller: controller,

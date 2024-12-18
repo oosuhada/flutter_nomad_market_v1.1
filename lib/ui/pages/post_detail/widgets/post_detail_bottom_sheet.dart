@@ -7,7 +7,7 @@ import 'package:flutter_market_app/ui/pages/_tab/home_tab/home_tab_view_model.da
 import 'package:flutter_market_app/ui/pages/post_detail/post_detail_view_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-
+import 'package:flutter_market_app/ui/user_global_view_model.dart';
 class PostDetailBottomSheet extends StatelessWidget {
   PostDetailBottomSheet(this.bottomPadding, this.postId);
 
@@ -77,13 +77,18 @@ class PostDetailBottomSheet extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: () async {
                         final chatVm = ref.read(chatGlobalViewModel.notifier);
+                        final userState = ref.read(userGlobalViewModel);
+                        final currentUser = userState?.user;
+
+                        if (currentUser == null) return;
+
                         var roomId = chatVm.findChatRoomByPostId(postId);
 
                         if (roomId == null) {
                           final result = await chatVm.createChat(
                             postId,
-                            post.userId, // 판매자 ID 추가
-                            post.userNickname,
+                            post.userId, // sellerId (판매자 ID)
+                            currentUser.userId, // buyerId (현재 로그인한 사용자 ID)
                           );
                           if (result != null) {
                             roomId = result;
