@@ -17,9 +17,9 @@ class ChatTabListView extends ConsumerWidget {
 
     // 사용자 상태 감시
     final userState = ref.watch(userGlobalViewModel);
-    final currentUser = userState.user;
+    final currentUser = userState.user!;
 
-    if (currentUser == null || chatState.isLoading) {
+    if (chatState.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 

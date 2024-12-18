@@ -10,22 +10,22 @@ class MyProfileBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer(builder: (context, ref, child) {
-      final user = ref.watch(userGlobalViewModel);
+      final userState = ref.watch(userGlobalViewModel);
 
       return Row(
         children: [
-          user == null
+          userState.user == null
               ? SizedBox()
               : UserProfileImage(
                   dimension: 50,
-                  imgUrl: user.profileImageUrl ?? '',
+                  imgUrl: userState.user!.profileImageUrl,
                 ),
           SizedBox(width: 10),
           Expanded(
-            child: user == null
+            child: userState.user == null
                 ? SizedBox()
                 : Text(
-                    user.nickname ?? 'No nickname',
+                    userState.user!.nickname,
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,

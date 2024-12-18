@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_market_app/core/image_picker_helper.dart';
 import 'package:flutter_market_app/core/snackbar_util.dart';
 import 'package:flutter_market_app/ui/pages/home/home_page.dart';
 import 'package:flutter_market_app/ui/pages/join/join_view_model.dart';
@@ -19,11 +18,11 @@ class JoinPage extends ConsumerStatefulWidget {
   final String currency;
 
   const JoinPage({
-    Key? key,
+    super.key,
     required this.language,
     required this.address,
     required this.currency,
-  }) : super(key: key);
+  });
 
   @override
   ConsumerState<JoinPage> createState() => _JoinPageState();
@@ -129,23 +128,13 @@ class _JoinPageState extends ConsumerState<JoinPage> {
     showDialog(
       context: context,
       builder: (context) {
-        final theme = Theme.of(context);
         return AlertDialog(
-          backgroundColor: theme.scaffoldBackgroundColor,
-          title: Text('오류', style: theme.textTheme.titleSmall),
-          content: Text(message,
-              style: TextStyle(
-                color: theme.listTileTheme.textColor,
-                fontSize: 16,
-              )),
+          title: const Text('오류'),
+          content: Text(message),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text('확인',
-                  style: TextStyle(
-                    color: theme.colorScheme.primary,
-                    fontSize: 16,
-                  )),
+              child: const Text('확인'),
             ),
           ],
         );
@@ -176,7 +165,8 @@ class _JoinPageState extends ConsumerState<JoinPage> {
         currency: widget.currency.split(' ')[0],
       );
 
-      if (viewModel.state.joinSuccess == true) {
+      final joinState = ref.read(joinViewModelProvider);
+      if (joinState.joinSuccess == true) {
         await ref.read(userGlobalViewModel.notifier).refreshUserData();
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(

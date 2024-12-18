@@ -10,18 +10,13 @@ class LoginViewModel extends StateNotifier<LoginState> {
 
   LoginViewModel({required this.userRepository}) : super(const LoginState());
 
-  Future<void> login({
+  Future login({
     required String email,
     required String password,
   }) async {
-    if (state.isLoading) return; // 이미 로딩 중이면 중복 요청 방지
-
+    if (state.isLoading) return;
     try {
-      state = state.copyWith(
-        isLoading: true,
-        error: null,
-        loginSuccess: null,
-      );
+      state = state.copyWith(isLoading: true, error: null, loginSuccess: null);
 
       final result = await userRepository.login(
         email: email,
@@ -30,7 +25,6 @@ class LoginViewModel extends StateNotifier<LoginState> {
       );
 
       if (!mounted) return;
-
       state = state.copyWith(
         isLoading: false,
         loginSuccess: result,
@@ -38,25 +32,7 @@ class LoginViewModel extends StateNotifier<LoginState> {
       );
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
-
-      String errorMessage;
-      switch (e.code) {
-        case 'user-not-found':
-          errorMessage = '존재하지 않는 이메일입니다.';
-          break;
-        case 'wrong-password':
-          errorMessage = '잘못된 비밀번호입니다.';
-          break;
-        case 'invalid-email':
-          errorMessage = '유효하지 않은 이메일 형식입니다.';
-          break;
-        case 'user-disabled':
-          errorMessage = '비활성화된 계정입니다.';
-          break;
-        default:
-          errorMessage = '로그인 중 오류가 발생했습니다.';
-      }
-
+      String errorMessage = _getErrorMessage(e.code);
       state = state.copyWith(
         isLoading: false,
         error: errorMessage,
@@ -64,12 +40,26 @@ class LoginViewModel extends StateNotifier<LoginState> {
       );
     } catch (e) {
       if (!mounted) return;
-
       state = state.copyWith(
         isLoading: false,
-        error: '로그인 중 오류가 발생했습니다.',
+        error: '로그인 중 오류가 발생했습니다: ${e.toString()}',
         loginSuccess: false,
       );
+    }
+  }
+
+  String _getErrorMessage(String errorCode) {
+    switch (errorCode) {
+      case 'user-not-found':
+        return '존재하지 않는 이메일입니다.';
+      case 'wrong-password':
+        return '잘못된 비밀번호입니다.';
+      case 'invalid-email':
+        return '유효하지 않은 이메일 형식입니다.';
+      case 'user-disabled':
+        return '비활성화된 계정입니다.';
+      default:
+        return '로그인 중 오류가 발생했습니다.';
     }
   }
 

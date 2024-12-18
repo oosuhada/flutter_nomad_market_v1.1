@@ -1,33 +1,27 @@
 import 'dart:async';
-import 'package:flutter_market_app/data/model/address.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_market_app/data/model/user.dart';
 import 'package:flutter_market_app/data/repository/user_repository.dart';
 
 // 사용자 전역 상태 클래스
 class UserGlobalState {
-  final User user;
-  final bool isLoading;
-  final String? error;
+  final User? user; // 현재 사용자 정보
+  final bool isLoading; // 로딩 상태
+  final String? error; // 에러 메시지
 
   const UserGlobalState({
-    required this.user,
+    this.user,
     this.isLoading = false,
     this.error,
   });
 
-  String? get profileImageUrl => user?.profileImageUrl;
-  String get nickname => user.nickname;
-  String get userId => user.userId;
-  Address get address => user.address;
-
   UserGlobalState copyWith({
-    required User user,
+    User? user,
     bool? isLoading,
     String? error,
   }) {
     return UserGlobalState(
-      user: user,
+      user: user ?? this.user,
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
     );
@@ -38,40 +32,14 @@ class UserGlobalViewModel extends StateNotifier<UserGlobalState> {
   final UserRepository userRepository;
   StreamSubscription? _userSubscription;
 
-  UserGlobalViewModel(this.userRepository)
-      : super(UserGlobalState(
-            user: User(
-          userId: '',
-          email: '',
-          nickname: '',
-          profileImageUrl: '',
-          preferences: Preferences(
-            language: '',
-            currency: '',
-            homeAddress: '',
-          ),
-          signInMethod: '',
-          createdAt: DateTime.now(),
-          lastLoginAt: DateTime.now(),
-          status: '',
-          address: Address(
-            id: '',
-            fullNameKR: '',
-            fullNameEN: '',
-            cityKR: '',
-            cityEN: '',
-            countryKR: '',
-            countryEN: '',
-            isServiceAvailable: false,
-          ),
-        ))) {
+  UserGlobalViewModel(this.userRepository) : super(const UserGlobalState()) {
     // 생성자에서 자동으로 초기 데이터 로드
     _initializeUserStream();
   }
 
   // 사용자 정보 스트림 초기화 및 구독
   Future<void> _initializeUserStream() async {
-    state = state.copyWith(isLoading: true, user: state.user);
+    state = state.copyWith(isLoading: true);
 
     try {
       // 기존 구독 취소
@@ -95,7 +63,6 @@ class UserGlobalViewModel extends StateNotifier<UserGlobalState> {
           state = state.copyWith(
             error: error.toString(),
             isLoading: false,
-            user: state.user,
           );
           print("사용자 정보 스트림 에러: $error");
         },
@@ -104,7 +71,6 @@ class UserGlobalViewModel extends StateNotifier<UserGlobalState> {
       state = state.copyWith(
         error: e.toString(),
         isLoading: false,
-        user: state.user,
       );
       print("사용자 정보 초기화 에러: $e");
     }
@@ -113,7 +79,7 @@ class UserGlobalViewModel extends StateNotifier<UserGlobalState> {
   // 사용자 정보 수동 새로고침
   Future<void> refreshUserData() async {
     try {
-      state = state.copyWith(isLoading: true, user: state.user);
+      state = state.copyWith(isLoading: true);
       final userData = await userRepository.getCurrentUserInfo();
       if (userData != null) {
         state = state.copyWith(
@@ -126,7 +92,6 @@ class UserGlobalViewModel extends StateNotifier<UserGlobalState> {
       state = state.copyWith(
         error: e.toString(),
         isLoading: false,
-        user: state.user,
       );
       print("사용자 정보 새로고침 에러: $e");
     }

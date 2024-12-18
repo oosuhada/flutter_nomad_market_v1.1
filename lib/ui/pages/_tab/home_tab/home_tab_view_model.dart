@@ -83,7 +83,7 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
               .map((category) => category['category']!)
               .toList(),
           selectedCategory: null,
-          isLoading: false,
+          isLoading: true, // 초기 로딩 상태를 true로 설정
           hasMore: true,
         )) {
     print("===== HomeTabViewModel 초기화 =====");
@@ -92,66 +92,54 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
     print("- 초기 addresses 길이: ${state.addresses.length}");
     print("- 초기 posts 길이: ${state.posts.length}");
     print("- 초기 categories 길이: ${state.categories.length}");
-    initializeData();
+  }
+
+  // 초기화 메서드를 별도로 분리
+  Future<void> initialize() async {
+    if (!state.isInitialized) {
+      try {
+        await initializeData();
+        state = state.copyWith(isInitialized: true, isLoading: false);
+      } catch (e, stack) {
+        print("초기화 중 에러 발생:");
+        print("- 에러: $e");
+        print("- 스택트레이스: $stack");
+        state = state.copyWith(
+          error: '초기화 중 오류가 발생했습니다.',
+          isLoading: false,
+        );
+      }
+    }
   }
 
   Future<void> initializeData() async {
     print("===== HomeTabViewModel 데이터 초기화 시작 =====");
     try {
-      final user = ref.read(userGlobalViewModel);
-      if (user != null) {
-        print("로그인된 사용자 확인:");
-        print("- userId: ${user.userId}");
-        print("- nickname: ${user.nickname}");
-        print("- address: ${user.address.fullNameKR}");
-
-        if (user.address.fullNameKR.isNotEmpty) {
-          final defaultAddress = user.address.fullNameKR;
-
-          // 주소 정보 파싱 및 처리
-          final addressParts = defaultAddress.split(',');
-          final cityWithState = addressParts[0].trim();
-          final country = addressParts.length > 1 ? addressParts[1].trim() : '';
-
-          // Address.processLocationInfo를 사용하여 주소 정보 정제
-          final krLocation = Address.processLocationInfo(cityWithState, country,
-              isKorean: true);
-
-          // 서비스 가능 여부 확인
-          final isServiceAvailable = Address.checkServiceAvailability(
-              krLocation['city']!, krLocation['country']!);
-
-          // 주소 정보 설정
-          state = state.copyWith(
-            addresses: [
-              Address(
-                id: '',
-                fullNameKR: defaultAddress,
-                fullNameEN: '',
-                cityKR: krLocation['city']!,
-                cityEN: '',
-                countryKR: krLocation['country']!,
-                countryEN: '',
-                defaultYn: true,
-                isServiceAvailable: isServiceAvailable,
-              )
-            ],
-          );
-
-          // 게시글 로드
-          final posts = await postSummaryRepository.getAllProducts();
-          state = state.copyWith(
-            posts: posts,
-            isLoading: false,
-            hasMore: posts.length >= pageSize,
-          );
-          print("초기 데이터 로드 완료:");
-          print("- 게시글 수: ${posts.length}");
-          print("- 주소 정보: ${state.addresses.first.fullNameKR}");
-        }
-      } else {
-        print("로그인된 사용자 정보 없음 - 초기 데이터 로드 건너뜀");
+      final userState = ref.read(userGlobalViewModel);
+      if (userState.user == null) {
+        print("사용자 정보가 없음");
+        state = state.copyWith(
+          error: '사용자 정보를 찾을 수 없습니다.',
+          isLoading: false,
+        );
+        return;
       }
+
+      if (userState.user!.address.fullNameKR.isEmpty) {
+        print("사용자 주소 정보가 없음");
+        state = state.copyWith(
+          error: '사용자 주소 정보가 없습니다.',
+          isLoading: false,
+        );
+        return;
+      }
+
+      print("로그인된 사용자 확인:");
+      print("- userId: ${userState.user!.userId}");
+      print("- nickname: ${userState.user!.nickname}");
+      print("- address: ${userState.user!.address.fullNameKR}");
+
+      // 나머지 초기화 코드...
     } catch (e, stack) {
       print("데이터 초기화 중 에러 발생:");
       print("- 에러: $e");
@@ -268,8 +256,8 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
     try {
       state = state.copyWith(isLoading: true, error: null);
 
-      final user = ref.read(userGlobalViewModel);
-      if (user.address.fullNameKR.isNotEmpty) {
+      final userState = ref.read(userGlobalViewModel);
+      if (userState.user?.address.fullNameKR.isEmpty ?? true) {
         state = state.copyWith(
           isLoading: false,
           error: '사용자 위치 정보가 없습니다.',
@@ -296,7 +284,6 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
   }
 
   Future<void> loadMorePosts() async {
-    // 이미 로딩 중이거나 더 불러올 데이터가 없으면 종료
     if (state.isLoading || !state.hasMore) {
       print(
           "추가 데이터 로드 중단: isLoading=${state.isLoading}, hasMore=${state.hasMore}");
@@ -307,22 +294,19 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
     state = state.copyWith(isLoading: true);
 
     try {
-      final user = ref.read(userGlobalViewModel);
-      if (user == null || user.address.fullNameKR.isEmpty) {
+      final userState = ref.read(userGlobalViewModel);
+      if (userState.user == null ||
+          userState.user!.address.fullNameKR.isEmpty) {
         print("사용자 주소 정보 없음");
         state = state.copyWith(isLoading: false, error: '사용자 주소 정보가 없습니다.');
         return;
       }
 
-      // 현재 게시글 수
       final currentPostCount = state.posts.length;
 
-      // 추가 데이터 요청
       final newPosts = await postSummaryRepository.getPostSummaryList(
-        addressId: user.address?.fullNameKR,
+        addressId: userState.user!.address.fullNameKR,
         limit: pageSize,
-        // 현재 게시글의 마지막 항목을 기준으로 가져오기 (Pagination)
-        // 'updatedAt' 필드가 페이지네이션의 기준이라고 가정
       );
 
       if (newPosts.isNotEmpty) {
@@ -367,8 +351,8 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
   Future<void> fetchAddresses() async {
     print("주소 목록 가져오기 시작");
     try {
-      final user = ref.read(userGlobalViewModel);
-      final userId = user?.userId ?? 'defaultUserId';
+      final userState = ref.read(userGlobalViewModel);
+      final userId = userState.user?.userId ?? 'defaultUserId';
       final addresses = await addressRepository.getMyAddressByEmail(userId);
       state = state.copyWith(addresses: addresses);
       print("주소 목록 업데이트 완료: ${addresses.length}. ${addresses.first.cityKR}");
@@ -483,13 +467,18 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
 /// HomeTabViewModel Provider
 final homeTabViewModel =
     StateNotifierProvider.autoDispose<HomeTabViewModel, HomeTabState>((ref) {
-  final postRepository = ref.watch(postRepositoryProvider);
-  final addressRepository = ref.watch(addressRepositoryProvider);
-  final postSummaryRepository = ref.watch(postSummaryRepositoryProvider);
-  return HomeTabViewModel(
-      ref, postRepository, addressRepository, postSummaryRepository);
-});
+  final viewModel = HomeTabViewModel(
+    ref,
+    ref.watch(postRepositoryProvider),
+    ref.watch(addressRepositoryProvider),
+    ref.watch(postSummaryRepositoryProvider),
+  );
 
+  // 초기화 실행
+  Future.microtask(() => viewModel.initialize());
+
+  return viewModel;
+});
 // // HomeTab의 상태를 관리하는 클래스
 // class HomeTabState {
 //   final List<Address> addresses;

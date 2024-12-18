@@ -1,4 +1,3 @@
-// join_view_model.dart
 import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_market_app/ui/pages/join/join_state.dart';
@@ -57,7 +56,7 @@ class JoinViewModel extends StateNotifier<JoinState> {
     }
   }
 
-  Future<void> join({
+  Future join({
     required String nickname,
     required String email,
     required String password,
@@ -66,13 +65,8 @@ class JoinViewModel extends StateNotifier<JoinState> {
     required String currency,
   }) async {
     if (state.isLoading) return;
-
     try {
-      state = state.copyWith(
-        isLoading: true,
-        error: null,
-        joinSuccess: null,
-      );
+      state = state.copyWith(isLoading: true, error: null, joinSuccess: null);
 
       // 계정 생성
       final accountCreated = await userRepository.createAuthAccount(
@@ -81,7 +75,6 @@ class JoinViewModel extends StateNotifier<JoinState> {
       );
 
       if (!mounted) return;
-
       if (accountCreated == null) {
         throw Exception('계정 생성 실패');
       }
@@ -98,7 +91,6 @@ class JoinViewModel extends StateNotifier<JoinState> {
       );
 
       if (!mounted) return;
-
       state = state.copyWith(
         isLoading: false,
         joinSuccess: result,
@@ -106,25 +98,7 @@ class JoinViewModel extends StateNotifier<JoinState> {
       );
     } on FirebaseAuthException catch (e) {
       if (!mounted) return;
-
-      String errorMessage;
-      switch (e.code) {
-        case 'email-already-in-use':
-          errorMessage = '이미 사용 중인 이메일입니다.';
-          break;
-        case 'invalid-email':
-          errorMessage = '유효하지 않은 이메일 형식입니다.';
-          break;
-        case 'operation-not-allowed':
-          errorMessage = '이메일/비밀번호 로그인이 비활성화되어 있습니다.';
-          break;
-        case 'weak-password':
-          errorMessage = '비밀번호가 너무 약합니다.';
-          break;
-        default:
-          errorMessage = '회원가입 중 오류가 발생했습니다.';
-      }
-
+      String errorMessage = _getErrorMessage(e.code);
       state = state.copyWith(
         isLoading: false,
         error: errorMessage,
@@ -132,12 +106,26 @@ class JoinViewModel extends StateNotifier<JoinState> {
       );
     } catch (e) {
       if (!mounted) return;
-
       state = state.copyWith(
         isLoading: false,
-        error: '회원가입 중 오류가 발생했습니다',
+        error: '회원가입 중 오류가 발생했습니다: ${e.toString()}',
         joinSuccess: false,
       );
+    }
+  }
+
+  String _getErrorMessage(String errorCode) {
+    switch (errorCode) {
+      case 'email-already-in-use':
+        return '이미 사용 중인 이메일입니다.';
+      case 'invalid-email':
+        return '유효하지 않은 이메일 형식입니다.';
+      case 'operation-not-allowed':
+        return '이메일/비밀번호 로그인이 비활성화되어 있습니다.';
+      case 'weak-password':
+        return '비밀번호가 너무 약합니다.';
+      default:
+        return '회원가입 중 오류가 발생했습니다.';
     }
   }
 
