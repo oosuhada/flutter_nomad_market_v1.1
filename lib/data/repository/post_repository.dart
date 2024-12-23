@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_market_app/data/model/address.dart';
 import 'package:flutter_market_app/data/model/post.dart';
 import 'package:flutter_market_app/data/model/post_enums.dart';
-import 'package:flutter_market_app/data/model/post_summary.dart';
+
 import '../model/file_model.dart';
 
 class PostRepository {
@@ -253,7 +253,7 @@ class PriceRepository {
           .get();
 
       return querySnapshot.docs
-          .map((doc) => Post.fromJson(doc.data() as Map<String, dynamic>))
+          .map((doc) => Post.fromJson(doc.data()))
           .toList();
     } catch (e) {
       print('가격 범위 필터링 중 오류 발생: $e');
@@ -275,7 +275,7 @@ class PriceRepository {
           .get();
 
       return querySnapshot.docs
-          .map((doc) => Post.fromJson(doc.data() as Map<String, dynamic>))
+          .map((doc) => Post.fromJson(doc.data()))
           .toList();
     } catch (e) {
       print('최저가 게시글 조회 중 오류 발생: $e');

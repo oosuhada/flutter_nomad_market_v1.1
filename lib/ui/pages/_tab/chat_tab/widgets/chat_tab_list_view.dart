@@ -37,9 +37,6 @@ class ChatTabListView extends StatelessWidget {
   }
 
   Widget item(ChatRoom room, User user, WidgetRef ref) {
-    final displayUserId =
-        user.userId == room.sellerId ? room.buyerId : room.sellerId;
-
     return FutureBuilder<User?>(
       future: ref.read(userGlobalViewModel.notifier).initUserData(),
       builder: (context, snapshot) {

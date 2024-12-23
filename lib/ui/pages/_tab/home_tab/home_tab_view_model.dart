@@ -278,15 +278,13 @@ class HomeTabViewModel extends StateNotifier<HomeTabState> {
       }
 
       final posts = await postSummaryRepository.getAllProducts();
-      if (posts != null) {
-        state = state.copyWith(
-          posts: posts,
-          isLoading: false,
-          hasMore: posts.length >= pageSize,
-        );
-        print("게시글 목록 업데이트 완료:");
-        print("- 새로운 게시글 수: ${posts.length}");
-      }
+      state = state.copyWith(
+        posts: posts,
+        isLoading: false,
+        hasMore: posts.length >= pageSize,
+      );
+      print("게시글 목록 업데이트 완료:");
+      print("- 새로운 게시글 수: ${posts.length}");
     } catch (e) {
       state = state.copyWith(
         isLoading: false,

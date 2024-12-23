@@ -73,12 +73,12 @@ class AppTheme {
       // 입력 필드 테마 설정
       inputDecorationTheme: InputDecorationTheme(
         hintStyle: const TextStyle(
-          fontSize: 16,
+          fontSize: 14,
           fontWeight: FontWeight.bold,
           color: Colors.grey,
         ),
         contentPadding: const EdgeInsets.symmetric(
-          vertical: 16,
+          vertical: 14,
           horizontal: 20,
         ),
         border: OutlineInputBorder(
@@ -178,12 +178,12 @@ class AppTheme {
       // 입력 필드 테마 설정
       inputDecorationTheme: InputDecorationTheme(
         hintStyle: TextStyle(
-          fontSize: 16,
+          fontSize: 14,
           fontWeight: FontWeight.bold,
           color: Colors.grey[400],
         ),
         contentPadding: const EdgeInsets.symmetric(
-          vertical: 16,
+          vertical: 14,
           horizontal: 20,
         ),
         border: OutlineInputBorder(
