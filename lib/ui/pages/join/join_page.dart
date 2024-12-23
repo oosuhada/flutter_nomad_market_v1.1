@@ -1,20 +1,15 @@
 import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_market_app/core/image_picker_helper.dart';
 import 'package:flutter_market_app/core/snackbar_util.dart';
-import 'package:flutter_market_app/ui/pages/_tab/home_tab/home_tab.dart';
 import 'package:flutter_market_app/ui/pages/home/home_page.dart';
 import 'package:flutter_market_app/ui/pages/join/join_view_model.dart';
-import 'package:flutter_market_app/ui/pages/login/login_view_model.dart';
-import 'package:flutter_market_app/ui/pages/welcome/welcome_page.dart';
 import 'package:flutter_market_app/ui/user_global_view_model.dart';
 import 'package:flutter_market_app/ui/widgets/join_text_form_field.dart';
 import 'package:flutter_market_app/ui/widgets/nickname_text_form_field.dart';
 import 'package:flutter_market_app/ui/widgets/pw_text_form_field.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:flutter_market_app/ui/pages/login/login_page.dart';
 import 'package:flutter_market_app/ui/pages/social_id.dart';
 
 class JoinPage extends ConsumerStatefulWidget {
@@ -334,6 +329,34 @@ class _JoinPageState extends ConsumerState<JoinPage> {
               Consumer(
                 builder: (context, ref, child) {
                   final authService = ref.read(authServiceProvider);
+                  if (!authService.isAppleSignInAvailable()) {
+                    return SizedBox.shrink();
+                  }
+                  return authService.buildAppleSignInButton(
+                    context,
+                    onTap: () async {
+                      final success = await authService.onAppleSignIn(context);
+                      if (success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('애플 계정으로 로그인되었습니다'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                        await Future.delayed(Duration(seconds: 1));
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (context) => HomePage()),
+                          (route) => false,
+                        );
+                      }
+                    },
+                  );
+                },
+              ),
+              Consumer(
+                builder: (context, ref, child) {
+                  final authService = ref.read(authServiceProvider);
                   return GestureDetector(
                     onTap: () async {
                       final success = await authService.onGoogleSignIn(context);
@@ -392,6 +415,32 @@ class _JoinPageState extends ConsumerState<JoinPage> {
                         ),
                       ),
                     ),
+                  );
+                },
+              ),
+              Consumer(
+                builder: (context, ref, child) {
+                  final authService = ref.read(authServiceProvider);
+                  return authService.buildFacebookSignInButton(
+                    context,
+                    onTap: () async {
+                      final success =
+                          await authService.onFacebookSignIn(context);
+                      if (success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('페이스북 계정으로 로그인되었습니다'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                        await Future.delayed(Duration(seconds: 1));
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (context) => HomePage()),
+                          (route) => false,
+                        );
+                      }
+                    },
                   );
                 },
               ),

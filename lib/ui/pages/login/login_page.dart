@@ -1,6 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_market_app/core/snackbar_util.dart';
 import 'package:flutter_market_app/ui/pages/home/home_page.dart';
 import 'package:flutter_market_app/ui/pages/login/login_view_model.dart';
 import 'package:flutter_market_app/ui/pages/social_id.dart';
@@ -58,7 +57,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ),
       ),
     );
-    Overlay.of(context)!.insert(_loadingOverlay!);
+    Overlay.of(context).insert(_loadingOverlay!);
   }
 
   void _hideLoadingOverlay() {
@@ -249,6 +248,36 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         Consumer(
                           builder: (context, ref, child) {
                             final authService = ref.read(authServiceProvider);
+                            if (!authService.isAppleSignInAvailable()) {
+                              return SizedBox.shrink();
+                            }
+                            return authService.buildAppleSignInButton(
+                              context,
+                              onTap: () async {
+                                final success =
+                                    await authService.onAppleSignIn(context);
+                                if (success) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('애플 계정으로 로그인되었습니다'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                  await Future.delayed(Duration(seconds: 1));
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => HomePage()),
+                                    (route) => false,
+                                  );
+                                }
+                              },
+                            );
+                          },
+                        ),
+                        Consumer(
+                          builder: (context, ref, child) {
+                            final authService = ref.read(authServiceProvider);
                             return GestureDetector(
                               onTap: () async {
                                 print("===== 구글 로그인 시도 시작 =====");
@@ -382,7 +411,34 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               ),
                             );
                           },
-                        )
+                        ),
+                        Consumer(
+                          builder: (context, ref, child) {
+                            final authService = ref.read(authServiceProvider);
+                            return authService.buildFacebookSignInButton(
+                              context,
+                              onTap: () async {
+                                final success =
+                                    await authService.onFacebookSignIn(context);
+                                if (success) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('페이스북 계정으로 로그인되었습니다'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                  await Future.delayed(Duration(seconds: 1));
+                                  Navigator.pushAndRemoveUntil(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) => HomePage()),
+                                    (route) => false,
+                                  );
+                                }
+                              },
+                            );
+                          },
+                        ),
                       ],
                     ),
                   ),
@@ -426,47 +482,3 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 }
-
-                      // 페이스북 로그인 버튼
-                      // GestureDetector(
-                      //   onTap: () => onFacebookSignIn(ref),
-                      //   child: Container(
-                      //     width: double.infinity,
-                      //     height: 52,
-                      //     margin: EdgeInsets.symmetric(vertical: 10),
-                      //     decoration: BoxDecoration(
-                      //       color:
-                      //           Theme.of(context).brightness == Brightness.dark
-                      //               ? Colors.grey[900]
-                      //               : Colors.white,
-                      //       borderRadius: BorderRadius.circular(8),
-                      //       border: Border.all(color: Colors.grey.shade600),
-                      //     ),
-                      //     child: Center(
-                      //       child: Row(
-                      //         mainAxisAlignment: MainAxisAlignment.start,
-                      //         children: [
-                      //           SizedBox(width: 15),
-                      //           Icon(
-                      //             Icons.facebook,
-                      //             color: const Color.fromARGB(255, 33, 47, 125),
-                      //             size: 40,
-                      //           ),
-                      //           SizedBox(width: 10),
-                      //           Text(
-                      //             '페이스북 아이디로 계속하기',
-                      //             style: TextStyle(
-                      //               fontSize: 16,
-                      //               fontWeight: FontWeight.bold,
-                      //               color: Theme.of(context).brightness ==
-                      //                       Brightness.dark
-                      //                   ? Colors.grey[400]
-                      //                   : Colors.grey[600],
-                      //             ),
-                      //           ),
-                      //         ],
-                      //       ),
-                      //     ),
-                      //   ),
-                      // ),
-               
