@@ -106,6 +106,31 @@ class UserGlobalViewModel extends StateNotifier<UserGlobalState> {
     print("- address: ${user.address.fullNameKR}");
   }
 
+// 계정 정리 메서드 추가
+  Future<void> cleanupInconsistentAccounts() async {
+    try {
+      state = state.copyWith(isLoading: true);
+      final currentUser = userRepository.currentUserId;
+      if (currentUser != null) {
+        final userData = await userRepository.getCurrentUserInfo();
+        if (userData != null) {
+          final isConsistent =
+              await userRepository.checkUserDataConsistency(userData.email);
+          if (!isConsistent) {
+            await userRepository.cleanupAuthAccount(userData.email);
+          }
+        }
+      }
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(
+        error: e.toString(),
+        isLoading: false,
+      );
+      print("계정 정리 중 에러: $e");
+    }
+  }
+
   @override
   void dispose() {
     _userSubscription?.cancel();

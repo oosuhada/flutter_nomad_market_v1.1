@@ -4,6 +4,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_market_app/data/model/file_model.dart';
 import 'package:flutter_market_app/data/model/user.dart';
 import 'package:flutter_market_app/data/repository/firebase_repository.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+// FileRepository provider 정의
+final fileRepositoryProvider = Provider<FileRepository>((ref) {
+  return FileRepository();
+});
 
 class FileRepository extends FirebaseRepository {
   final FirebaseStorage storage = FirebaseStorage.instance;
@@ -72,3 +78,74 @@ class FileRepository extends FirebaseRepository {
     }
   }
 }
+
+// FileViewModel 추가
+class FileViewModel extends StateNotifier<AsyncValue<FileModel?>> {
+  final FileRepository fileRepository;
+
+  FileViewModel({required this.fileRepository})
+      : super(const AsyncValue.data(null));
+
+  Future<void> uploadFile({
+    required List<int> bytes,
+    required String filename,
+    required String mimeType,
+  }) async {
+    try {
+      state = const AsyncValue.loading();
+
+      final fileModel = await fileRepository.upload(
+        bytes: bytes,
+        filename: filename,
+        mimeType: mimeType,
+      );
+
+      state = AsyncValue.data(fileModel);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
+  }
+
+  void resetState() {
+    state = const AsyncValue.data(null);
+  }
+}
+
+// FileViewModel provider 정의
+final fileViewModelProvider =
+    StateNotifierProvider<FileViewModel, AsyncValue<FileModel?>>((ref) {
+  final repository = ref.watch(fileRepositoryProvider);
+  return FileViewModel(fileRepository: repository);
+});
+
+
+
+// // UI에서 사용 예시
+// class MyWidget extends ConsumerWidget {
+//   @override
+//   Widget build(BuildContext context, WidgetRef ref) {
+//     // 상태 관찰
+//     final fileState = ref.watch(fileViewModelProvider);
+    
+//     return fileState.when(
+//       data: (fileModel) {
+//         if (fileModel != null) {
+//           return Text('File uploaded: ${fileModel.url}');
+//         }
+//         return Text('No file uploaded');
+//       },
+//       loading: () => CircularProgressIndicator(),
+//       error: (error, stack) => Text('Error: $error'),
+//     );
+//   }
+
+//   // 파일 업로드 메서드
+//   Future<void> uploadFile(WidgetRef ref, List<int> bytes, String filename) async {
+//     final viewModel = ref.read(fileViewModelProvider.notifier);
+//     await viewModel.uploadFile(
+//       bytes: bytes,
+//       filename: filename,
+//       mimeType: 'image/jpeg',
+//     );
+//   }
+// }

@@ -1,3 +1,5 @@
+// Ver2.
+
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -110,6 +112,19 @@ class UserRepository {
   Future<bool> isEmailAvailable(String email) async {
     try {
       print("이메일 중복 확인 시작: $email");
+
+      // 1단계: Firebase Auth 확인
+      try {
+        final methods = await _auth.fetchSignInMethodsForEmail(email);
+        if (methods.isNotEmpty) {
+          print("Firebase Auth에 계정 존재");
+          return false;
+        }
+      } catch (e) {
+        print("Auth 확인 중 에러: $e");
+      }
+
+      // 2단계: Firestore 확인
       final result = await _firestore
           .collection('users')
           .where('email', isEqualTo: email)
@@ -218,6 +233,56 @@ class UserRepository {
       print("- 에러: $e");
       print("- 스택트레이스: $stackTrace");
       return null;
+    }
+  }
+
+//데이터 불일치 해결을 위한 cleanupAuthAccount 메서드 추가
+  Future<void> cleanupAuthAccount(String email) async {
+    try {
+      print("미사용 Auth 계정 정리 시도:");
+      print("- 이메일: $email");
+
+      final methods = await _auth.fetchSignInMethodsForEmail(email);
+      if (methods.isNotEmpty) {
+        // Auth 계정은 있지만 Firestore 데이터가 없는 경우
+        final userDoc = await _firestore
+            .collection('users')
+            .where('email', isEqualTo: email)
+            .get();
+
+        if (userDoc.docs.isEmpty) {
+          // 현재 사용자가 해당 이메일의 소유자인 경우에만 삭제
+          if (_auth.currentUser?.email == email) {
+            await _auth.currentUser?.delete();
+            print("미사용 Auth 계정 삭제 성공");
+          }
+        }
+      }
+    } catch (e) {
+      print("계정 정리 중 에러: $e");
+      throw Exception('계정 정리에 실패했습니다');
+    }
+  }
+
+//사용자 데이터 불일치 검사 메서드 추가
+  Future<bool> checkUserDataConsistency(String email) async {
+    try {
+      // Auth 계정 확인
+      final methods = await _auth.fetchSignInMethodsForEmail(email);
+      final hasAuthAccount = methods.isNotEmpty;
+
+      // Firestore 데이터 확인
+      final userDoc = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: email)
+          .get();
+      final hasFirestoreData = userDoc.docs.isNotEmpty;
+
+      // 둘 다 있거나 둘 다 없는 경우 일관성 있음
+      return hasAuthAccount == hasFirestoreData;
+    } catch (e) {
+      print("데이터 일관성 확인 중 에러: $e");
+      return false;
     }
   }
 
@@ -334,7 +399,7 @@ class UserRepository {
     required String nickname,
     required String password,
     required String addressFullName,
-    required String profileImageUrl, // 로컬 파일 경로
+    required String profileImageUrl,
     required String language,
     required String currency,
   }) async {
@@ -342,6 +407,7 @@ class UserRepository {
       print("회원가입 시작:");
       print("- 이메일: $email");
       print("- 닉네임: $nickname");
+      print("- 주소: $addressFullName");
 
       // 닉네임 중복 확인
       if (!await isNicknameAvailable(nickname)) {
@@ -350,31 +416,9 @@ class UserRepository {
       }
 
       // 프로필 이미지 처리
-      String finalProfileImageUrl = '';
-      if (profileImageUrl.isNotEmpty) {
-        print("프로필 이미지 업로드 시작");
-        try {
-          final File imageFile = File(profileImageUrl);
-          final bytes = await imageFile.readAsBytes();
-          final filename = profileImageUrl.split('/').last;
-
-          final fileRepository = FileRepository();
-          final fileModel = await fileRepository.upload(
-            bytes: bytes,
-            filename: filename,
-            mimeType: 'image/jpeg', // 또는 적절한 mimeType 설정
-          );
-
-          if (fileModel != null) {
-            finalProfileImageUrl = fileModel.url;
-            print("프로필 이미지 업로드 성공: $finalProfileImageUrl");
-          }
-        } catch (e) {
-          print("프로필 이미지 업로드 실패: $e");
-          // 이미지 업로드 실패시 기본 이미지 URL 사용
-          finalProfileImageUrl = ProfileImageUrlHelper.defaultProfileImageUrl;
-        }
-      }
+      String finalProfileImageUrl = profileImageUrl.isNotEmpty
+          ? await _uploadProfileImage(profileImageUrl)
+          : ProfileImageUrlHelper.defaultProfileImageUrl;
 
       // 계정 생성
       final credential = await createAuthAccount(
@@ -393,11 +437,20 @@ class UserRepository {
         'userId': credential.user!.uid,
         'email': email,
         'nickname': nickname,
-        'profileImageUrl': finalProfileImageUrl, // 업로드된 이미지 URL 사용
+        'profileImageUrl': finalProfileImageUrl,
         'preferences': {
           'language': language.split(' ')[0].toLowerCase(),
           'currency': currency.split(' ')[0],
           'homeAddress': addressFullName,
+        },
+        'address': {
+          'fullNameKR': addressFullName,
+          'cityKR': addressFullName.split(',')[0].trim(),
+          'countryKR': addressFullName.split(',').length > 1
+              ? addressFullName.split(',')[1].trim()
+              : '',
+          'defaultYn': true,
+          'isServiceAvailable': true
         },
         'signInMethod': 'email',
         'createdAt': FieldValue.serverTimestamp(),
@@ -407,12 +460,42 @@ class UserRepository {
 
       print("회원가입 성공");
       return true;
+    } on FirebaseException catch (e) {
+      print('Firebase 에러:');
+      print('- 코드: ${e.code}');
+      print('- 메시지: ${e.message}');
+      return false;
     } catch (e, stackTrace) {
       print('회원가입 실패:');
       print('- 에러: $e');
       print('- 스택트레이스: $stackTrace');
       return false;
     }
+  }
+
+  // 프로필 이미지 업로드를 위한 헬퍼 메서드 mimeType
+  Future<String> _uploadProfileImage(String profileImageUrl) async {
+    try {
+      print("프로필 이미지 업로드 시작");
+      final File imageFile = File(profileImageUrl);
+      final bytes = await imageFile.readAsBytes();
+      final filename = profileImageUrl.split('/').last;
+
+      final fileRepository = FileRepository();
+      final fileModel = await fileRepository.upload(
+        bytes: bytes,
+        filename: filename,
+        mimeType: 'image/jpeg',
+      );
+
+      if (fileModel != null) {
+        print("프로필 이미지 업로드 성공: ${fileModel.url}");
+        return fileModel.url;
+      }
+    } catch (e) {
+      print("프로필 이미지 업로드 실패: $e");
+    }
+    return ProfileImageUrlHelper.defaultProfileImageUrl;
   }
 
   /// 사용자 프로필을 업데이트합니다.
@@ -489,6 +572,23 @@ class UserRepository {
       print("로그아웃 성공");
     } catch (e) {
       print("로그아웃 실패: $e");
+    }
+  }
+
+  /// 현재 인증된 사용자의 계정을 삭제합니다.
+  Future<void> deleteAuthAccount() async {
+    try {
+      print("Firebase Auth 계정 삭제 시도");
+      final currentUser = _auth.currentUser;
+      if (currentUser != null) {
+        await currentUser.delete();
+        print("Firebase Auth 계정 삭제 성공");
+      } else {
+        print("삭제할 계정이 없음: 현재 로그인된 사용자 없음");
+      }
+    } catch (e) {
+      print("Firebase Auth 계정 삭제 실패: $e");
+      throw Exception('계정 삭제에 실패했습니다');
     }
   }
 

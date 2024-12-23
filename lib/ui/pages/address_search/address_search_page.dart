@@ -233,13 +233,13 @@ class _AddressSearchPageState extends ConsumerState<AddressSearchPage> {
               bottom: 0,
               child: Container(
                 color: Theme.of(context).primaryColor,
-                height: 100, // 높이 조절
+                height: 110, // 높이 조절
               ),
             ),
             Positioned(
               left: 0,
               right: 0,
-              bottom: 0,
+              bottom: 50,
               child: _buildCurrentLocationButton(context),
             ),
           ],

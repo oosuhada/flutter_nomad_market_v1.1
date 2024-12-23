@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/core/snackbar_util.dart';
+import 'package:flutter_market_app/ui/pages/_tab/home_tab/home_tab.dart';
 import 'package:flutter_market_app/ui/pages/home/home_page.dart';
 import 'package:flutter_market_app/ui/pages/join/join_view_model.dart';
 import 'package:flutter_market_app/ui/pages/social_id.dart';
@@ -11,6 +12,7 @@ import 'package:flutter_market_app/ui/widgets/nickname_text_form_field.dart';
 import 'package:flutter_market_app/ui/widgets/pw_text_form_field.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter_market_app/ui/pages/join/join_state.dart';
 
 class JoinPage extends ConsumerStatefulWidget {
   final String language;
@@ -29,44 +31,59 @@ class JoinPage extends ConsumerStatefulWidget {
 }
 
 class _JoinPageState extends ConsumerState<JoinPage> {
+  // 폼 컨트롤러들
   final emailController = TextEditingController();
   final pwController = TextEditingController();
   final nicknameController = TextEditingController();
   final formKey = GlobalKey<FormState>();
+
+  // 이미지 관련 상태
   File? imageFile;
   String? imageUrl;
-  late final String selectedLanguage;
-  late final String selectedAddress;
-  late final String selectedCurrency;
 
   @override
   void initState() {
     super.initState();
-    selectedLanguage = widget.language;
-    selectedAddress = widget.address;
-    selectedCurrency = widget.currency;
+    // 화면이 처음 만들어질 때, 회원가입 상태 변화를 감지하는 리스너 설정
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.listen<JoinState>(joinViewModelProvider, (previous, next) {
+        if (next.joinSuccess == true) {
+          // 회원가입 성공 시 전역 사용자 정보 갱신
+          ref.read(userGlobalViewModel.notifier).refreshUserData();
+
+          // 성공 메시지 표시
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('회원가입이 성공적으로 완료되었습니다')),
+          );
+
+          // 2초 후 홈페이지로 이동
+          Future.delayed(const Duration(seconds: 2), () {
+            if (!mounted) return;
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => HomeTab()),
+            );
+          });
+        } else if (next.error != null) {
+          // 에러 발생 시 에러 메시지 표시
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(next.error!)),
+          );
+        }
+      });
+    });
   }
 
-  @override
-  void dispose() {
-    emailController.dispose();
-    pwController.dispose();
-    nicknameController.dispose();
-    imageFile?.delete();
-    imageFile = null;
-    super.dispose();
-  }
-
+  // 이미지 선택/촬영을 위한 메서드
   Future<void> onImageUpload() async {
     showCupertinoModalPopup(
       context: context,
       builder: (context) {
-        final theme = Theme.of(context);
         return CupertinoActionSheet(
           actions: [
+            // 갤러리에서 선택
             CupertinoActionSheetAction(
               onPressed: () async {
-                Navigator.of(context).pop();
+                Navigator.pop(context);
                 final ImagePicker picker = ImagePicker();
                 final XFile? image =
                     await picker.pickImage(source: ImageSource.gallery);
@@ -77,17 +94,12 @@ class _JoinPageState extends ConsumerState<JoinPage> {
                   });
                 }
               },
-              child: Text(
-                '갤러리에서 선택',
-                style: TextStyle(
-                  color: theme.textTheme.bodyLarge?.color,
-                  fontSize: 16,
-                ),
-              ),
+              child: const Text('갤러리에서 선택'),
             ),
+            // 카메라로 촬영
             CupertinoActionSheetAction(
               onPressed: () async {
-                Navigator.of(context).pop();
+                Navigator.pop(context);
                 final ImagePicker picker = ImagePicker();
                 final XFile? image =
                     await picker.pickImage(source: ImageSource.camera);
@@ -98,50 +110,19 @@ class _JoinPageState extends ConsumerState<JoinPage> {
                   });
                 }
               },
-              child: Text(
-                '카메라로 촬영',
-                style: TextStyle(
-                  color: theme.textTheme.bodyLarge?.color,
-                  fontSize: 16,
-                ),
-              ),
+              child: const Text('카메라로 촬영'),
             ),
           ],
           cancelButton: CupertinoActionSheetAction(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: Text(
-              '취소',
-              style: TextStyle(
-                color: theme.textTheme.bodyLarge?.color,
-                fontSize: 16,
-              ),
-            ),
+            onPressed: () => Navigator.pop(context),
+            child: const Text('취소'),
           ),
         );
       },
     );
   }
 
-  void showErrorDialog(String message) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('오류'),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('확인'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
+  // 회원가입 처리 메서드
   Future<void> onJoin() async {
     if (!(formKey.currentState?.validate() ?? false)) return;
 
@@ -149,41 +130,23 @@ class _JoinPageState extends ConsumerState<JoinPage> {
     final password = pwController.text.trim();
     final nickname = nicknameController.text.trim();
 
-    if (email.isEmpty || password.isEmpty || nickname.isEmpty) {
-      SnackbarUtil.showSnackBar(context, '모든 필드를 입력해주세요');
-      return;
-    }
-
     try {
       final viewModel = ref.read(joinViewModelProvider.notifier);
+
+      final processedLanguage =
+          UserDataFormatter.formatLanguage(widget.language);
+      final processedCurrency =
+          UserDataFormatter.formatCurrency(widget.currency);
+
       await viewModel.join(
         nickname: nickname,
         email: email,
         password: password,
         addressFullName: widget.address,
-        language: widget.language.split(' ')[0].toLowerCase(),
-        currency: widget.currency.split(' ')[0],
+        language: processedLanguage,
+        currency: processedCurrency,
+        profileImageUrl: imageUrl ?? '',
       );
-
-      final joinState = ref.read(joinViewModelProvider);
-      if (joinState.joinSuccess == true) {
-        await ref.read(userGlobalViewModel.notifier).refreshUserData();
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('회원가입이 성공적으로 완료되었습니다'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-        await Future.delayed(const Duration(seconds: 2));
-        if (!mounted) return;
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => HomePage()),
-        );
-      } else {
-        if (!mounted) return;
-        SnackbarUtil.showSnackBar(context, '회원가입에 실패했습니다');
-      }
     } catch (e) {
       print("회원가입 중 오류 발생: $e");
       if (!mounted) return;
@@ -193,21 +156,17 @@ class _JoinPageState extends ConsumerState<JoinPage> {
 
   @override
   Widget build(BuildContext context) {
-    final userState = ref.watch(userGlobalViewModel);
-    final error = userState.error;
+    // UI 상태 감시
+    final joinState = ref.watch(joinViewModelProvider);
 
-    if (error != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('오류: $error')),
-        );
-      });
+    // 로딩 중이면 로딩 표시
+    if (joinState.isLoading) {
+      return const Center(child: CircularProgressIndicator());
     }
 
+    // UI 구성
     return GestureDetector(
-      onTap: () {
-        FocusScope.of(context).unfocus();
-      },
+      onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         appBar: AppBar(),
         body: Form(
@@ -316,7 +275,7 @@ class _JoinPageState extends ConsumerState<JoinPage> {
                         await Future.delayed(Duration(seconds: 2));
                         Navigator.pushAndRemoveUntil(
                           context,
-                          MaterialPageRoute(builder: (context) => HomePage()),
+                          MaterialPageRoute(builder: (context) => HomeTab()),
                           (route) => false,
                         );
                       }
@@ -366,6 +325,17 @@ class _JoinPageState extends ConsumerState<JoinPage> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    // 화면이 제거될 때 사용한 리소스들 정리
+    emailController.dispose();
+    pwController.dispose();
+    nicknameController.dispose();
+    imageFile?.delete();
+    imageFile = null;
+    super.dispose();
   }
 }
 

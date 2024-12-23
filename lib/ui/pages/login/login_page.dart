@@ -3,6 +3,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_market_app/core/snackbar_util.dart';
+import 'package:flutter_market_app/ui/pages/_tab/home_tab/home_tab.dart';
 import 'package:flutter_market_app/ui/pages/home/home_page.dart';
 import 'package:flutter_market_app/ui/pages/login/login_view_model.dart';
 import 'package:flutter_market_app/ui/pages/social_id.dart';
@@ -47,7 +48,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => HomePage()),
+        MaterialPageRoute(builder: (context) => HomeTab()),
         (route) => false,
       );
     } catch (e, stackTrace) {
@@ -186,7 +187,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               Navigator.pushAndRemoveUntil(
                                 context,
                                 MaterialPageRoute(
-                                    builder: (context) => HomePage()),
+                                    builder: (context) => HomeTab()),
                                 (route) => false,
                               );
                             }
@@ -238,3 +239,33 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 }
+
+
+
+// // 일반적인 클래스와 생성자
+// class RegularPoint {
+//   final int x;
+//   final int y;
+  
+//   RegularPoint(this.x, this.y);  // 일반 생성자
+// }
+
+// // const constructor를 사용하는 클래스
+// class ConstPoint {
+//   final int x;
+//   final int y;
+  
+//   const ConstPoint(this.x, this.y);  // const 생성자
+// }
+
+// void main() {
+//   // 일반 객체 생성
+//   var regular1 = RegularPoint(1, 1);
+//   var regular2 = RegularPoint(1, 1);
+//   print(regular1 == regular2);  // false: 서로 다른 인스턴스
+
+//   // const 객체 생성
+//   var const1 = const ConstPoint(1, 1);
+//   var const2 = const ConstPoint(1, 1);
+//   print(const1 == const2);  // true: 동일한 인스턴스
+// }
